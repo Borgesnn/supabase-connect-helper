@@ -3,11 +3,11 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import StatsCard from '@/components/dashboard/StatsCard';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Package, AlertTriangle, ArrowUpCircle, ArrowDownCircle, TrendingUp } from 'lucide-react';
+import { Gift, AlertTriangle, ArrowUpCircle, ArrowDownCircle, TrendingUp } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 
 interface DashboardStats {
-  totalProdutos: number;
+  totalBrindes: number;
   estoqueNormal: number;
   estoqueBaixo: number;
   semEstoque: number;
@@ -23,7 +23,7 @@ const COLORS = ['hsl(213, 50%, 15%)', 'hsl(187, 80%, 42%)', 'hsl(142, 76%, 36%)'
 export default function Dashboard() {
   const { user } = useAuth();
   const [stats, setStats] = useState<DashboardStats>({
-    totalProdutos: 0,
+    totalBrindes: 0,
     estoqueNormal: 0,
     estoqueBaixo: 0,
     semEstoque: 0,
@@ -41,12 +41,12 @@ export default function Dashboard() {
         if (error) throw error;
 
         if (produtos) {
-          const totalProdutos = produtos.length;
+          const totalBrindes = produtos.length;
           const semEstoque = produtos.filter(p => p.quantidade === 0).length;
           const estoqueBaixo = produtos.filter(p => p.quantidade > 0 && p.quantidade <= p.estoque_minimo).length;
           const estoqueNormal = produtos.filter(p => p.quantidade > p.estoque_minimo).length;
 
-          setStats({ totalProdutos, estoqueNormal, estoqueBaixo, semEstoque });
+          setStats({ totalBrindes, estoqueNormal, estoqueBaixo, semEstoque });
 
           // Agrupar por categoria
           const categorias: Record<string, number> = {};
@@ -82,15 +82,15 @@ export default function Dashboard() {
       {/* Header */}
       <div>
         <h1 className="text-3xl font-bold text-foreground">Dashboard</h1>
-        <p className="text-muted-foreground mt-1">Visão geral do estoque</p>
+        <p className="text-muted-foreground mt-1">Visão geral do estoque de brindes</p>
       </div>
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatsCard
-          title="Total de Produtos"
-          value={stats.totalProdutos}
-          icon={<Package className="w-6 h-6" />}
+          title="Total de Brindes"
+          value={stats.totalBrindes}
+          icon={<Gift className="w-6 h-6" />}
           variant="default"
         />
         <StatsCard

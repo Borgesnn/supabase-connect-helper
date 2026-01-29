@@ -10,9 +10,9 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { Plus, Search, Edit, Trash2, Package, AlertTriangle, Loader2 } from 'lucide-react';
+import { Plus, Search, Edit, Trash2, Gift, AlertTriangle, Loader2 } from 'lucide-react';
 
-export default function Produtos() {
+export default function Brindes() {
   const [produtos, setProdutos] = useState<Produto[]>([]);
   const [categorias, setCategorias] = useState<Categoria[]>([]);
   const [loading, setLoading] = useState(true);
@@ -59,7 +59,7 @@ export default function Produtos() {
     } catch (error) {
       console.error('Error fetching produtos:', error);
       toast({
-        title: 'Erro ao carregar produtos',
+        title: 'Erro ao carregar brindes',
         variant: 'destructive',
       });
     } finally {
@@ -141,21 +141,21 @@ export default function Produtos() {
           .eq('id', editingProduto.id);
 
         if (error) throw error;
-        toast({ title: 'Produto atualizado com sucesso!' });
+        toast({ title: 'Brinde atualizado com sucesso!' });
       } else {
         const { error } = await supabase
           .from('produtos')
           .insert([submitData]);
 
         if (error) throw error;
-        toast({ title: 'Produto adicionado com sucesso!' });
+        toast({ title: 'Brinde adicionado com sucesso!' });
       }
 
       setIsDialogOpen(false);
       fetchProdutos();
     } catch (error: any) {
       toast({
-        title: 'Erro ao salvar produto',
+        title: 'Erro ao salvar brinde',
         description: error.message,
         variant: 'destructive',
       });
@@ -165,7 +165,7 @@ export default function Produtos() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Tem certeza que deseja excluir este produto?')) return;
+    if (!confirm('Tem certeza que deseja excluir este brinde?')) return;
 
     try {
       const { error } = await supabase
@@ -174,11 +174,11 @@ export default function Produtos() {
         .eq('id', id);
 
       if (error) throw error;
-      toast({ title: 'Produto excluído com sucesso!' });
+      toast({ title: 'Brinde excluído com sucesso!' });
       fetchProdutos();
     } catch (error: any) {
       toast({
-        title: 'Erro ao excluir produto',
+        title: 'Erro ao excluir brinde',
         description: error.message,
         variant: 'destructive',
       });
@@ -198,20 +198,20 @@ export default function Produtos() {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-foreground">Produtos</h1>
-          <p className="text-muted-foreground mt-1">Gerencie seu estoque de produtos</p>
+          <h1 className="text-3xl font-bold text-foreground">Brindes</h1>
+          <p className="text-muted-foreground mt-1">Gerencie seu estoque de brindes</p>
         </div>
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
             <Button onClick={() => handleOpenDialog()} className="gradient-primary hover:opacity-90">
               <Plus className="w-4 h-4 mr-2" />
-              Novo Produto
+              Novo Brinde
             </Button>
           </DialogTrigger>
           <DialogContent className="max-w-lg">
             <DialogHeader>
               <DialogTitle>
-                {editingProduto ? 'Editar Produto' : 'Novo Produto'}
+                {editingProduto ? 'Editar Brinde' : 'Novo Brinde'}
               </DialogTitle>
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -359,7 +359,7 @@ export default function Produtos() {
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                      <Package className="w-5 h-5 text-primary" />
+                      <Gift className="w-5 h-5 text-primary" />
                     </div>
                     <div>
                       <CardTitle className="text-base font-semibold">{produto.nome}</CardTitle>
@@ -425,9 +425,9 @@ export default function Produtos() {
 
       {filteredProdutos.length === 0 && (
         <div className="text-center py-12">
-          <Package className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
-          <h3 className="text-lg font-medium text-foreground">Nenhum produto encontrado</h3>
-          <p className="text-muted-foreground">Tente ajustar os filtros ou adicione um novo produto</p>
+          <Gift className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
+          <h3 className="text-lg font-medium text-foreground">Nenhum brinde encontrado</h3>
+          <p className="text-muted-foreground">Tente ajustar os filtros ou adicione um novo brinde</p>
         </div>
       )}
     </div>

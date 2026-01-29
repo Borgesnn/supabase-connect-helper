@@ -7,7 +7,7 @@ import { AuthProvider } from "@/hooks/useAuth";
 import MainLayout from "@/components/layout/MainLayout";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
-import Produtos from "./pages/Produtos";
+import Brindes from "./pages/Brindes";
 import Movimentacoes from "./pages/Movimentacoes";
 import Pedidos from "./pages/Pedidos";
 import NotFound from "./pages/NotFound";
@@ -24,7 +24,7 @@ const App = () => (
           <Routes>
             <Route path="/auth" element={<Auth />} />
             <Route path="/" element={<MainLayout><Dashboard /></MainLayout>} />
-            <Route path="/produtos" element={<MainLayout><Produtos /></MainLayout>} />
+            <Route path="/brindes" element={<MainLayout><Brindes /></MainLayout>} />
             <Route path="/movimentacoes" element={<MainLayout><Movimentacoes /></MainLayout>} />
             <Route path="/pedidos" element={<MainLayout><Pedidos /></MainLayout>} />
             <Route path="*" element={<NotFound />} />
