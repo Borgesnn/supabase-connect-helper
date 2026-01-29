@@ -2,7 +2,7 @@ import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { cn } from '@/lib/utils';
 import { 
-  Package, 
+  Gift, 
   LayoutDashboard, 
   ShoppingCart, 
   ArrowLeftRight, 
@@ -17,7 +17,7 @@ import { useState } from 'react';
 
 const navItems = [
   { path: '/', label: 'Dashboard', icon: LayoutDashboard },
-  { path: '/produtos', label: 'Produtos', icon: Package },
+  { path: '/brindes', label: 'Brindes', icon: Gift },
   { path: '/movimentacoes', label: 'Movimentações', icon: ArrowLeftRight },
   { path: '/pedidos', label: 'Pedidos', icon: ShoppingCart },
   { path: '/usuarios', label: 'Usuários', icon: Users },
@@ -44,7 +44,7 @@ export default function Sidebar() {
       {/* Logo */}
       <div className="p-4 flex items-center gap-3 border-b border-sidebar-border">
         <div className="w-10 h-10 gradient-accent rounded-xl flex items-center justify-center flex-shrink-0">
-          <Package className="w-5 h-5 text-accent-foreground" />
+          <Gift className="w-5 h-5 text-accent-foreground" />
         </div>
         {!collapsed && (
           <span className="text-lg font-semibold text-sidebar-foreground">
