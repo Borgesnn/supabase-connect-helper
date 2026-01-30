@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { Users, Shield, Loader2 } from 'lucide-react';
+import { Users, Shield, Loader2, Lock } from 'lucide-react';
 
 interface UserProfile {
   id: string;
@@ -30,11 +31,28 @@ export default function Usuarios() {
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState<string | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const { user } = useAuth();
   const { toast } = useToast();
 
   useEffect(() => {
+    checkAdminStatus();
     fetchUsers();
-  }, []);
+  }, [user]);
+
+  async function checkAdminStatus() {
+    if (!user) return;
+    
+    const { data, error } = await supabase
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', user.id)
+      .maybeSingle();
+
+    if (!error && data?.role === 'admin') {
+      setIsAdmin(true);
+    }
+  }
 
   async function fetchUsers() {
     try {
@@ -155,26 +173,33 @@ export default function Usuarios() {
                 </Badge>
               </div>
 
-              <div className="space-y-2">
-                <label className="text-sm text-muted-foreground flex items-center gap-2">
-                  <Shield className="w-4 h-4" />
-                  Alterar papel:
-                </label>
-                <Select
-                  value={user.role}
-                  onValueChange={(value) => handleRoleChange(user.id, value)}
-                  disabled={updating === user.id}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="usuario">Usuário</SelectItem>
-                    <SelectItem value="operario">Operário</SelectItem>
-                    <SelectItem value="admin">Administrador</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+              {isAdmin ? (
+                <div className="space-y-2">
+                  <label className="text-sm text-muted-foreground flex items-center gap-2">
+                    <Shield className="w-4 h-4" />
+                    Alterar papel:
+                  </label>
+                  <Select
+                    value={user.role}
+                    onValueChange={(value) => handleRoleChange(user.id, value)}
+                    disabled={updating === user.id}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="usuario">Usuário</SelectItem>
+                      <SelectItem value="operario">Operário</SelectItem>
+                      <SelectItem value="admin">Administrador</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              ) : (
+                <div className="flex items-center gap-2 text-sm text-muted-foreground pt-2">
+                  <Lock className="w-4 h-4" />
+                  <span>Apenas administradores podem alterar papéis</span>
+                </div>
+              )}
 
               <div className="text-xs text-muted-foreground pt-2 border-t">
                 Desde: {new Date(user.created_at).toLocaleDateString('pt-BR')}
