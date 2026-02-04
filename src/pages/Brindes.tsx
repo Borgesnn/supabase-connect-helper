@@ -356,15 +356,21 @@ export default function Brindes() {
           return (
             <Card key={produto.id} className="hover:shadow-lg transition-all duration-200 group">
               <CardHeader className="pb-3">
-                <div className="flex items-start justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                      <Gift className="w-5 h-5 text-primary" />
-                    </div>
-                    <div>
-                      <CardTitle className="text-base font-semibold">{produto.nome}</CardTitle>
-                      <p className="text-sm text-muted-foreground">{produto.codigo}</p>
-                    </div>
+                <div className="flex items-start gap-3">
+                  <div className="w-16 h-16 rounded-lg bg-muted flex items-center justify-center overflow-hidden flex-shrink-0">
+                    {produto.imagem_url ? (
+                      <img 
+                        src={produto.imagem_url} 
+                        alt={produto.nome}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <Gift className="w-6 h-6 text-muted-foreground" />
+                    )}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <CardTitle className="text-base font-semibold truncate">{produto.nome}</CardTitle>
+                    <p className="text-sm text-muted-foreground">{produto.codigo}</p>
                   </div>
                 </div>
               </CardHeader>
