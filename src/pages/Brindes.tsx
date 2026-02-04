@@ -10,7 +10,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { Plus, Search, Edit, Trash2, Gift, AlertTriangle, Loader2 } from 'lucide-react';
+import { Plus, Search, Edit, Trash2, Gift, AlertTriangle, Loader2, Upload, X } from 'lucide-react';
 
 export default function Brindes() {
   const [produtos, setProdutos] = useState<Produto[]>([]);
@@ -21,6 +21,8 @@ export default function Brindes() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingProduto, setEditingProduto] = useState<Produto | null>(null);
   const [formLoading, setFormLoading] = useState(false);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
   
   const [formData, setFormData] = useState({
     codigo: '',
@@ -108,6 +110,7 @@ export default function Brindes() {
         fornecedor: produto.fornecedor || '',
         descricao: produto.descricao || '',
       });
+      setImagePreview(produto.imagem_url || null);
     } else {
       setEditingProduto(null);
       setFormData({
@@ -120,8 +123,55 @@ export default function Brindes() {
         fornecedor: '',
         descricao: '',
       });
+      setImagePreview(null);
     }
+    setImageFile(null);
     setIsDialogOpen(true);
+  };
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        toast({
+          title: 'Arquivo muito grande',
+          description: 'A imagem deve ter no máximo 5MB',
+          variant: 'destructive',
+        });
+        return;
+      }
+      setImageFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const removeImage = () => {
+    setImageFile(null);
+    setImagePreview(null);
+  };
+
+  const uploadImage = async (file: File): Promise<string | null> => {
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${crypto.randomUUID()}.${fileExt}`;
+    const filePath = `brindes/${fileName}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from('produtos')
+      .upload(filePath, file);
+
+    if (uploadError) {
+      throw uploadError;
+    }
+
+    const { data } = supabase.storage
+      .from('produtos')
+      .getPublicUrl(filePath);
+
+    return data.publicUrl;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -129,9 +179,20 @@ export default function Brindes() {
     setFormLoading(true);
 
     try {
+      let imagemUrl = editingProduto?.imagem_url || null;
+
+      // Upload nova imagem se selecionada
+      if (imageFile) {
+        imagemUrl = await uploadImage(imageFile);
+      } else if (!imagePreview && editingProduto?.imagem_url) {
+        // Imagem foi removida
+        imagemUrl = null;
+      }
+
       const submitData = {
         ...formData,
         categoria_id: formData.categoria_id || null,
+        imagem_url: imagemUrl,
       };
 
       if (editingProduto) {
@@ -307,6 +368,46 @@ export default function Brindes() {
                   onChange={(e) => setFormData({ ...formData, descricao: e.target.value })}
                   rows={3}
                 />
+              </div>
+
+              <div className="space-y-2">
+                <Label>Imagem do Brinde</Label>
+                {imagePreview ? (
+                  <div className="relative w-full h-40 rounded-lg border overflow-hidden">
+                    <img 
+                      src={imagePreview} 
+                      alt="Preview" 
+                      className="w-full h-full object-cover"
+                    />
+                    <Button
+                      type="button"
+                      variant="destructive"
+                      size="icon"
+                      className="absolute top-2 right-2 h-8 w-8"
+                      onClick={removeImage}
+                    >
+                      <X className="w-4 h-4" />
+                    </Button>
+                  </div>
+                ) : (
+                  <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer hover:bg-muted/50 transition-colors">
+                    <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                      <Upload className="w-8 h-8 mb-2 text-muted-foreground" />
+                      <p className="text-sm text-muted-foreground">
+                        Clique para selecionar uma imagem
+                      </p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        PNG, JPG até 5MB
+                      </p>
+                    </div>
+                    <input
+                      type="file"
+                      className="hidden"
+                      accept="image/*"
+                      onChange={handleImageChange}
+                    />
+                  </label>
+                )}
               </div>
 
               <div className="flex justify-end gap-3">
