@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
+import { useUserRole } from '@/hooks/useUserRole';
 import { Produto, Categoria } from '@/types/database';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,19 +12,27 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { Plus, Search, Edit, Trash2, Gift, AlertTriangle, Loader2, Upload, X } from 'lucide-react';
+import { Plus, Search, Edit, Trash2, Gift, AlertTriangle, Loader2, Upload, X, ShoppingCart } from 'lucide-react';
 
 export default function Brindes() {
+  const { user } = useAuth();
+  const { canManage, loading: roleLoading } = useUserRole();
   const [produtos, setProdutos] = useState<Produto[]>([]);
   const [categorias, setCategorias] = useState<Categoria[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterCategoria, setFilterCategoria] = useState<string>('all');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isRequestDialogOpen, setIsRequestDialogOpen] = useState(false);
+  const [selectedProduto, setSelectedProduto] = useState<Produto | null>(null);
   const [editingProduto, setEditingProduto] = useState<Produto | null>(null);
   const [formLoading, setFormLoading] = useState(false);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  
+  // Estado para solicitação
+  const [requestQuantidade, setRequestQuantidade] = useState(1);
+  const [requestMotivo, setRequestMotivo] = useState('');
   
   const [formData, setFormData] = useState({
     codigo: '',
@@ -246,7 +256,45 @@ export default function Brindes() {
     }
   };
 
-  if (loading) {
+  const handleOpenRequestDialog = (produto: Produto) => {
+    setSelectedProduto(produto);
+    setRequestQuantidade(1);
+    setRequestMotivo('');
+    setIsRequestDialogOpen(true);
+  };
+
+  const handleSubmitRequest = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedProduto || !user) return;
+    
+    setFormLoading(true);
+    try {
+      const { error } = await supabase
+        .from('pedidos')
+        .insert([{
+          produto_id: selectedProduto.id,
+          quantidade: requestQuantidade,
+          solicitante_id: user.id,
+          motivo: requestMotivo || null,
+          status: 'pendente'
+        }]);
+
+      if (error) throw error;
+      
+      toast({ title: 'Solicitação enviada com sucesso!' });
+      setIsRequestDialogOpen(false);
+    } catch (error: any) {
+      toast({
+        title: 'Erro ao enviar solicitação',
+        description: error.message,
+        variant: 'destructive',
+      });
+    } finally {
+      setFormLoading(false);
+    }
+  };
+
+  if (loading || roleLoading) {
     return (
       <div className="flex items-center justify-center h-64">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
@@ -260,15 +308,18 @@ export default function Brindes() {
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold text-foreground">Brindes</h1>
-          <p className="text-muted-foreground mt-1">Gerencie seu estoque de brindes</p>
+          <p className="text-muted-foreground mt-1">
+            {canManage ? 'Gerencie seu estoque de brindes' : 'Visualize e solicite brindes'}
+          </p>
         </div>
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogTrigger asChild>
-            <Button onClick={() => handleOpenDialog()} className="gradient-primary hover:opacity-90">
-              <Plus className="w-4 h-4 mr-2" />
-              Novo Brinde
-            </Button>
-          </DialogTrigger>
+        {canManage && (
+          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <DialogTrigger asChild>
+              <Button onClick={() => handleOpenDialog()} className="gradient-primary hover:opacity-90">
+                <Plus className="w-4 h-4 mr-2" />
+                Novo Brinde
+              </Button>
+            </DialogTrigger>
           <DialogContent className="max-w-lg max-h-[90vh] overflow-hidden flex flex-col">
             <DialogHeader className="flex-shrink-0">
               <DialogTitle>
@@ -422,6 +473,7 @@ export default function Brindes() {
             </form>
           </DialogContent>
         </Dialog>
+        )}
       </div>
 
       {/* Filters */}
@@ -505,25 +557,39 @@ export default function Brindes() {
                   </div>
                 </div>
 
-                <div className="flex gap-2 pt-2 border-t">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="flex-1"
-                    onClick={() => handleOpenDialog(produto)}
-                  >
-                    <Edit className="w-4 h-4 mr-1" />
-                    Editar
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="text-destructive hover:bg-destructive hover:text-destructive-foreground"
-                    onClick={() => handleDelete(produto.id)}
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </Button>
-                </div>
+                {canManage ? (
+                  <div className="flex gap-2 pt-2 border-t">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="flex-1"
+                      onClick={() => handleOpenDialog(produto)}
+                    >
+                      <Edit className="w-4 h-4 mr-1" />
+                      Editar
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="text-destructive hover:bg-destructive hover:text-destructive-foreground"
+                      onClick={() => handleDelete(produto.id)}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="pt-2 border-t">
+                    <Button
+                      variant="default"
+                      size="sm"
+                      className="w-full gradient-primary hover:opacity-90"
+                      onClick={() => handleOpenRequestDialog(produto)}
+                    >
+                      <ShoppingCart className="w-4 h-4 mr-1" />
+                      Solicitar
+                    </Button>
+                  </div>
+                )}
               </CardContent>
             </Card>
           );
@@ -537,6 +603,70 @@ export default function Brindes() {
           <p className="text-muted-foreground">Tente ajustar os filtros ou adicione um novo brinde</p>
         </div>
       )}
+
+      {/* Dialog de Solicitação */}
+      <Dialog open={isRequestDialogOpen} onOpenChange={setIsRequestDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Solicitar Brinde</DialogTitle>
+          </DialogHeader>
+          {selectedProduto && (
+            <form onSubmit={handleSubmitRequest} className="space-y-4">
+              <div className="flex items-center gap-3 p-3 bg-muted rounded-lg">
+                <div className="w-12 h-12 rounded-lg bg-background flex items-center justify-center overflow-hidden">
+                  {selectedProduto.imagem_url ? (
+                    <img 
+                      src={selectedProduto.imagem_url} 
+                      alt={selectedProduto.nome}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <Gift className="w-5 h-5 text-muted-foreground" />
+                  )}
+                </div>
+                <div>
+                  <p className="font-medium">{selectedProduto.nome}</p>
+                  <p className="text-sm text-muted-foreground">Disponível: {selectedProduto.quantidade}</p>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="request-quantidade">Quantidade</Label>
+                <Input
+                  id="request-quantidade"
+                  type="number"
+                  min="1"
+                  max={selectedProduto.quantidade}
+                  value={requestQuantidade}
+                  onChange={(e) => setRequestQuantidade(parseInt(e.target.value) || 1)}
+                  required
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="request-motivo">Motivo (opcional)</Label>
+                <Textarea
+                  id="request-motivo"
+                  placeholder="Ex: Evento de marketing, brinde para cliente..."
+                  value={requestMotivo}
+                  onChange={(e) => setRequestMotivo(e.target.value)}
+                  rows={3}
+                />
+              </div>
+
+              <div className="flex justify-end gap-3">
+                <Button type="button" variant="outline" onClick={() => setIsRequestDialogOpen(false)}>
+                  Cancelar
+                </Button>
+                <Button type="submit" disabled={formLoading} className="gradient-primary">
+                  {formLoading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                  Enviar Solicitação
+                </Button>
+              </div>
+            </form>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
