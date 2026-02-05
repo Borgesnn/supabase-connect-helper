@@ -1,5 +1,6 @@
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
+import { useUserRole } from '@/hooks/useUserRole';
 import { cn } from '@/lib/utils';
 import { 
   Gift, 
@@ -15,17 +16,25 @@ import {
 import { Button } from '@/components/ui/button';
 import { useState } from 'react';
 
-const navItems = [
-  { path: '/', label: 'Dashboard', icon: LayoutDashboard },
+interface NavItem {
+  path: string;
+  label: string;
+  icon: React.ComponentType<{ className?: string }>;
+  requiredRoles?: ('admin' | 'operario' | 'usuario')[];
+}
+
+const navItems: NavItem[] = [
+  { path: '/', label: 'Dashboard', icon: LayoutDashboard, requiredRoles: ['admin', 'operario'] },
   { path: '/brindes', label: 'Brindes', icon: Gift },
-  { path: '/movimentacoes', label: 'Movimentações', icon: ArrowLeftRight },
+  { path: '/movimentacoes', label: 'Movimentações', icon: ArrowLeftRight, requiredRoles: ['admin', 'operario'] },
   { path: '/pedidos', label: 'Pedidos', icon: ShoppingCart },
-  { path: '/usuarios', label: 'Usuários', icon: Users },
+  { path: '/usuarios', label: 'Usuários', icon: Users, requiredRoles: ['admin', 'operario'] },
   { path: '/configuracoes', label: 'Configurações', icon: Settings },
 ];
 
 export default function Sidebar() {
   const { signOut } = useAuth();
+  const { role } = useUserRole();
   const navigate = useNavigate();
   const [collapsed, setCollapsed] = useState(false);
 
@@ -33,6 +42,13 @@ export default function Sidebar() {
     await signOut();
     navigate('/auth');
   };
+
+  // Filtra itens de navegação baseado no papel do usuário
+  const filteredNavItems = navItems.filter(item => {
+    if (!item.requiredRoles) return true;
+    if (!role) return false;
+    return item.requiredRoles.includes(role);
+  });
 
   return (
     <aside 
@@ -69,7 +85,7 @@ export default function Sidebar() {
 
       {/* Navigation */}
       <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
-        {navItems.map((item) => (
+        {filteredNavItems.map((item) => (
           <NavLink
             key={item.path}
             to={item.path}

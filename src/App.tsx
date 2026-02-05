@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import MainLayout from "@/components/layout/MainLayout";
+import ProtectedRoute from "@/components/layout/ProtectedRoute";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import Brindes from "./pages/Brindes";
@@ -24,11 +25,42 @@ const App = () => (
         <BrowserRouter>
           <Routes>
             <Route path="/auth" element={<Auth />} />
-            <Route path="/" element={<MainLayout><Dashboard /></MainLayout>} />
-            <Route path="/brindes" element={<MainLayout><Brindes /></MainLayout>} />
-            <Route path="/movimentacoes" element={<MainLayout><Movimentacoes /></MainLayout>} />
-            <Route path="/pedidos" element={<MainLayout><Pedidos /></MainLayout>} />
-            <Route path="/usuarios" element={<MainLayout><Usuarios /></MainLayout>} />
+            
+            {/* Dashboard - apenas admin e operário */}
+            <Route path="/" element={
+              <ProtectedRoute requiredRoles={['admin', 'operario']}>
+                <MainLayout><Dashboard /></MainLayout>
+              </ProtectedRoute>
+            } />
+            
+            {/* Brindes - todos podem ver */}
+            <Route path="/brindes" element={
+              <ProtectedRoute>
+                <MainLayout><Brindes /></MainLayout>
+              </ProtectedRoute>
+            } />
+            
+            {/* Movimentações - apenas admin e operário */}
+            <Route path="/movimentacoes" element={
+              <ProtectedRoute requiredRoles={['admin', 'operario']}>
+                <MainLayout><Movimentacoes /></MainLayout>
+              </ProtectedRoute>
+            } />
+            
+            {/* Pedidos - todos podem ver */}
+            <Route path="/pedidos" element={
+              <ProtectedRoute>
+                <MainLayout><Pedidos /></MainLayout>
+              </ProtectedRoute>
+            } />
+            
+            {/* Usuários - apenas admin e operário podem ver */}
+            <Route path="/usuarios" element={
+              <ProtectedRoute requiredRoles={['admin', 'operario']}>
+                <MainLayout><Usuarios /></MainLayout>
+              </ProtectedRoute>
+            } />
+            
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
