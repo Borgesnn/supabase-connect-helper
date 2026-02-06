@@ -85,9 +85,18 @@ export default function Pedidos() {
     filterStatus === 'all' || p.status === filterStatus
   );
 
+  const validateQuantidade = (qty: number): boolean => {
+    return Number.isInteger(qty) && qty > 0 && qty <= 100000;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return;
+
+    if (!validateQuantidade(formData.quantidade)) {
+      toast({ title: 'Quantidade inválida (1-100.000)', variant: 'destructive' });
+      return;
+    }
 
     setSubmitting(true);
 
@@ -137,6 +146,11 @@ export default function Pedidos() {
 
       // If approved, update product quantity
       if (newStatus === 'aprovada' && pedido.produtos) {
+        if (!validateQuantidade(pedido.quantidade)) {
+          toast({ title: 'Quantidade do pedido é inválida', variant: 'destructive' });
+          return;
+        }
+
         const novaQuantidade = pedido.produtos.quantidade - pedido.quantidade;
         
         if (novaQuantidade < 0) {
@@ -244,7 +258,8 @@ export default function Pedidos() {
                   type="number"
                   min="1"
                   value={formData.quantidade}
-                  onChange={(e) => setFormData({ ...formData, quantidade: parseInt(e.target.value) || 1 })}
+                  max="100000"
+                  onChange={(e) => setFormData({ ...formData, quantidade: Math.max(1, Math.min(100000, parseInt(e.target.value) || 1)) })}
                   required
                 />
               </div>
