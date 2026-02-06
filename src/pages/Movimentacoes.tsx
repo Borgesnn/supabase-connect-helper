@@ -77,18 +77,9 @@ export default function Movimentacoes() {
 
   const selectedProdutoData = produtos.find(p => p.id === selectedProduto);
 
-  const validateQuantidade = (qty: number): boolean => {
-    return Number.isInteger(qty) && qty > 0 && qty <= 100000;
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedProduto || !user) return;
-
-    if (!validateQuantidade(quantidade)) {
-      toast({ title: 'Quantidade inválida (1-100.000)', variant: 'destructive' });
-      return;
-    }
 
     // Validação para saída
     if (tipo === 'saida' && selectedProdutoData && quantidade > selectedProdutoData.quantidade) {
@@ -237,8 +228,7 @@ export default function Movimentacoes() {
                   type="number"
                   min="1"
                   value={quantidade}
-                  max="100000"
-                  onChange={(e) => setQuantidade(Math.max(1, Math.min(100000, parseInt(e.target.value) || 1)))}
+                  onChange={(e) => setQuantidade(parseInt(e.target.value) || 1)}
                   required
                 />
               </div>
