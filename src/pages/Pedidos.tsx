@@ -121,21 +121,27 @@ export default function Pedidos() {
     }
   };
 
-  const handleStatusChange = async (pedidoId: string, newStatus: 'aprovada' | 'rejeitada') => {
-    if (!user) return;
+  const handleStatusChange = async (pedidoId: string, newStatus: 'aprovada' | 'rejeitada', motivoRejeicao?: string) => {
+    if (!user || !canManage) return;
 
     try {
       const pedido = pedidos.find(p => p.id === pedidoId);
       if (!pedido) return;
 
-      // Update pedido status
+      const updateData: any = {
+        status: newStatus,
+        data_aprovacao: new Date().toISOString(),
+        aprovador_id: user.id,
+      };
+
+      // If rejected, store the rejection reason in motivo
+      if (newStatus === 'rejeitada' && motivoRejeicao) {
+        updateData.motivo = `[Rejeitado] ${motivoRejeicao}`;
+      }
+
       const { error: updateError } = await supabase
         .from('pedidos')
-        .update({
-          status: newStatus,
-          data_aprovacao: new Date().toISOString(),
-          aprovador_id: user.id,
-        })
+        .update(updateData)
         .eq('id', pedidoId);
 
       if (updateError) throw updateError;
@@ -160,7 +166,6 @@ export default function Pedidos() {
 
         if (prodError) throw prodError;
 
-        // Register movement
         await supabase.from('movimentacoes').insert([{
           produto_id: pedido.produto_id,
           tipo: 'saida',
@@ -181,6 +186,23 @@ export default function Pedidos() {
         variant: 'destructive',
       });
     }
+  };
+
+  const openRejectDialog = (pedidoId: string) => {
+    setRejectingPedidoId(pedidoId);
+    setRejectMotivo('');
+    setRejectDialogOpen(true);
+  };
+
+  const handleRejectConfirm = async () => {
+    if (!rejectingPedidoId || !rejectMotivo.trim()) {
+      toast({ title: 'Informe o motivo da rejeição', variant: 'destructive' });
+      return;
+    }
+    await handleStatusChange(rejectingPedidoId, 'rejeitada', rejectMotivo);
+    setRejectDialogOpen(false);
+    setRejectingPedidoId(null);
+    setRejectMotivo('');
   };
 
   const getStatusBadge = (status: string) => {
