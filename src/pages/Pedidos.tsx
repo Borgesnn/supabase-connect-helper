@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { useUserRole } from '@/hooks/useUserRole';
 import { Produto } from '@/types/database';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -36,12 +37,16 @@ interface Pedido {
 
 export default function Pedidos() {
   const { user } = useAuth();
+  const { canManage } = useUserRole();
   const [pedidos, setPedidos] = useState<Pedido[]>([]);
   const [produtos, setProdutos] = useState<Produto[]>([]);
   const [loading, setLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [filterStatus, setFilterStatus] = useState<string>('all');
+  const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
+  const [rejectingPedidoId, setRejectingPedidoId] = useState<string | null>(null);
+  const [rejectMotivo, setRejectMotivo] = useState('');
   
   const [formData, setFormData] = useState({
     produto_id: '',
@@ -116,21 +121,27 @@ export default function Pedidos() {
     }
   };
 
-  const handleStatusChange = async (pedidoId: string, newStatus: 'aprovada' | 'rejeitada') => {
-    if (!user) return;
+  const handleStatusChange = async (pedidoId: string, newStatus: 'aprovada' | 'rejeitada', motivoRejeicao?: string) => {
+    if (!user || !canManage) return;
 
     try {
       const pedido = pedidos.find(p => p.id === pedidoId);
       if (!pedido) return;
 
-      // Update pedido status
+      const updateData: any = {
+        status: newStatus,
+        data_aprovacao: new Date().toISOString(),
+        aprovador_id: user.id,
+      };
+
+      // If rejected, store the rejection reason in motivo
+      if (newStatus === 'rejeitada' && motivoRejeicao) {
+        updateData.motivo = `[Rejeitado] ${motivoRejeicao}`;
+      }
+
       const { error: updateError } = await supabase
         .from('pedidos')
-        .update({
-          status: newStatus,
-          data_aprovacao: new Date().toISOString(),
-          aprovador_id: user.id,
-        })
+        .update(updateData)
         .eq('id', pedidoId);
 
       if (updateError) throw updateError;
@@ -155,7 +166,6 @@ export default function Pedidos() {
 
         if (prodError) throw prodError;
 
-        // Register movement
         await supabase.from('movimentacoes').insert([{
           produto_id: pedido.produto_id,
           tipo: 'saida',
@@ -176,6 +186,23 @@ export default function Pedidos() {
         variant: 'destructive',
       });
     }
+  };
+
+  const openRejectDialog = (pedidoId: string) => {
+    setRejectingPedidoId(pedidoId);
+    setRejectMotivo('');
+    setRejectDialogOpen(true);
+  };
+
+  const handleRejectConfirm = async () => {
+    if (!rejectingPedidoId || !rejectMotivo.trim()) {
+      toast({ title: 'Informe o motivo da rejeição', variant: 'destructive' });
+      return;
+    }
+    await handleStatusChange(rejectingPedidoId, 'rejeitada', rejectMotivo);
+    setRejectDialogOpen(false);
+    setRejectingPedidoId(null);
+    setRejectMotivo('');
   };
 
   const getStatusBadge = (status: string) => {
@@ -332,7 +359,7 @@ export default function Pedidos() {
                 )}
               </div>
 
-              {pedido.status === 'pendente' && (
+              {pedido.status === 'pendente' && canManage && (
                 <div className="flex gap-2 pt-2 border-t">
                   <Button
                     size="sm"
@@ -346,7 +373,7 @@ export default function Pedidos() {
                     size="sm"
                     variant="destructive"
                     className="flex-1"
-                    onClick={() => handleStatusChange(pedido.id, 'rejeitada')}
+                    onClick={() => openRejectDialog(pedido.id)}
                   >
                     <X className="w-4 h-4 mr-1" />
                     Rejeitar
@@ -365,6 +392,37 @@ export default function Pedidos() {
           <p className="text-muted-foreground">Crie um novo pedido para solicitar produtos</p>
         </div>
       )}
+      {/* Reject Dialog */}
+      <Dialog open={rejectDialogOpen} onOpenChange={setRejectDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Motivo da Rejeição</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label>Por que está rejeitando este pedido?</Label>
+              <Textarea
+                value={rejectMotivo}
+                onChange={(e) => setRejectMotivo(e.target.value)}
+                placeholder="Informe o motivo da rejeição..."
+                rows={3}
+              />
+            </div>
+            <div className="flex justify-end gap-3">
+              <Button variant="outline" onClick={() => setRejectDialogOpen(false)}>
+                Cancelar
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={handleRejectConfirm}
+                disabled={!rejectMotivo.trim()}
+              >
+                Confirmar Rejeição
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
