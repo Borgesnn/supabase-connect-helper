@@ -1,11 +1,15 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useUserRole } from '@/hooks/useUserRole';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { Users, Shield, Loader2, Lock } from 'lucide-react';
+import { Users, Shield, Loader2, Lock, UserPlus, Eye, EyeOff } from 'lucide-react';
 
 interface UserProfile {
   id: string;
@@ -31,32 +35,24 @@ export default function Usuarios() {
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState<string | null>(null);
-  const [isAdmin, setIsAdmin] = useState(false);
   const { user } = useAuth();
+  const { isAdmin } = useUserRole();
   const { toast } = useToast();
 
+  // Estado para cadastro de usuário
+  const [newUserName, setNewUserName] = useState('');
+  const [newUserEmail, setNewUserEmail] = useState('');
+  const [newUserPassword, setNewUserPassword] = useState('');
+  const [newUserRole, setNewUserRole] = useState<'usuario' | 'operario' | 'admin'>('usuario');
+  const [showNewUserPassword, setShowNewUserPassword] = useState(false);
+  const [creatingUser, setCreatingUser] = useState(false);
+
   useEffect(() => {
-    checkAdminStatus();
     fetchUsers();
   }, [user]);
 
-  async function checkAdminStatus() {
-    if (!user) return;
-    
-    const { data, error } = await supabase
-      .from('user_roles')
-      .select('role')
-      .eq('user_id', user.id)
-      .maybeSingle();
-
-    if (!error && data?.role === 'admin') {
-      setIsAdmin(true);
-    }
-  }
-
   async function fetchUsers() {
     try {
-      // Buscar perfis
       const { data: profiles, error: profilesError } = await supabase
         .from('profiles')
         .select('*')
@@ -64,14 +60,12 @@ export default function Usuarios() {
 
       if (profilesError) throw profilesError;
 
-      // Buscar roles
       const { data: roles, error: rolesError } = await supabase
         .from('user_roles')
         .select('user_id, role');
 
       if (rolesError) throw rolesError;
 
-      // Combinar dados
       const usersWithRoles = profiles?.map(profile => ({
         ...profile,
         role: roles?.find(r => r.user_id === profile.id)?.role || 'usuario',
@@ -92,7 +86,6 @@ export default function Usuarios() {
   async function handleRoleChange(userId: string, newRole: string) {
     setUpdating(userId);
     try {
-      // Verificar se já existe um registro de role
       const { data: existingRole, error: checkError } = await supabase
         .from('user_roles')
         .select('id')
@@ -102,19 +95,15 @@ export default function Usuarios() {
       if (checkError) throw checkError;
 
       if (existingRole) {
-        // Atualizar role existente
         const { error } = await supabase
           .from('user_roles')
           .update({ role: newRole as 'admin' | 'operario' | 'usuario' })
           .eq('user_id', userId);
-
         if (error) throw error;
       } else {
-        // Inserir novo role
         const { error } = await supabase
           .from('user_roles')
           .insert([{ user_id: userId, role: newRole as 'admin' | 'operario' | 'usuario' }]);
-
         if (error) throw error;
       }
 
@@ -132,6 +121,56 @@ export default function Usuarios() {
     }
   }
 
+  async function handleCreateUser() {
+    if (!newUserName || !newUserEmail || !newUserPassword) {
+      toast({ title: 'Preencha todos os campos', variant: 'destructive' });
+      return;
+    }
+    if (newUserPassword.length < 6) {
+      toast({ title: 'A senha deve ter pelo menos 6 caracteres', variant: 'destructive' });
+      return;
+    }
+
+    setCreatingUser(true);
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email: newUserEmail,
+        password: newUserPassword,
+        options: { data: { nome: newUserName } },
+      });
+
+      if (error) throw error;
+
+      if (data.user && newUserRole !== 'usuario') {
+        const { error: roleError } = await supabase
+          .from('user_roles')
+          .update({ role: newUserRole })
+          .eq('user_id', data.user.id);
+        if (roleError) console.error('Error updating role:', roleError);
+      }
+
+      toast({
+        title: 'Usuário criado com sucesso!',
+        description: `${newUserName} foi cadastrado como ${roleLabels[newUserRole]}`,
+      });
+
+      setNewUserName('');
+      setNewUserEmail('');
+      setNewUserPassword('');
+      setNewUserRole('usuario');
+      fetchUsers();
+    } catch (error: any) {
+      console.error('Error creating user:', error);
+      toast({
+        title: 'Erro ao criar usuário',
+        description: error.message,
+        variant: 'destructive',
+      });
+    } finally {
+      setCreatingUser(false);
+    }
+  }
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -142,25 +181,114 @@ export default function Usuarios() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div>
         <h1 className="text-3xl font-bold text-foreground">Usuários</h1>
         <p className="text-muted-foreground mt-1">Gerencie os usuários e seus papéis</p>
       </div>
 
+      {/* Cadastro de novo usuário - apenas admin */}
+      {isAdmin && (
+        <Card>
+          <CardHeader>
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-lg bg-accent/20 flex items-center justify-center">
+                <UserPlus className="w-5 h-5 text-accent-foreground" />
+              </div>
+              <div>
+                <CardTitle className="text-lg">Cadastrar Novo Usuário</CardTitle>
+                <CardDescription>Adicione um novo usuário ao sistema</CardDescription>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
+              <div className="space-y-2">
+                <Label>Nome</Label>
+                <Input
+                  value={newUserName}
+                  onChange={(e) => setNewUserName(e.target.value)}
+                  placeholder="Nome do usuário"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>E-mail</Label>
+                <Input
+                  type="email"
+                  value={newUserEmail}
+                  onChange={(e) => setNewUserEmail(e.target.value)}
+                  placeholder="email@exemplo.com"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Senha</Label>
+                <div className="relative">
+                  <Input
+                    type={showNewUserPassword ? 'text' : 'password'}
+                    value={newUserPassword}
+                    onChange={(e) => setNewUserPassword(e.target.value)}
+                    placeholder="Senha"
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="absolute right-0 top-0 h-full px-3"
+                    onClick={() => setShowNewUserPassword(!showNewUserPassword)}
+                  >
+                    {showNewUserPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </Button>
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label>Papel</Label>
+                <Select value={newUserRole} onValueChange={(v) => setNewUserRole(v as any)}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="usuario">Usuário</SelectItem>
+                    <SelectItem value="operario">Operário</SelectItem>
+                    <SelectItem value="admin">Administrador</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex items-end">
+                <Button
+                  onClick={handleCreateUser}
+                  disabled={creatingUser}
+                  className="w-full"
+                >
+                  {creatingUser ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Cadastrando...
+                    </>
+                  ) : (
+                    <>
+                      <UserPlus className="w-4 h-4 mr-2" />
+                      Cadastrar
+                    </>
+                  )}
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Users Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {users.map((user) => (
-          <Card key={user.id} className="hover:shadow-lg transition-all duration-200">
+        {users.map((u) => (
+          <Card key={u.id} className="hover:shadow-lg transition-all duration-200">
             <CardHeader className="pb-3">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
                   <Users className="w-5 h-5 text-primary" />
                 </div>
                 <div className="flex-1">
-                  <CardTitle className="text-base font-semibold">{user.nome}</CardTitle>
-                  {user.cargo && (
-                    <p className="text-sm text-muted-foreground">{user.cargo}</p>
+                  <CardTitle className="text-base font-semibold">{u.nome}</CardTitle>
+                  {u.cargo && (
+                    <p className="text-sm text-muted-foreground">{u.cargo}</p>
                   )}
                 </div>
               </div>
@@ -168,8 +296,8 @@ export default function Usuarios() {
             <CardContent className="space-y-4">
               <div className="flex items-center justify-between">
                 <span className="text-sm text-muted-foreground">Papel atual:</span>
-                <Badge className={roleBadgeStyles[user.role || 'usuario']}>
-                  {roleLabels[user.role || 'usuario']}
+                <Badge className={roleBadgeStyles[u.role || 'usuario']}>
+                  {roleLabels[u.role || 'usuario']}
                 </Badge>
               </div>
 
@@ -180,9 +308,9 @@ export default function Usuarios() {
                     Alterar papel:
                   </label>
                   <Select
-                    value={user.role}
-                    onValueChange={(value) => handleRoleChange(user.id, value)}
-                    disabled={updating === user.id}
+                    value={u.role}
+                    onValueChange={(value) => handleRoleChange(u.id, value)}
+                    disabled={updating === u.id}
                   >
                     <SelectTrigger>
                       <SelectValue />
@@ -202,7 +330,7 @@ export default function Usuarios() {
               )}
 
               <div className="text-xs text-muted-foreground pt-2 border-t">
-                Desde: {new Date(user.created_at).toLocaleDateString('pt-BR')}
+                Desde: {new Date(u.created_at).toLocaleDateString('pt-BR')}
               </div>
             </CardContent>
           </Card>
