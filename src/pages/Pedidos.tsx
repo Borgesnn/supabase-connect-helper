@@ -392,6 +392,37 @@ export default function Pedidos() {
           <p className="text-muted-foreground">Crie um novo pedido para solicitar produtos</p>
         </div>
       )}
+      {/* Reject Dialog */}
+      <Dialog open={rejectDialogOpen} onOpenChange={setRejectDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Motivo da Rejeição</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label>Por que está rejeitando este pedido?</Label>
+              <Textarea
+                value={rejectMotivo}
+                onChange={(e) => setRejectMotivo(e.target.value)}
+                placeholder="Informe o motivo da rejeição..."
+                rows={3}
+              />
+            </div>
+            <div className="flex justify-end gap-3">
+              <Button variant="outline" onClick={() => setRejectDialogOpen(false)}>
+                Cancelar
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={handleRejectConfirm}
+                disabled={!rejectMotivo.trim()}
+              >
+                Confirmar Rejeição
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
