@@ -37,12 +37,16 @@ interface Pedido {
 
 export default function Pedidos() {
   const { user } = useAuth();
+  const { canManage } = useUserRole();
   const [pedidos, setPedidos] = useState<Pedido[]>([]);
   const [produtos, setProdutos] = useState<Produto[]>([]);
   const [loading, setLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [filterStatus, setFilterStatus] = useState<string>('all');
+  const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
+  const [rejectingPedidoId, setRejectingPedidoId] = useState<string | null>(null);
+  const [rejectMotivo, setRejectMotivo] = useState('');
   
   const [formData, setFormData] = useState({
     produto_id: '',
