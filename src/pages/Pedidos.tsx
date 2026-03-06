@@ -359,7 +359,7 @@ export default function Pedidos() {
                 )}
               </div>
 
-              {pedido.status === 'pendente' && (
+              {pedido.status === 'pendente' && canManage && (
                 <div className="flex gap-2 pt-2 border-t">
                   <Button
                     size="sm"
@@ -373,7 +373,7 @@ export default function Pedidos() {
                     size="sm"
                     variant="destructive"
                     className="flex-1"
-                    onClick={() => handleStatusChange(pedido.id, 'rejeitada')}
+                    onClick={() => openRejectDialog(pedido.id)}
                   >
                     <X className="w-4 h-4 mr-1" />
                     Rejeitar
