@@ -51,9 +51,9 @@ export default function Sidebar() {
   });
 
   return (
-    <aside 
+    <aside
       className={cn(
-        "h-screen bg-sidebar flex flex-col transition-all duration-300 relative",
+        "sticky top-0 h-screen bg-sidebar flex flex-col transition-all duration-300 relative flex-shrink-0",
         collapsed ? "w-20" : "w-64"
       )}
     >
