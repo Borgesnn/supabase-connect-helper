@@ -78,7 +78,7 @@ export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
         variant="ghost"
         size="icon"
         className="absolute -right-3 top-16 w-6 h-6 rounded-full bg-card border shadow-md hover:bg-muted z-50"
-        onClick={() => setCollapsed(!collapsed)}
+        onClick={onToggle}
       >
         {collapsed ? (
           <ChevronRight className="w-3 h-3" />
