@@ -32,11 +32,15 @@ const navItems: NavItem[] = [
   { path: '/configuracoes', label: 'Configurações', icon: Settings },
 ];
 
-export default function Sidebar() {
+interface SidebarProps {
+  collapsed: boolean;
+  onToggle: () => void;
+}
+
+export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
   const { signOut } = useAuth();
   const { role } = useUserRole();
   const navigate = useNavigate();
-  const [collapsed, setCollapsed] = useState(false);
 
   const handleLogout = async () => {
     await signOut();
