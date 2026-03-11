@@ -53,7 +53,7 @@ export default function Sidebar() {
   return (
     <aside
       className={cn(
-        "sticky top-0 h-screen bg-sidebar flex flex-col transition-all duration-300 relative flex-shrink-0",
+        "fixed top-0 left-0 h-screen bg-sidebar flex flex-col transition-all duration-300 z-40",
         collapsed ? "w-20" : "w-64"
       )}
     >
