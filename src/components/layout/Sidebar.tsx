@@ -14,7 +14,7 @@ import {
   ChevronRight
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useState } from 'react';
+
 
 interface NavItem {
   path: string;
@@ -32,11 +32,15 @@ const navItems: NavItem[] = [
   { path: '/configuracoes', label: 'Configurações', icon: Settings },
 ];
 
-export default function Sidebar() {
+interface SidebarProps {
+  collapsed: boolean;
+  onToggle: () => void;
+}
+
+export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
   const { signOut } = useAuth();
   const { role } = useUserRole();
   const navigate = useNavigate();
-  const [collapsed, setCollapsed] = useState(false);
 
   const handleLogout = async () => {
     await signOut();
@@ -53,7 +57,7 @@ export default function Sidebar() {
   return (
     <aside
       className={cn(
-        "sticky top-0 h-screen bg-sidebar flex flex-col transition-all duration-300 relative flex-shrink-0",
+        "fixed top-0 left-0 h-screen bg-sidebar flex flex-col transition-all duration-300 z-40",
         collapsed ? "w-20" : "w-64"
       )}
     >
@@ -73,8 +77,8 @@ export default function Sidebar() {
       <Button
         variant="ghost"
         size="icon"
-        className="absolute -right-3 top-16 w-6 h-6 rounded-full bg-card border shadow-md hover:bg-muted"
-        onClick={() => setCollapsed(!collapsed)}
+        className="absolute -right-3 top-16 w-6 h-6 rounded-full bg-card border shadow-md hover:bg-muted z-50"
+        onClick={onToggle}
       >
         {collapsed ? (
           <ChevronRight className="w-3 h-3" />
