@@ -26,7 +26,7 @@ export default function MainLayout({ children }: MainLayoutProps) {
   return (
     <div className="flex min-h-screen bg-background">
       <Sidebar />
-      <main className="flex-1 overflow-auto">
+      <main className="flex-1 overflow-auto ml-64 transition-all duration-300" id="main-content">
         <div className="p-6 animate-fade-in">
           {children}
         </div>
