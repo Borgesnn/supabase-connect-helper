@@ -3,7 +3,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useUserRole } from '@/hooks/useUserRole';
 import { cn } from '@/lib/utils';
 import { 
-  Gift, 
+  Package, 
   LayoutDashboard, 
   ShoppingCart, 
   ArrowLeftRight, 
