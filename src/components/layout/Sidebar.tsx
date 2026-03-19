@@ -64,8 +64,8 @@ export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
     >
       {/* Logo */}
       <div className="p-4 flex items-center gap-3 border-b border-sidebar-border">
-        <div className="w-10 h-10 gradient-accent rounded-xl flex items-center justify-center flex-shrink-0">
-          <Package className="w-5 h-5 text-accent-foreground" />
+        <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 overflow-hidden">
+          <img src={gotLogo} alt="GOT Logo" className="w-full h-full object-contain" />
         </div>
         {!collapsed && (
           <span className="text-lg font-semibold text-sidebar-foreground">
