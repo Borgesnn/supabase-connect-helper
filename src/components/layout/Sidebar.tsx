@@ -1,4 +1,5 @@
 import { NavLink, useNavigate } from 'react-router-dom';
+import gotLogo from '@/assets/got.png';
 import { useAuth } from '@/hooks/useAuth';
 import { useUserRole } from '@/hooks/useUserRole';
 import { cn } from '@/lib/utils';
