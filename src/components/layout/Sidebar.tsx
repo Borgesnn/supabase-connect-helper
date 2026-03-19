@@ -3,7 +3,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useUserRole } from '@/hooks/useUserRole';
 import { cn } from '@/lib/utils';
 import { 
-  Gift, 
+  Package, 
   LayoutDashboard, 
   ShoppingCart, 
   ArrowLeftRight, 
@@ -25,7 +25,7 @@ interface NavItem {
 
 const navItems: NavItem[] = [
   { path: '/', label: 'Dashboard', icon: LayoutDashboard, requiredRoles: ['admin', 'operario'] },
-  { path: '/brindes', label: 'Brindes', icon: Gift },
+  { path: '/brindes', label: 'Brindes', icon: Package },
   { path: '/movimentacoes', label: 'Movimentações', icon: ArrowLeftRight, requiredRoles: ['admin', 'operario'] },
   { path: '/pedidos', label: 'Pedidos', icon: ShoppingCart },
   { path: '/usuarios', label: 'Usuários', icon: Users, requiredRoles: ['admin', 'operario'] },
@@ -64,7 +64,7 @@ export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
       {/* Logo */}
       <div className="p-4 flex items-center gap-3 border-b border-sidebar-border">
         <div className="w-10 h-10 gradient-accent rounded-xl flex items-center justify-center flex-shrink-0">
-          <Gift className="w-5 h-5 text-accent-foreground" />
+          <Package className="w-5 h-5 text-accent-foreground" />
         </div>
         {!collapsed && (
           <span className="text-lg font-semibold text-sidebar-foreground">
