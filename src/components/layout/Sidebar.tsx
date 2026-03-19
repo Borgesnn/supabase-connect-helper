@@ -25,7 +25,7 @@ interface NavItem {
 
 const navItems: NavItem[] = [
   { path: '/', label: 'Dashboard', icon: LayoutDashboard, requiredRoles: ['admin', 'operario'] },
-  { path: '/brindes', label: 'Brindes', icon: Gift },
+  { path: '/brindes', label: 'Brindes', icon: Package },
   { path: '/movimentacoes', label: 'Movimentações', icon: ArrowLeftRight, requiredRoles: ['admin', 'operario'] },
   { path: '/pedidos', label: 'Pedidos', icon: ShoppingCart },
   { path: '/usuarios', label: 'Usuários', icon: Users, requiredRoles: ['admin', 'operario'] },
