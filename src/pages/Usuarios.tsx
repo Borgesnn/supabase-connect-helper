@@ -308,7 +308,16 @@ export default function Usuarios() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {users.map((u) => (
           <Card key={u.id} className="hover:shadow-lg transition-all duration-200">
-            <CardHeader className="pb-3">
+            <CardHeader className="pb-3 relative">
+              {isAdmin && u.id !== user?.id && (
+                <button
+                  onClick={() => setDeleteUserId(u.id)}
+                  className="absolute top-2 right-2 p-1 rounded-full hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors"
+                  title="Excluir usuário"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              )}
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
                   <Users className="w-5 h-5 text-primary" />
