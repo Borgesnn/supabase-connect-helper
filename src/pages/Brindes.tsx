@@ -263,6 +263,9 @@ export default function Brindes() {
     setSelectedProduto(produto);
     setRequestQuantidade(1);
     setRequestMotivo('');
+    setRequestNome('');
+    setRequestSobrenome('');
+    setRequestFilial('');
     setIsRequestDialogOpen(true);
   };
 
