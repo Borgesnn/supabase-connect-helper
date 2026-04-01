@@ -389,12 +389,12 @@ export default function Usuarios() {
             <DialogTitle>Tem certeza que deseja excluir este usuário?</DialogTitle>
           </DialogHeader>
           <DialogFooter className="flex gap-2 sm:justify-end">
-            <Button variant="outline" onClick={() => setDeleteUserId(null)} disabled={deletingUser}>
-              Não
-            </Button>
-            <Button variant="destructive" onClick={handleDeleteUser} disabled={deletingUser}>
+            <Button variant="outline" onClick={handleDeleteUser} disabled={deletingUser}>
               {deletingUser ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
               Sim
+            </Button>
+            <Button variant="destructive" onClick={() => setDeleteUserId(null)} disabled={deletingUser}>
+              Não
             </Button>
           </DialogFooter>
         </DialogContent>
