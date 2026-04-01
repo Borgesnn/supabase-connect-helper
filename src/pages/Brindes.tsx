@@ -33,6 +33,9 @@ export default function Brindes() {
   // Estado para solicitação
   const [requestQuantidade, setRequestQuantidade] = useState(1);
   const [requestMotivo, setRequestMotivo] = useState('');
+  const [requestNome, setRequestNome] = useState('');
+  const [requestSobrenome, setRequestSobrenome] = useState('');
+  const [requestFilial, setRequestFilial] = useState('');
   
   const [formData, setFormData] = useState({
     codigo: '',
