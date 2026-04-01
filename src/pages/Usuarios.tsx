@@ -381,6 +381,24 @@ export default function Usuarios() {
           <p className="text-muted-foreground">Os usuários aparecerão aqui após se registrarem</p>
         </div>
       )}
+
+      {/* Dialog de confirmação de exclusão */}
+      <Dialog open={!!deleteUserId} onOpenChange={(open) => !open && setDeleteUserId(null)}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Tem certeza que deseja excluir este usuário?</DialogTitle>
+          </DialogHeader>
+          <DialogFooter className="flex gap-2 sm:justify-end">
+            <Button variant="outline" onClick={() => setDeleteUserId(null)} disabled={deletingUser}>
+              Não
+            </Button>
+            <Button variant="destructive" onClick={handleDeleteUser} disabled={deletingUser}>
+              {deletingUser ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+              Sim
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
