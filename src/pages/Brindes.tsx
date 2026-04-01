@@ -638,6 +638,40 @@ export default function Brindes() {
                 </div>
               </div>
 
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="request-nome">Nome</Label>
+                  <Input
+                    id="request-nome"
+                    placeholder="Seu nome"
+                    value={requestNome}
+                    onChange={(e) => setRequestNome(e.target.value)}
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="request-sobrenome">Sobrenome</Label>
+                  <Input
+                    id="request-sobrenome"
+                    placeholder="Seu sobrenome"
+                    value={requestSobrenome}
+                    onChange={(e) => setRequestSobrenome(e.target.value)}
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="request-filial">Filial</Label>
+                <Input
+                  id="request-filial"
+                  placeholder="Ex: São Paulo, Rio de Janeiro..."
+                  value={requestFilial}
+                  onChange={(e) => setRequestFilial(e.target.value)}
+                  required
+                />
+              </div>
+
               <div className="space-y-2">
                 <Label htmlFor="request-quantidade">Quantidade</Label>
                 <Input
