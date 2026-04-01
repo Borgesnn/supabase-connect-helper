@@ -47,6 +47,8 @@ export default function Usuarios() {
   const [newUserRole, setNewUserRole] = useState<'usuario' | 'operario' | 'admin'>('usuario');
   const [showNewUserPassword, setShowNewUserPassword] = useState(false);
   const [creatingUser, setCreatingUser] = useState(false);
+  const [deleteUserId, setDeleteUserId] = useState<string | null>(null);
+  const [deletingUser, setDeletingUser] = useState(false);
 
   useEffect(() => {
     fetchUsers();
