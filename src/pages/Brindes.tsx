@@ -619,7 +619,7 @@ export default function Brindes() {
             <DialogTitle>Solicitar Brinde</DialogTitle>
           </DialogHeader>
           {selectedProduto && (
-            <form onSubmit={handleSubmitRequest} className="space-y-4">
+            <form onSubmit={handleSubmitRequest} className="flex-1 overflow-y-auto space-y-4 pr-2">
               <div className="flex items-center gap-3 p-3 bg-muted rounded-lg">
                 <div className="w-12 h-12 rounded-lg bg-background flex items-center justify-center overflow-hidden">
                   {selectedProduto.imagem_url ? (
