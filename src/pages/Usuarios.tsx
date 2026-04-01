@@ -174,6 +174,31 @@ export default function Usuarios() {
     }
   }
 
+  async function handleDeleteUser() {
+    if (!deleteUserId) return;
+    setDeletingUser(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/delete-user`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session?.access_token}`,
+        },
+        body: JSON.stringify({ user_id: deleteUserId }),
+      });
+      const result = await res.json();
+      if (!res.ok) throw new Error(result.error);
+      toast({ title: 'Usuário excluído com sucesso!' });
+      setDeleteUserId(null);
+      fetchUsers();
+    } catch (error: any) {
+      toast({ title: 'Erro ao excluir usuário', description: error.message, variant: 'destructive' });
+    } finally {
+      setDeletingUser(false);
+    }
+  }
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
