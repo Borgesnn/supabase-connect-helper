@@ -33,6 +33,9 @@ export default function Brindes() {
   // Estado para solicitação
   const [requestQuantidade, setRequestQuantidade] = useState(1);
   const [requestMotivo, setRequestMotivo] = useState('');
+  const [requestNome, setRequestNome] = useState('');
+  const [requestSobrenome, setRequestSobrenome] = useState('');
+  const [requestFilial, setRequestFilial] = useState('');
   
   const [formData, setFormData] = useState({
     codigo: '',
@@ -260,6 +263,9 @@ export default function Brindes() {
     setSelectedProduto(produto);
     setRequestQuantidade(1);
     setRequestMotivo('');
+    setRequestNome('');
+    setRequestSobrenome('');
+    setRequestFilial('');
     setIsRequestDialogOpen(true);
   };
 
@@ -269,13 +275,15 @@ export default function Brindes() {
     
     setFormLoading(true);
     try {
+      const motivoCompleto = `Nome: ${requestNome} ${requestSobrenome} | Filial: ${requestFilial}${requestMotivo ? ` | Motivo: ${requestMotivo}` : ''}`;
+      
       const { error } = await supabase
         .from('pedidos')
         .insert([{
           produto_id: selectedProduto.id,
           quantidade: requestQuantidade,
           solicitante_id: user.id,
-          motivo: requestMotivo || null,
+          motivo: motivoCompleto,
           status: 'pendente'
         }]);
 
@@ -606,12 +614,12 @@ export default function Brindes() {
 
       {/* Dialog de Solicitação */}
       <Dialog open={isRequestDialogOpen} onOpenChange={setIsRequestDialogOpen}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-md max-h-[90vh] overflow-hidden flex flex-col">
           <DialogHeader>
             <DialogTitle>Solicitar Brinde</DialogTitle>
           </DialogHeader>
           {selectedProduto && (
-            <form onSubmit={handleSubmitRequest} className="space-y-4">
+            <form onSubmit={handleSubmitRequest} className="flex-1 overflow-y-auto space-y-4 pr-2">
               <div className="flex items-center gap-3 p-3 bg-muted rounded-lg">
                 <div className="w-12 h-12 rounded-lg bg-background flex items-center justify-center overflow-hidden">
                   {selectedProduto.imagem_url ? (
@@ -628,6 +636,40 @@ export default function Brindes() {
                   <p className="font-medium">{selectedProduto.nome}</p>
                   <p className="text-sm text-muted-foreground">Disponível: {selectedProduto.quantidade}</p>
                 </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="request-nome">Nome</Label>
+                  <Input
+                    id="request-nome"
+                    placeholder="Seu nome"
+                    value={requestNome}
+                    onChange={(e) => setRequestNome(e.target.value)}
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="request-sobrenome">Sobrenome</Label>
+                  <Input
+                    id="request-sobrenome"
+                    placeholder="Seu sobrenome"
+                    value={requestSobrenome}
+                    onChange={(e) => setRequestSobrenome(e.target.value)}
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="request-filial">Filial</Label>
+                <Input
+                  id="request-filial"
+                  placeholder="Ex: São Paulo, Rio de Janeiro..."
+                  value={requestFilial}
+                  onChange={(e) => setRequestFilial(e.target.value)}
+                  required
+                />
               </div>
 
               <div className="space-y-2">
