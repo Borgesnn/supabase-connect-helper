@@ -275,13 +275,15 @@ export default function Brindes() {
     
     setFormLoading(true);
     try {
+      const motivoCompleto = `Nome: ${requestNome} ${requestSobrenome} | Filial: ${requestFilial}${requestMotivo ? ` | Motivo: ${requestMotivo}` : ''}`;
+      
       const { error } = await supabase
         .from('pedidos')
         .insert([{
           produto_id: selectedProduto.id,
           quantidade: requestQuantidade,
           solicitante_id: user.id,
-          motivo: requestMotivo || null,
+          motivo: motivoCompleto,
           status: 'pendente'
         }]);
 
