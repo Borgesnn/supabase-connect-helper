@@ -9,7 +9,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { Users, Shield, Loader2, Lock, UserPlus, Eye, EyeOff } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Users, Shield, Loader2, Lock, UserPlus, Eye, EyeOff, X } from 'lucide-react';
 
 interface UserProfile {
   id: string;
@@ -46,6 +47,8 @@ export default function Usuarios() {
   const [newUserRole, setNewUserRole] = useState<'usuario' | 'operario' | 'admin'>('usuario');
   const [showNewUserPassword, setShowNewUserPassword] = useState(false);
   const [creatingUser, setCreatingUser] = useState(false);
+  const [deleteUserId, setDeleteUserId] = useState<string | null>(null);
+  const [deletingUser, setDeletingUser] = useState(false);
 
   useEffect(() => {
     fetchUsers();
@@ -171,6 +174,31 @@ export default function Usuarios() {
     }
   }
 
+  async function handleDeleteUser() {
+    if (!deleteUserId) return;
+    setDeletingUser(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/delete-user`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session?.access_token}`,
+        },
+        body: JSON.stringify({ user_id: deleteUserId }),
+      });
+      const result = await res.json();
+      if (!res.ok) throw new Error(result.error);
+      toast({ title: 'Usuário excluído com sucesso!' });
+      setDeleteUserId(null);
+      fetchUsers();
+    } catch (error: any) {
+      toast({ title: 'Erro ao excluir usuário', description: error.message, variant: 'destructive' });
+    } finally {
+      setDeletingUser(false);
+    }
+  }
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -280,7 +308,16 @@ export default function Usuarios() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {users.map((u) => (
           <Card key={u.id} className="hover:shadow-lg transition-all duration-200">
-            <CardHeader className="pb-3">
+            <CardHeader className="pb-3 relative">
+              {isAdmin && u.id !== user?.id && (
+                <button
+                  onClick={() => setDeleteUserId(u.id)}
+                  className="absolute top-2 right-2 p-1 rounded-full hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors"
+                  title="Excluir usuário"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              )}
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
                   <Users className="w-5 h-5 text-primary" />
@@ -344,6 +381,24 @@ export default function Usuarios() {
           <p className="text-muted-foreground">Os usuários aparecerão aqui após se registrarem</p>
         </div>
       )}
+
+      {/* Dialog de confirmação de exclusão */}
+      <Dialog open={!!deleteUserId} onOpenChange={(open) => !open && setDeleteUserId(null)}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Tem certeza que deseja excluir este usuário?</DialogTitle>
+          </DialogHeader>
+          <DialogFooter className="flex gap-2 sm:justify-end">
+            <Button variant="outline" onClick={() => setDeleteUserId(null)} disabled={deletingUser}>
+              Não
+            </Button>
+            <Button variant="destructive" onClick={handleDeleteUser} disabled={deletingUser}>
+              {deletingUser ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+              Sim
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
