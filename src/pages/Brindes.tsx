@@ -614,7 +614,7 @@ export default function Brindes() {
 
       {/* Dialog de Solicitação */}
       <Dialog open={isRequestDialogOpen} onOpenChange={setIsRequestDialogOpen}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-md max-h-[90vh] overflow-hidden flex flex-col">
           <DialogHeader>
             <DialogTitle>Solicitar Brinde</DialogTitle>
           </DialogHeader>
