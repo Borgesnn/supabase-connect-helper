@@ -663,13 +663,22 @@ export default function Brindes() {
 
               <div className="space-y-2">
                 <Label htmlFor="request-filial">Filial</Label>
-                <Input
-                  id="request-filial"
-                  placeholder="Ex: São Paulo, Rio de Janeiro..."
-                  value={requestFilial}
-                  onChange={(e) => setRequestFilial(e.target.value)}
-                  required
-                />
+                <Select value={requestFilial} onValueChange={setRequestFilial}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione a filial" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Gotemburgo Salvador">Gotemburgo Salvador</SelectItem>
+                    <SelectItem value="Gotemburgo Feira de Santana">Gotemburgo Feira de Santana</SelectItem>
+                    <SelectItem value="Gotemburgo Juazeiro">Gotemburgo Juazeiro</SelectItem>
+                    <SelectItem value="Gotemburgo Lem">Gotemburgo Lem</SelectItem>
+                    <SelectItem value="Gotemburgo Aracaju">Gotemburgo Aracaju</SelectItem>
+                    <SelectItem value="Gotemburgo Recife">Gotemburgo Recife</SelectItem>
+                    <SelectItem value="Gotemburgo Maceió">Gotemburgo Maceió</SelectItem>
+                    <SelectItem value="Gotemburgo Queimadas">Gotemburgo Queimadas</SelectItem>
+                    <SelectItem value="Gotemburgo Natal">Gotemburgo Natal</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
 
               <div className="space-y-2">
