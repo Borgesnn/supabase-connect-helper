@@ -272,6 +272,11 @@ export default function Brindes() {
   const handleSubmitRequest = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedProduto || !user) return;
+
+    if (!requestNome.trim() || !requestSobrenome.trim() || !requestFilial || !requestMotivo.trim()) {
+      toast({ title: 'Preencha todos os campos obrigatórios', variant: 'destructive' });
+      return;
+    }
     
     setFormLoading(true);
     try {
