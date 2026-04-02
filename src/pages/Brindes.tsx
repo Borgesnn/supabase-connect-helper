@@ -700,13 +700,14 @@ export default function Brindes() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="request-motivo">Motivo (opcional)</Label>
+                <Label htmlFor="request-motivo">Motivo <span className="text-destructive">*</span></Label>
                 <Textarea
                   id="request-motivo"
                   placeholder="Ex: Evento de marketing, brinde para cliente..."
                   value={requestMotivo}
                   onChange={(e) => setRequestMotivo(e.target.value)}
                   rows={3}
+                  required
                 />
               </div>
 
