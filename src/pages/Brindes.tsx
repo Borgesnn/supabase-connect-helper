@@ -272,6 +272,11 @@ export default function Brindes() {
   const handleSubmitRequest = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedProduto || !user) return;
+
+    if (!requestNome.trim() || !requestSobrenome.trim() || !requestFilial || !requestMotivo.trim()) {
+      toast({ title: 'Preencha todos os campos obrigatórios', variant: 'destructive' });
+      return;
+    }
     
     setFormLoading(true);
     try {
@@ -640,7 +645,7 @@ export default function Brindes() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="request-nome">Nome</Label>
+                  <Label htmlFor="request-nome">Nome <span className="text-destructive">*</span></Label>
                   <Input
                     id="request-nome"
                     placeholder="Seu nome"
@@ -650,7 +655,7 @@ export default function Brindes() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="request-sobrenome">Sobrenome</Label>
+                  <Label htmlFor="request-sobrenome">Sobrenome <span className="text-destructive">*</span></Label>
                   <Input
                     id="request-sobrenome"
                     placeholder="Seu sobrenome"
@@ -662,7 +667,7 @@ export default function Brindes() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="request-filial">Filial</Label>
+                <Label htmlFor="request-filial">Filial <span className="text-destructive">*</span></Label>
                 <Select value={requestFilial} onValueChange={setRequestFilial}>
                   <SelectTrigger>
                     <SelectValue placeholder="Selecione a filial" />
@@ -695,13 +700,14 @@ export default function Brindes() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="request-motivo">Motivo (opcional)</Label>
+                <Label htmlFor="request-motivo">Motivo <span className="text-destructive">*</span></Label>
                 <Textarea
                   id="request-motivo"
                   placeholder="Ex: Evento de marketing, brinde para cliente..."
                   value={requestMotivo}
                   onChange={(e) => setRequestMotivo(e.target.value)}
                   rows={3}
+                  required
                 />
               </div>
 
@@ -709,7 +715,7 @@ export default function Brindes() {
                 <Button type="button" variant="outline" onClick={() => setIsRequestDialogOpen(false)}>
                   Cancelar
                 </Button>
-                <Button type="submit" disabled={formLoading} className="gradient-primary">
+                <Button type="submit" disabled={formLoading || !requestNome.trim() || !requestSobrenome.trim() || !requestFilial || !requestMotivo.trim()} className="gradient-primary">
                   {formLoading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
                   Enviar Solicitação
                 </Button>
