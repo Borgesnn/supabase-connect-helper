@@ -645,7 +645,7 @@ export default function Brindes() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="request-nome">Nome</Label>
+                  <Label htmlFor="request-nome">Nome <span className="text-destructive">*</span></Label>
                   <Input
                     id="request-nome"
                     placeholder="Seu nome"
