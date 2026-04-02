@@ -655,7 +655,7 @@ export default function Brindes() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="request-sobrenome">Sobrenome</Label>
+                  <Label htmlFor="request-sobrenome">Sobrenome <span className="text-destructive">*</span></Label>
                   <Input
                     id="request-sobrenome"
                     placeholder="Seu sobrenome"
