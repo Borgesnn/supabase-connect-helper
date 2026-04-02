@@ -347,6 +347,12 @@ export default function Pedidos() {
                   <span className="text-muted-foreground">Solicitante</span>
                   <span>{pedido.profiles?.nome || '-'}</span>
                 </div>
+                {pedido.motivo && pedido.motivo.includes('Filial:') && (
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Filial</span>
+                    <span>{pedido.motivo.match(/Filial:\s*([^|]*)/)?.[1]?.trim() || '-'}</span>
+                  </div>
+                )}
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Data</span>
                   <span>{format(new Date(pedido.created_at), "dd/MM/yyyy", { locale: ptBR })}</span>
@@ -354,7 +360,7 @@ export default function Pedidos() {
                 {pedido.motivo && (
                   <div className="pt-2 border-t">
                     <p className="text-muted-foreground text-xs mb-1">Motivo:</p>
-                    <p className="text-sm">{pedido.motivo}</p>
+                    <p className="text-sm">{pedido.motivo.includes('Motivo:') ? pedido.motivo.match(/Motivo:\s*(.*)/)?.[1]?.trim() || pedido.motivo : pedido.motivo}</p>
                   </div>
                 )}
               </div>
