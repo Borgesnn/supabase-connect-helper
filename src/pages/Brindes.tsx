@@ -667,7 +667,7 @@ export default function Brindes() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="request-filial">Filial</Label>
+                <Label htmlFor="request-filial">Filial <span className="text-destructive">*</span></Label>
                 <Select value={requestFilial} onValueChange={setRequestFilial}>
                   <SelectTrigger>
                     <SelectValue placeholder="Selecione a filial" />
