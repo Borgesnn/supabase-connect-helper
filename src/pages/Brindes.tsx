@@ -715,7 +715,7 @@ export default function Brindes() {
                 <Button type="button" variant="outline" onClick={() => setIsRequestDialogOpen(false)}>
                   Cancelar
                 </Button>
-                <Button type="submit" disabled={formLoading} className="gradient-primary">
+                <Button type="submit" disabled={formLoading || !requestNome.trim() || !requestSobrenome.trim() || !requestFilial || !requestMotivo.trim()} className="gradient-primary">
                   {formLoading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
                   Enviar Solicitação
                 </Button>
