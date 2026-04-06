@@ -37,7 +37,8 @@ export default function Sugestoes() {
 
   // Form fields
   const [nome, setNome] = useState('');
-  const [imagemUrl, setImagemUrl] = useState('');
+  const [imagemFile, setImagemFile] = useState<File | null>(null);
+  const [imagemPreview, setImagemPreview] = useState<string | null>(null);
   const [link, setLink] = useState('');
 
   const fetchSugestoes = async () => {
