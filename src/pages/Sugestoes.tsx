@@ -37,7 +37,8 @@ export default function Sugestoes() {
 
   // Form fields
   const [nome, setNome] = useState('');
-  const [imagemUrl, setImagemUrl] = useState('');
+  const [imagemFile, setImagemFile] = useState<File | null>(null);
+  const [imagemPreview, setImagemPreview] = useState<string | null>(null);
   const [link, setLink] = useState('');
 
   const fetchSugestoes = async () => {
@@ -78,6 +79,18 @@ export default function Sugestoes() {
     fetchSugestoes();
   }, [canManage]);
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0] || null;
+    setImagemFile(file);
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => setImagemPreview(reader.result as string);
+      reader.readAsDataURL(file);
+    } else {
+      setImagemPreview(null);
+    }
+  };
+
   const handleSubmit = async () => {
     if (!nome.trim()) {
       toast({ title: 'Erro', description: 'O nome do brinde é obrigatório.', variant: 'destructive' });
@@ -87,9 +100,25 @@ export default function Sugestoes() {
 
     setSubmitting(true);
     try {
+      let imageUrl: string | null = null;
+
+      if (imagemFile) {
+        const fileExt = imagemFile.name.split('.').pop();
+        const filePath = `${user.id}/${Date.now()}.${fileExt}`;
+        const { error: uploadError } = await supabase.storage
+          .from('sugestoes')
+          .upload(filePath, imagemFile);
+        if (uploadError) throw uploadError;
+
+        const { data: urlData } = supabase.storage
+          .from('sugestoes')
+          .getPublicUrl(filePath);
+        imageUrl = urlData.publicUrl;
+      }
+
       const { error } = await supabase.from('sugestoes').insert({
         nome: nome.trim(),
-        imagem_url: imagemUrl.trim() || null,
+        imagem_url: imageUrl,
         link: link.trim() || null,
         usuario_id: user.id,
       });
@@ -98,7 +127,8 @@ export default function Sugestoes() {
 
       toast({ title: 'Sucesso', description: 'Sugestão enviada com sucesso!' });
       setNome('');
-      setImagemUrl('');
+      setImagemFile(null);
+      setImagemPreview(null);
       setLink('');
       setDialogOpen(false);
       fetchSugestoes();
@@ -156,13 +186,21 @@ export default function Sugestoes() {
                 />
               </div>
               <div>
-                <Label htmlFor="sug-imagem">URL da Imagem</Label>
+                <Label htmlFor="sug-imagem">Imagem do Brinde</Label>
                 <Input
                   id="sug-imagem"
-                  value={imagemUrl}
-                  onChange={(e) => setImagemUrl(e.target.value)}
-                  placeholder="https://exemplo.com/imagem.jpg"
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileChange}
+                  className="cursor-pointer"
                 />
+                {imagemPreview && (
+                  <img
+                    src={imagemPreview}
+                    alt="Pré-visualização"
+                    className="mt-2 h-32 w-full object-cover rounded-md border"
+                  />
+                )}
               </div>
               <div>
                 <Label htmlFor="sug-link">Link do Brinde</Label>
