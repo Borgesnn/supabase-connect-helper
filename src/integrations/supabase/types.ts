@@ -191,6 +191,33 @@ export type Database = {
         }
         Relationships: []
       }
+      sugestoes: {
+        Row: {
+          created_at: string
+          id: string
+          imagem_url: string | null
+          link: string | null
+          nome: string
+          usuario_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          imagem_url?: string | null
+          link?: string | null
+          nome: string
+          usuario_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          imagem_url?: string | null
+          link?: string | null
+          nome?: string
+          usuario_id?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           id: string

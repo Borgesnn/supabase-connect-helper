@@ -13,6 +13,7 @@ import Movimentacoes from "./pages/Movimentacoes";
 import Pedidos from "./pages/Pedidos";
 import Usuarios from "./pages/Usuarios";
 import Configuracoes from "./pages/Configuracoes";
+import Sugestoes from "./pages/Sugestoes";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -59,6 +60,13 @@ const App = () => (
             <Route path="/usuarios" element={
               <ProtectedRoute requiredRoles={['admin', 'operario']}>
                 <MainLayout><Usuarios /></MainLayout>
+              </ProtectedRoute>
+            } />
+            
+            {/* Sugestões - todos podem acessar */}
+            <Route path="/sugestoes" element={
+              <ProtectedRoute>
+                <MainLayout><Sugestoes /></MainLayout>
               </ProtectedRoute>
             } />
             
