@@ -145,7 +145,7 @@ export default function Dashboard() {
             <CardTitle className="text-lg">Distribuição por Categoria</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="h-80">
+            <div className="h-60 md:h-80">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie

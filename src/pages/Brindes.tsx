@@ -320,7 +320,7 @@ export default function Brindes() {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-foreground">Brindes</h1>
+          <h1 className="text-2xl md:text-3xl font-bold text-foreground">Brindes</h1>
           <p className="text-muted-foreground mt-1">
             {canManage ? 'Gerencie seu estoque de brindes' : 'Visualize e solicite brindes'}
           </p>
