@@ -12,6 +12,7 @@ interface MainLayoutProps {
 export default function MainLayout({ children }: MainLayoutProps) {
   const { user, loading } = useAuth();
   const [collapsed, setCollapsed] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
 
   if (loading) {
     return (
@@ -27,12 +28,20 @@ export default function MainLayout({ children }: MainLayoutProps) {
 
   return (
     <div className="min-h-screen bg-background">
-      <Sidebar collapsed={collapsed} onToggle={() => setCollapsed(!collapsed)} />
+      <Sidebar
+        collapsed={collapsed}
+        onToggle={() => setCollapsed(!collapsed)}
+        mobileOpen={mobileOpen}
+        onMobileToggle={() => setMobileOpen(!mobileOpen)}
+      />
       <main className={cn(
         "min-h-screen overflow-auto transition-all duration-300",
-        collapsed ? "ml-20" : "ml-64"
+        // Desktop margin
+        collapsed ? "md:ml-20" : "md:ml-64",
+        // Mobile: no margin, but top padding for the mobile header
+        "ml-0 pt-14 md:pt-0"
       )}>
-        <div className="p-6 animate-fade-in">
+        <div className="p-4 md:p-6 animate-fade-in">
           {children}
         </div>
       </main>

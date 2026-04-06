@@ -81,7 +81,7 @@ export default function Dashboard() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold text-foreground">Dashboard</h1>
+        <h1 className="text-2xl md:text-3xl font-bold text-foreground">Dashboard</h1>
         <p className="text-muted-foreground mt-1">Visão geral do estoque de brindes</p>
       </div>
 
@@ -120,7 +120,7 @@ export default function Dashboard() {
             <CardTitle className="text-lg">Estoque por Categoria</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="h-80">
+            <div className="h-60 md:h-80">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={categoriaData}>
                   <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
@@ -145,7 +145,7 @@ export default function Dashboard() {
             <CardTitle className="text-lg">Distribuição por Categoria</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="h-80">
+            <div className="h-60 md:h-80">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie

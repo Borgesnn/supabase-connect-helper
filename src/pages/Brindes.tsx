@@ -320,7 +320,7 @@ export default function Brindes() {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-foreground">Brindes</h1>
+          <h1 className="text-2xl md:text-3xl font-bold text-foreground">Brindes</h1>
           <p className="text-muted-foreground mt-1">
             {canManage ? 'Gerencie seu estoque de brindes' : 'Visualize e solicite brindes'}
           </p>
@@ -340,7 +340,7 @@ export default function Brindes() {
               </DialogTitle>
             </DialogHeader>
             <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto space-y-4 pr-2">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="codigo">Código</Label>
                   <Input
@@ -361,7 +361,7 @@ export default function Brindes() {
                 </div>
               </div>
               
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="categoria">Categoria</Label>
                   <Select
@@ -390,7 +390,7 @@ export default function Brindes() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="quantidade">Quantidade</Label>
                   <Input
@@ -643,7 +643,7 @@ export default function Brindes() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="request-nome">Nome <span className="text-destructive">*</span></Label>
                   <Input
