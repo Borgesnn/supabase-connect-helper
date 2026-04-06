@@ -79,6 +79,18 @@ export default function Sugestoes() {
     fetchSugestoes();
   }, [canManage]);
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0] || null;
+    setImagemFile(file);
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => setImagemPreview(reader.result as string);
+      reader.readAsDataURL(file);
+    } else {
+      setImagemPreview(null);
+    }
+  };
+
   const handleSubmit = async () => {
     if (!nome.trim()) {
       toast({ title: 'Erro', description: 'O nome do brinde é obrigatório.', variant: 'destructive' });
@@ -88,9 +100,25 @@ export default function Sugestoes() {
 
     setSubmitting(true);
     try {
+      let imageUrl: string | null = null;
+
+      if (imagemFile) {
+        const fileExt = imagemFile.name.split('.').pop();
+        const filePath = `${user.id}/${Date.now()}.${fileExt}`;
+        const { error: uploadError } = await supabase.storage
+          .from('sugestoes')
+          .upload(filePath, imagemFile);
+        if (uploadError) throw uploadError;
+
+        const { data: urlData } = supabase.storage
+          .from('sugestoes')
+          .getPublicUrl(filePath);
+        imageUrl = urlData.publicUrl;
+      }
+
       const { error } = await supabase.from('sugestoes').insert({
         nome: nome.trim(),
-        imagem_url: imagemUrl.trim() || null,
+        imagem_url: imageUrl,
         link: link.trim() || null,
         usuario_id: user.id,
       });
@@ -99,7 +127,8 @@ export default function Sugestoes() {
 
       toast({ title: 'Sucesso', description: 'Sugestão enviada com sucesso!' });
       setNome('');
-      setImagemUrl('');
+      setImagemFile(null);
+      setImagemPreview(null);
       setLink('');
       setDialogOpen(false);
       fetchSugestoes();
