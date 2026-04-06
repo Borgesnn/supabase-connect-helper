@@ -30,6 +30,7 @@ const navItems: NavItem[] = [
   { path: '/brindes', label: 'Brindes', icon: Package },
   { path: '/movimentacoes', label: 'Movimentações', icon: ArrowLeftRight, requiredRoles: ['admin', 'operario'] },
   { path: '/pedidos', label: 'Pedidos', icon: ShoppingCart },
+  { path: '/sugestoes', label: 'Sugestões', icon: Lightbulb },
   { path: '/usuarios', label: 'Usuários', icon: Users, requiredRoles: ['admin', 'operario'] },
   { path: '/configuracoes', label: 'Configurações', icon: Settings },
 ];

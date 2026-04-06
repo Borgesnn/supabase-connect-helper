@@ -63,6 +63,13 @@ const App = () => (
               </ProtectedRoute>
             } />
             
+            {/* Sugestões - todos podem acessar */}
+            <Route path="/sugestoes" element={
+              <ProtectedRoute>
+                <MainLayout><Sugestoes /></MainLayout>
+              </ProtectedRoute>
+            } />
+            
             {/* Configurações - todos podem acessar */}
             <Route path="/configuracoes" element={
               <ProtectedRoute>
