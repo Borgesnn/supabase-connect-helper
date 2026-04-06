@@ -186,13 +186,21 @@ export default function Sugestoes() {
                 />
               </div>
               <div>
-                <Label htmlFor="sug-imagem">URL da Imagem</Label>
+                <Label htmlFor="sug-imagem">Imagem do Brinde</Label>
                 <Input
                   id="sug-imagem"
-                  value={imagemUrl}
-                  onChange={(e) => setImagemUrl(e.target.value)}
-                  placeholder="https://exemplo.com/imagem.jpg"
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileChange}
+                  className="cursor-pointer"
                 />
+                {imagemPreview && (
+                  <img
+                    src={imagemPreview}
+                    alt="Pré-visualização"
+                    className="mt-2 h-32 w-full object-cover rounded-md border"
+                  />
+                )}
               </div>
               <div>
                 <Label htmlFor="sug-link">Link do Brinde</Label>
