@@ -16,7 +16,7 @@ import { Plus, Search, Edit, Trash2, Gift, AlertTriangle, Loader2, Upload, X, Sh
 
 export default function Brindes() {
   const { user } = useAuth();
-  const { canManage, loading: roleLoading } = useUserRole();
+  const { canManage, isAdmin, loading: roleLoading } = useUserRole();
   const [produtos, setProdutos] = useState<Produto[]>([]);
   const [categorias, setCategorias] = useState<Categoria[]>([]);
   const [loading, setLoading] = useState(true);
@@ -581,14 +581,16 @@ export default function Brindes() {
                       <Edit className="w-4 h-4 mr-1" />
                       Editar
                     </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="text-destructive hover:bg-destructive hover:text-destructive-foreground"
-                      onClick={() => handleDelete(produto.id)}
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
+                    {isAdmin && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="text-destructive hover:bg-destructive hover:text-destructive-foreground"
+                        onClick={() => handleDelete(produto.id)}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    )}
                   </div>
                 ) : (
                   <div className="pt-2 border-t">
