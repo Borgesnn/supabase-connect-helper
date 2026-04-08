@@ -16,7 +16,7 @@ import { Plus, Search, Edit, Trash2, Gift, AlertTriangle, Loader2, Upload, X, Sh
 
 export default function Brindes() {
   const { user } = useAuth();
-  const { canManage, loading: roleLoading } = useUserRole();
+  const { canManage, isAdmin, loading: roleLoading } = useUserRole();
   const [produtos, setProdutos] = useState<Produto[]>([]);
   const [categorias, setCategorias] = useState<Categoria[]>([]);
   const [loading, setLoading] = useState(true);
