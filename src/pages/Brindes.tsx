@@ -581,14 +581,16 @@ export default function Brindes() {
                       <Edit className="w-4 h-4 mr-1" />
                       Editar
                     </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="text-destructive hover:bg-destructive hover:text-destructive-foreground"
-                      onClick={() => handleDelete(produto.id)}
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
+                    {isAdmin && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="text-destructive hover:bg-destructive hover:text-destructive-foreground"
+                        onClick={() => handleDelete(produto.id)}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    )}
                   </div>
                 ) : (
                   <div className="pt-2 border-t">
