@@ -57,6 +57,7 @@ export default function Brindes() {
   useEffect(() => {
     fetchProdutos();
     fetchCategorias();
+    fetchUserProfile();
   }, []);
 
   async function fetchProdutos() {
