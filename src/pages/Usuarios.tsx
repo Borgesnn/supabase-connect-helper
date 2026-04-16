@@ -10,11 +10,12 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { Users, Shield, Loader2, Lock, UserPlus, Eye, EyeOff, X } from 'lucide-react';
+import { Users, Shield, Loader2, Lock, UserPlus, Eye, EyeOff, X, Pencil } from 'lucide-react';
 
 interface UserProfile {
   id: string;
   nome: string;
+  sobrenome: string | null;
   cargo: string | null;
   created_at: string;
   role?: string;
