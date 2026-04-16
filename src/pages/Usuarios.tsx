@@ -10,11 +10,12 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { Users, Shield, Loader2, Lock, UserPlus, Eye, EyeOff, X } from 'lucide-react';
+import { Users, Shield, Loader2, Lock, UserPlus, Eye, EyeOff, X, Pencil } from 'lucide-react';
 
 interface UserProfile {
   id: string;
   nome: string;
+  sobrenome: string | null;
   cargo: string | null;
   created_at: string;
   role?: string;
@@ -50,6 +51,13 @@ export default function Usuarios() {
   const [creatingUser, setCreatingUser] = useState(false);
   const [deleteUserId, setDeleteUserId] = useState<string | null>(null);
   const [deletingUser, setDeletingUser] = useState(false);
+
+  // Estado para edição de usuário
+  const [editUser, setEditUser] = useState<UserProfile | null>(null);
+  const [editNome, setEditNome] = useState('');
+  const [editSobrenome, setEditSobrenome] = useState('');
+  const [editCargo, setEditCargo] = useState('');
+  const [savingEdit, setSavingEdit] = useState(false);
 
   useEffect(() => {
     fetchUsers();
@@ -201,6 +209,32 @@ export default function Usuarios() {
     }
   }
 
+  function openEditDialog(u: UserProfile) {
+    setEditUser(u);
+    setEditNome(u.nome || '');
+    setEditSobrenome(u.sobrenome || '');
+    setEditCargo(u.cargo || '');
+  }
+
+  async function handleSaveEdit() {
+    if (!editUser) return;
+    setSavingEdit(true);
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ nome: editNome, sobrenome: editSobrenome, cargo: editCargo || null })
+        .eq('id', editUser.id);
+      if (error) throw error;
+      toast({ title: 'Usuário atualizado com sucesso!' });
+      setEditUser(null);
+      fetchUsers();
+    } catch (error: any) {
+      toast({ title: 'Erro ao atualizar usuário', description: error.message, variant: 'destructive' });
+    } finally {
+      setSavingEdit(false);
+    }
+  }
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -333,11 +367,22 @@ export default function Usuarios() {
                   <Users className="w-5 h-5 text-primary" />
                 </div>
                 <div className="flex-1">
-                  <CardTitle className="text-base font-semibold">{u.nome}</CardTitle>
+                  <CardTitle className="text-base font-semibold">
+                    {u.nome}{u.sobrenome ? ` ${u.sobrenome}` : ''}
+                  </CardTitle>
                   {u.cargo && (
                     <p className="text-sm text-muted-foreground">{u.cargo}</p>
                   )}
                 </div>
+                {isAdmin && (
+                  <button
+                    onClick={() => openEditDialog(u)}
+                    className="p-1.5 rounded-full hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
+                    title="Editar usuário"
+                  >
+                    <Pencil className="w-4 h-4" />
+                  </button>
+                )}
               </div>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -405,6 +450,38 @@ export default function Usuarios() {
             </Button>
             <Button variant="destructive" onClick={() => setDeleteUserId(null)} disabled={deletingUser}>
               Não
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog de edição de usuário */}
+      <Dialog open={!!editUser} onOpenChange={(open) => !open && setEditUser(null)}>
+        <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Editar Usuário</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="space-y-2">
+              <Label>Nome</Label>
+              <Input value={editNome} onChange={(e) => setEditNome(e.target.value)} placeholder="Nome" />
+            </div>
+            <div className="space-y-2">
+              <Label>Sobrenome</Label>
+              <Input value={editSobrenome} onChange={(e) => setEditSobrenome(e.target.value)} placeholder="Sobrenome" />
+            </div>
+            <div className="space-y-2">
+              <Label>Cargo</Label>
+              <Input value={editCargo} onChange={(e) => setEditCargo(e.target.value)} placeholder="Cargo" />
+            </div>
+          </div>
+          <DialogFooter className="flex gap-2 sm:justify-end">
+            <Button variant="outline" onClick={handleSaveEdit} disabled={savingEdit}>
+              {savingEdit ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+              Salvar
+            </Button>
+            <Button variant="destructive" onClick={() => setEditUser(null)} disabled={savingEdit}>
+              Cancelar
             </Button>
           </DialogFooter>
         </DialogContent>
