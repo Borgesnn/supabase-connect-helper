@@ -57,8 +57,25 @@ export default function Brindes() {
   useEffect(() => {
     fetchProdutos();
     fetchCategorias();
-    fetchUserProfile();
   }, []);
+
+  useEffect(() => {
+    if (user) fetchUserProfile();
+  }, [user]);
+
+  async function fetchUserProfile() {
+    if (!user) return;
+    try {
+      const { data } = await supabase
+        .from('profiles')
+        .select('nome')
+        .eq('id', user.id)
+        .single();
+      if (data) setUserProfileName(data.nome);
+    } catch (error) {
+      console.error('Error fetching profile:', error);
+    }
+  }
 
   async function fetchProdutos() {
     try {
