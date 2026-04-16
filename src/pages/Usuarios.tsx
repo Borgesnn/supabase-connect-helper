@@ -209,6 +209,32 @@ export default function Usuarios() {
     }
   }
 
+  function openEditDialog(u: UserProfile) {
+    setEditUser(u);
+    setEditNome(u.nome || '');
+    setEditSobrenome(u.sobrenome || '');
+    setEditCargo(u.cargo || '');
+  }
+
+  async function handleSaveEdit() {
+    if (!editUser) return;
+    setSavingEdit(true);
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ nome: editNome, sobrenome: editSobrenome, cargo: editCargo || null })
+        .eq('id', editUser.id);
+      if (error) throw error;
+      toast({ title: 'Usuário atualizado com sucesso!' });
+      setEditUser(null);
+      fetchUsers();
+    } catch (error: any) {
+      toast({ title: 'Erro ao atualizar usuário', description: error.message, variant: 'destructive' });
+    } finally {
+      setSavingEdit(false);
+    }
+  }
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
