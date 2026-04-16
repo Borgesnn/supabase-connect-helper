@@ -686,9 +686,10 @@ export default function Brindes() {
                   <Label htmlFor="request-nome">Nome <span className="text-destructive">*</span></Label>
                   <Input
                     id="request-nome"
-                    placeholder="Seu nome"
                     value={requestNome}
                     onChange={(e) => setRequestNome(e.target.value)}
+                    readOnly={!!userProfileName}
+                    className={userProfileName ? 'bg-muted' : ''}
                     required
                   />
                 </div>
@@ -696,13 +697,50 @@ export default function Brindes() {
                   <Label htmlFor="request-sobrenome">Sobrenome <span className="text-destructive">*</span></Label>
                   <Input
                     id="request-sobrenome"
-                    placeholder="Seu sobrenome"
                     value={requestSobrenome}
                     onChange={(e) => setRequestSobrenome(e.target.value)}
+                    readOnly={!!userProfileName}
+                    className={userProfileName ? 'bg-muted' : ''}
                     required
                   />
                 </div>
               </div>
+
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="entregar-outra-pessoa"
+                  checked={entregarOutraPessoa}
+                  onCheckedChange={(checked) => setEntregarOutraPessoa(checked === true)}
+                />
+                <Label htmlFor="entregar-outra-pessoa" className="text-sm font-normal cursor-pointer">
+                  Entregar a outra pessoa
+                </Label>
+              </div>
+
+              {entregarOutraPessoa && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-3 bg-muted/50 rounded-lg border">
+                  <div className="space-y-2">
+                    <Label htmlFor="outra-nome">Nome do destinatário <span className="text-destructive">*</span></Label>
+                    <Input
+                      id="outra-nome"
+                      placeholder="Nome"
+                      value={outraPessoaNome}
+                      onChange={(e) => setOutraPessoaNome(e.target.value)}
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="outra-sobrenome">Sobrenome <span className="text-destructive">*</span></Label>
+                    <Input
+                      id="outra-sobrenome"
+                      placeholder="Sobrenome"
+                      value={outraPessoaSobrenome}
+                      onChange={(e) => setOutraPessoaSobrenome(e.target.value)}
+                      required
+                    />
+                  </div>
+                </div>
+              )}
 
               <div className="space-y-2">
                 <Label htmlFor="request-filial">Filial <span className="text-destructive">*</span></Label>
@@ -753,7 +791,7 @@ export default function Brindes() {
                 <Button type="button" variant="outline" onClick={() => setIsRequestDialogOpen(false)}>
                   Cancelar
                 </Button>
-                <Button type="submit" disabled={formLoading || !requestNome.trim() || !requestSobrenome.trim() || !requestFilial || !requestMotivo.trim()} className="gradient-primary">
+                <Button type="submit" disabled={formLoading || !requestNome.trim() || !requestSobrenome.trim() || !requestFilial || !requestMotivo.trim() || (entregarOutraPessoa && (!outraPessoaNome.trim() || !outraPessoaSobrenome.trim()))} className="gradient-primary">
                   {formLoading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
                   Enviar Solicitação
                 </Button>
