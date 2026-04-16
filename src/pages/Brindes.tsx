@@ -285,9 +285,14 @@ export default function Brindes() {
     setSelectedProduto(produto);
     setRequestQuantidade(1);
     setRequestMotivo('');
-    setRequestNome('');
-    setRequestSobrenome('');
+    // Auto-preenche com nome do perfil
+    const parts = userProfileName.split(' ');
+    setRequestNome(parts[0] || '');
+    setRequestSobrenome(parts.slice(1).join(' ') || '');
     setRequestFilial('');
+    setEntregarOutraPessoa(false);
+    setOutraPessoaNome('');
+    setOutraPessoaSobrenome('');
     setIsRequestDialogOpen(true);
   };
 
