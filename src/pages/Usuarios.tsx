@@ -454,6 +454,38 @@ export default function Usuarios() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Dialog de edição de usuário */}
+      <Dialog open={!!editUser} onOpenChange={(open) => !open && setEditUser(null)}>
+        <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Editar Usuário</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="space-y-2">
+              <Label>Nome</Label>
+              <Input value={editNome} onChange={(e) => setEditNome(e.target.value)} placeholder="Nome" />
+            </div>
+            <div className="space-y-2">
+              <Label>Sobrenome</Label>
+              <Input value={editSobrenome} onChange={(e) => setEditSobrenome(e.target.value)} placeholder="Sobrenome" />
+            </div>
+            <div className="space-y-2">
+              <Label>Cargo</Label>
+              <Input value={editCargo} onChange={(e) => setEditCargo(e.target.value)} placeholder="Cargo" />
+            </div>
+          </div>
+          <DialogFooter className="flex gap-2 sm:justify-end">
+            <Button variant="outline" onClick={handleSaveEdit} disabled={savingEdit}>
+              {savingEdit ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+              Salvar
+            </Button>
+            <Button variant="destructive" onClick={() => setEditUser(null)} disabled={savingEdit}>
+              Cancelar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
