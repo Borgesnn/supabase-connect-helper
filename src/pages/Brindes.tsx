@@ -304,10 +304,19 @@ export default function Brindes() {
       toast({ title: 'Preencha todos os campos obrigatórios', variant: 'destructive' });
       return;
     }
+
+    if (entregarOutraPessoa && (!outraPessoaNome.trim() || !outraPessoaSobrenome.trim())) {
+      toast({ title: 'Preencha o nome da pessoa que receberá o brinde', variant: 'destructive' });
+      return;
+    }
     
     setFormLoading(true);
     try {
-      const motivoCompleto = `Nome: ${requestNome} ${requestSobrenome} | Filial: ${requestFilial}${requestMotivo ? ` | Motivo: ${requestMotivo}` : ''}`;
+      let motivoCompleto = `Nome: ${requestNome} ${requestSobrenome} | Filial: ${requestFilial}`;
+      if (entregarOutraPessoa) {
+        motivoCompleto += ` | Entregar a: ${outraPessoaNome} ${outraPessoaSobrenome}`;
+      }
+      motivoCompleto += requestMotivo ? ` | Motivo: ${requestMotivo}` : '';
       
       const { error } = await supabase
         .from('pedidos')
