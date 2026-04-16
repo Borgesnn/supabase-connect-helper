@@ -42,6 +42,7 @@ export default function Usuarios() {
 
   // Estado para cadastro de usuário
   const [newUserName, setNewUserName] = useState('');
+  const [newUserSobrenome, setNewUserSobrenome] = useState('');
   const [newUserEmail, setNewUserEmail] = useState('');
   const [newUserPassword, setNewUserPassword] = useState('');
   const [newUserRole, setNewUserRole] = useState<'usuario' | 'operario' | 'admin'>('usuario');
@@ -125,7 +126,7 @@ export default function Usuarios() {
   }
 
   async function handleCreateUser() {
-    if (!newUserName || !newUserEmail || !newUserPassword) {
+    if (!newUserName || !newUserSobrenome || !newUserEmail || !newUserPassword) {
       toast({ title: 'Preencha todos os campos', variant: 'destructive' });
       return;
     }
@@ -139,7 +140,7 @@ export default function Usuarios() {
       const { data, error } = await supabase.auth.signUp({
         email: newUserEmail,
         password: newUserPassword,
-        options: { data: { nome: newUserName } },
+        options: { data: { nome: newUserName, sobrenome: newUserSobrenome } },
       });
 
       if (error) throw error;
@@ -154,10 +155,11 @@ export default function Usuarios() {
 
       toast({
         title: 'Usuário criado com sucesso!',
-        description: `${newUserName} foi cadastrado como ${roleLabels[newUserRole]}`,
+        description: `${newUserName} ${newUserSobrenome} foi cadastrado como ${roleLabels[newUserRole]}`,
       });
 
       setNewUserName('');
+      setNewUserSobrenome('');
       setNewUserEmail('');
       setNewUserPassword('');
       setNewUserRole('usuario');
@@ -229,13 +231,21 @@ export default function Usuarios() {
             </div>
           </CardHeader>
           <CardContent>
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-6">
               <div className="space-y-2">
                 <Label>Nome</Label>
                 <Input
                   value={newUserName}
                   onChange={(e) => setNewUserName(e.target.value)}
-                  placeholder="Nome do usuário"
+                  placeholder="Nome"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Sobrenome</Label>
+                <Input
+                  value={newUserSobrenome}
+                  onChange={(e) => setNewUserSobrenome(e.target.value)}
+                  placeholder="Sobrenome"
                 />
               </div>
               <div className="space-y-2">
