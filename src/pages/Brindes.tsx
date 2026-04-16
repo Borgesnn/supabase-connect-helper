@@ -12,6 +12,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Plus, Search, Edit, Trash2, Gift, AlertTriangle, Loader2, Upload, X, ShoppingCart } from 'lucide-react';
 
 export default function Brindes() {
@@ -36,7 +37,10 @@ export default function Brindes() {
   const [requestNome, setRequestNome] = useState('');
   const [requestSobrenome, setRequestSobrenome] = useState('');
   const [requestFilial, setRequestFilial] = useState('');
-  
+  const [entregarOutraPessoa, setEntregarOutraPessoa] = useState(false);
+  const [outraPessoaNome, setOutraPessoaNome] = useState('');
+  const [outraPessoaSobrenome, setOutraPessoaSobrenome] = useState('');
+  const [userProfileName, setUserProfileName] = useState('');
   const [formData, setFormData] = useState({
     codigo: '',
     nome: '',
@@ -54,6 +58,24 @@ export default function Brindes() {
     fetchProdutos();
     fetchCategorias();
   }, []);
+
+  useEffect(() => {
+    if (user) fetchUserProfile();
+  }, [user]);
+
+  async function fetchUserProfile() {
+    if (!user) return;
+    try {
+      const { data } = await supabase
+        .from('profiles')
+        .select('nome')
+        .eq('id', user.id)
+        .single();
+      if (data) setUserProfileName(data.nome);
+    } catch (error) {
+      console.error('Error fetching profile:', error);
+    }
+  }
 
   async function fetchProdutos() {
     try {
@@ -263,9 +285,14 @@ export default function Brindes() {
     setSelectedProduto(produto);
     setRequestQuantidade(1);
     setRequestMotivo('');
-    setRequestNome('');
-    setRequestSobrenome('');
+    // Auto-preenche com nome do perfil
+    const parts = userProfileName.split(' ');
+    setRequestNome(parts[0] || '');
+    setRequestSobrenome(parts.slice(1).join(' ') || '');
     setRequestFilial('');
+    setEntregarOutraPessoa(false);
+    setOutraPessoaNome('');
+    setOutraPessoaSobrenome('');
     setIsRequestDialogOpen(true);
   };
 
@@ -277,10 +304,19 @@ export default function Brindes() {
       toast({ title: 'Preencha todos os campos obrigatórios', variant: 'destructive' });
       return;
     }
+
+    if (entregarOutraPessoa && (!outraPessoaNome.trim() || !outraPessoaSobrenome.trim())) {
+      toast({ title: 'Preencha o nome da pessoa que receberá o brinde', variant: 'destructive' });
+      return;
+    }
     
     setFormLoading(true);
     try {
-      const motivoCompleto = `Nome: ${requestNome} ${requestSobrenome} | Filial: ${requestFilial}${requestMotivo ? ` | Motivo: ${requestMotivo}` : ''}`;
+      let motivoCompleto = `Nome: ${requestNome} ${requestSobrenome} | Filial: ${requestFilial}`;
+      if (entregarOutraPessoa) {
+        motivoCompleto += ` | Entregar a: ${outraPessoaNome} ${outraPessoaSobrenome}`;
+      }
+      motivoCompleto += requestMotivo ? ` | Motivo: ${requestMotivo}` : '';
       
       const { error } = await supabase
         .from('pedidos')
@@ -650,9 +686,10 @@ export default function Brindes() {
                   <Label htmlFor="request-nome">Nome <span className="text-destructive">*</span></Label>
                   <Input
                     id="request-nome"
-                    placeholder="Seu nome"
                     value={requestNome}
                     onChange={(e) => setRequestNome(e.target.value)}
+                    readOnly={!!userProfileName}
+                    className={userProfileName ? 'bg-muted' : ''}
                     required
                   />
                 </div>
@@ -660,13 +697,50 @@ export default function Brindes() {
                   <Label htmlFor="request-sobrenome">Sobrenome <span className="text-destructive">*</span></Label>
                   <Input
                     id="request-sobrenome"
-                    placeholder="Seu sobrenome"
                     value={requestSobrenome}
                     onChange={(e) => setRequestSobrenome(e.target.value)}
+                    readOnly={!!userProfileName}
+                    className={userProfileName ? 'bg-muted' : ''}
                     required
                   />
                 </div>
               </div>
+
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="entregar-outra-pessoa"
+                  checked={entregarOutraPessoa}
+                  onCheckedChange={(checked) => setEntregarOutraPessoa(checked === true)}
+                />
+                <Label htmlFor="entregar-outra-pessoa" className="text-sm font-normal cursor-pointer">
+                  Entregar a outra pessoa
+                </Label>
+              </div>
+
+              {entregarOutraPessoa && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-3 bg-muted/50 rounded-lg border">
+                  <div className="space-y-2">
+                    <Label htmlFor="outra-nome">Nome do destinatário <span className="text-destructive">*</span></Label>
+                    <Input
+                      id="outra-nome"
+                      placeholder="Nome"
+                      value={outraPessoaNome}
+                      onChange={(e) => setOutraPessoaNome(e.target.value)}
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="outra-sobrenome">Sobrenome <span className="text-destructive">*</span></Label>
+                    <Input
+                      id="outra-sobrenome"
+                      placeholder="Sobrenome"
+                      value={outraPessoaSobrenome}
+                      onChange={(e) => setOutraPessoaSobrenome(e.target.value)}
+                      required
+                    />
+                  </div>
+                </div>
+              )}
 
               <div className="space-y-2">
                 <Label htmlFor="request-filial">Filial <span className="text-destructive">*</span></Label>
@@ -717,7 +791,7 @@ export default function Brindes() {
                 <Button type="button" variant="outline" onClick={() => setIsRequestDialogOpen(false)}>
                   Cancelar
                 </Button>
-                <Button type="submit" disabled={formLoading || !requestNome.trim() || !requestSobrenome.trim() || !requestFilial || !requestMotivo.trim()} className="gradient-primary">
+                <Button type="submit" disabled={formLoading || !requestNome.trim() || !requestSobrenome.trim() || !requestFilial || !requestMotivo.trim() || (entregarOutraPessoa && (!outraPessoaNome.trim() || !outraPessoaSobrenome.trim()))} className="gradient-primary">
                   {formLoading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
                   Enviar Solicitação
                 </Button>
