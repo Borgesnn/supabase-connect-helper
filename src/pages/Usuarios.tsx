@@ -367,11 +367,22 @@ export default function Usuarios() {
                   <Users className="w-5 h-5 text-primary" />
                 </div>
                 <div className="flex-1">
-                  <CardTitle className="text-base font-semibold">{u.nome}</CardTitle>
+                  <CardTitle className="text-base font-semibold">
+                    {u.nome}{u.sobrenome ? ` ${u.sobrenome}` : ''}
+                  </CardTitle>
                   {u.cargo && (
                     <p className="text-sm text-muted-foreground">{u.cargo}</p>
                   )}
                 </div>
+                {isAdmin && (
+                  <button
+                    onClick={() => openEditDialog(u)}
+                    className="p-1.5 rounded-full hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
+                    title="Editar usuário"
+                  >
+                    <Pencil className="w-4 h-4" />
+                  </button>
+                )}
               </div>
             </CardHeader>
             <CardContent className="space-y-4">
