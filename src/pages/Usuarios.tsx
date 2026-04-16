@@ -52,6 +52,13 @@ export default function Usuarios() {
   const [deleteUserId, setDeleteUserId] = useState<string | null>(null);
   const [deletingUser, setDeletingUser] = useState(false);
 
+  // Estado para edição de usuário
+  const [editUser, setEditUser] = useState<UserProfile | null>(null);
+  const [editNome, setEditNome] = useState('');
+  const [editSobrenome, setEditSobrenome] = useState('');
+  const [editCargo, setEditCargo] = useState('');
+  const [savingEdit, setSavingEdit] = useState(false);
+
   useEffect(() => {
     fetchUsers();
   }, [user]);
