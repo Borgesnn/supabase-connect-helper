@@ -14,6 +14,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Lightbulb,
+  Truck,
   Menu,
   X
 } from 'lucide-react';
@@ -33,6 +34,7 @@ const navItems: NavItem[] = [
   { path: '/pedidos', label: 'Pedidos', icon: ShoppingCart },
   { path: '/sugestoes', label: 'Sugestões', icon: Lightbulb },
   { path: '/usuarios', label: 'Usuários', icon: Users, requiredRoles: ['admin', 'operario'] },
+  { path: '/fornecedores', label: 'Fornecedores', icon: Truck, requiredRoles: ['admin', 'operario'] },
   { path: '/configuracoes', label: 'Configurações', icon: Settings },
 ];
 

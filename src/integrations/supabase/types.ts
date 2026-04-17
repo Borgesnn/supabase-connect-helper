@@ -32,6 +32,104 @@ export type Database = {
         }
         Relationships: []
       }
+      fornecedor_anexos: {
+        Row: {
+          arquivo_url: string
+          created_at: string
+          fornecedor_id: string
+          id: string
+          nome_arquivo: string
+          tamanho_bytes: number | null
+          tipo: string | null
+          uploaded_by: string
+        }
+        Insert: {
+          arquivo_url: string
+          created_at?: string
+          fornecedor_id: string
+          id?: string
+          nome_arquivo: string
+          tamanho_bytes?: number | null
+          tipo?: string | null
+          uploaded_by: string
+        }
+        Update: {
+          arquivo_url?: string
+          created_at?: string
+          fornecedor_id?: string
+          id?: string
+          nome_arquivo?: string
+          tamanho_bytes?: number | null
+          tipo?: string | null
+          uploaded_by?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fornecedor_anexos_fornecedor_id_fkey"
+            columns: ["fornecedor_id"]
+            isOneToOne: false
+            referencedRelation: "fornecedores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      fornecedores: {
+        Row: {
+          ativo: boolean
+          avaliacao: number | null
+          categoria: string | null
+          created_at: string
+          email: string | null
+          endereco: string | null
+          forma_pagamento: string | null
+          id: string
+          logo_url: string | null
+          nome: string
+          observacoes: string | null
+          prazo_entrega_dias: number | null
+          responsavel: string | null
+          site: string | null
+          telefone: string | null
+          updated_at: string
+        }
+        Insert: {
+          ativo?: boolean
+          avaliacao?: number | null
+          categoria?: string | null
+          created_at?: string
+          email?: string | null
+          endereco?: string | null
+          forma_pagamento?: string | null
+          id?: string
+          logo_url?: string | null
+          nome: string
+          observacoes?: string | null
+          prazo_entrega_dias?: number | null
+          responsavel?: string | null
+          site?: string | null
+          telefone?: string | null
+          updated_at?: string
+        }
+        Update: {
+          ativo?: boolean
+          avaliacao?: number | null
+          categoria?: string | null
+          created_at?: string
+          email?: string | null
+          endereco?: string | null
+          forma_pagamento?: string | null
+          id?: string
+          logo_url?: string | null
+          nome?: string
+          observacoes?: string | null
+          prazo_entrega_dias?: number | null
+          responsavel?: string | null
+          site?: string | null
+          telefone?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       movimentacoes: {
         Row: {
           created_at: string

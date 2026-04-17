@@ -14,6 +14,7 @@ import Pedidos from "./pages/Pedidos";
 import Usuarios from "./pages/Usuarios";
 import Configuracoes from "./pages/Configuracoes";
 import Sugestoes from "./pages/Sugestoes";
+import Fornecedores from "./pages/Fornecedores";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -67,6 +68,13 @@ const App = () => (
             <Route path="/sugestoes" element={
               <ProtectedRoute>
                 <MainLayout><Sugestoes /></MainLayout>
+              </ProtectedRoute>
+            } />
+
+            {/* Fornecedores - apenas admin e operário */}
+            <Route path="/fornecedores" element={
+              <ProtectedRoute requiredRoles={['admin', 'operario']}>
+                <MainLayout><Fornecedores /></MainLayout>
               </ProtectedRoute>
             } />
             
