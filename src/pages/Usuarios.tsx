@@ -358,13 +358,22 @@ export default function Usuarios() {
               className="group relative flex flex-col hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 border-border/60"
             >
               {isAdmin && u.id !== user?.id && (
-                <button
-                  onClick={() => setDeleteUserId(u.id)}
-                  className="absolute top-2 right-2 z-10 p-1 rounded-full bg-background/80 hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors opacity-0 group-hover:opacity-100"
-                  title="Excluir usuário"
-                >
-                  <X className="w-3.5 h-3.5" />
-                </button>
+                <div className="absolute top-2 right-2 z-10 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <button
+                    onClick={() => openEditDialog(u)}
+                    className="p-1.5 rounded-md bg-background/80 border border-border hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
+                    title="Editar usuário"
+                  >
+                    <Pencil className="w-3.5 h-3.5" />
+                  </button>
+                  <button
+                    onClick={() => setDeleteUserId(u.id)}
+                    className="p-1.5 rounded-md bg-background/80 border border-border hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors"
+                    title="Excluir usuário"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                </div>
               )}
 
               <CardHeader className="pb-3">
@@ -372,7 +381,7 @@ export default function Usuarios() {
                   <div className="w-11 h-11 rounded-full bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center text-primary-foreground font-semibold text-sm shrink-0">
                     {initials}
                   </div>
-                  <div className="flex-1 min-w-0">
+                  <div className="flex-1 min-w-0 pr-16">
                     <CardTitle className="text-sm font-semibold truncate">
                       {u.nome}{u.sobrenome ? ` ${u.sobrenome}` : ''}
                     </CardTitle>
@@ -382,15 +391,6 @@ export default function Usuarios() {
                       <p className="text-xs text-muted-foreground/60 italic mt-0.5">Sem cargo</p>
                     )}
                   </div>
-                  {isAdmin && (
-                    <button
-                      onClick={() => openEditDialog(u)}
-                      className="p-1.5 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground transition-colors shrink-0"
-                      title="Editar usuário"
-                    >
-                      <Pencil className="w-3.5 h-3.5" />
-                    </button>
-                  )}
                 </div>
               </CardHeader>
 
