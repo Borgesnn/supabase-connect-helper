@@ -70,6 +70,13 @@ const App = () => (
                 <MainLayout><Sugestoes /></MainLayout>
               </ProtectedRoute>
             } />
+
+            {/* Fornecedores - apenas admin e operário */}
+            <Route path="/fornecedores" element={
+              <ProtectedRoute requiredRoles={['admin', 'operario']}>
+                <MainLayout><Fornecedores /></MainLayout>
+              </ProtectedRoute>
+            } />
             
             {/* Configurações - todos podem acessar */}
             <Route path="/configuracoes" element={
