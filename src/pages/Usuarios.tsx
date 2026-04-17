@@ -349,63 +349,70 @@ export default function Usuarios() {
       )}
 
       {/* Users Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {users.map((u) => (
-          <Card key={u.id} className="hover:shadow-lg transition-all duration-200">
-            <CardHeader className="pb-3 relative">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+        {users.map((u) => {
+          const initials = `${u.nome?.[0] || ''}${u.sobrenome?.[0] || ''}`.toUpperCase() || 'U';
+          return (
+            <Card
+              key={u.id}
+              className="group relative flex flex-col hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 border-border/60"
+            >
               {isAdmin && u.id !== user?.id && (
                 <button
                   onClick={() => setDeleteUserId(u.id)}
-                  className="absolute top-2 right-2 p-1 rounded-full hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors"
+                  className="absolute top-2 right-2 z-10 p-1 rounded-full bg-background/80 hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors opacity-0 group-hover:opacity-100"
                   title="Excluir usuário"
                 >
-                  <X className="w-4 h-4" />
+                  <X className="w-3.5 h-3.5" />
                 </button>
               )}
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                  <Users className="w-5 h-5 text-primary" />
-                </div>
-                <div className="flex-1">
-                  <CardTitle className="text-base font-semibold">
-                    {u.nome}{u.sobrenome ? ` ${u.sobrenome}` : ''}
-                  </CardTitle>
-                  {u.cargo && (
-                    <p className="text-sm text-muted-foreground">{u.cargo}</p>
+
+              <CardHeader className="pb-3">
+                <div className="flex items-start gap-3">
+                  <div className="w-11 h-11 rounded-full bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center text-primary-foreground font-semibold text-sm shrink-0">
+                    {initials}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <CardTitle className="text-sm font-semibold truncate">
+                      {u.nome}{u.sobrenome ? ` ${u.sobrenome}` : ''}
+                    </CardTitle>
+                    {u.cargo ? (
+                      <p className="text-xs text-muted-foreground truncate mt-0.5">{u.cargo}</p>
+                    ) : (
+                      <p className="text-xs text-muted-foreground/60 italic mt-0.5">Sem cargo</p>
+                    )}
+                  </div>
+                  {isAdmin && (
+                    <button
+                      onClick={() => openEditDialog(u)}
+                      className="p-1.5 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground transition-colors shrink-0"
+                      title="Editar usuário"
+                    >
+                      <Pencil className="w-3.5 h-3.5" />
+                    </button>
                   )}
                 </div>
-                {isAdmin && (
-                  <button
-                    onClick={() => openEditDialog(u)}
-                    className="p-1.5 rounded-full hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
-                    title="Editar usuário"
-                  >
-                    <Pencil className="w-4 h-4" />
-                  </button>
-                )}
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Papel atual:</span>
-                <Badge className={roleBadgeStyles[u.role || 'usuario']}>
-                  {roleLabels[u.role || 'usuario']}
-                </Badge>
-              </div>
+              </CardHeader>
 
-              {isAdmin ? (
-                <div className="space-y-2">
-                  <label className="text-sm text-muted-foreground flex items-center gap-2">
-                    <Shield className="w-4 h-4" />
-                    Alterar papel:
-                  </label>
+              <CardContent className="flex-1 flex flex-col gap-3 pt-0">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-muted-foreground">Papel</span>
+                  <Badge className={`${roleBadgeStyles[u.role || 'usuario']} text-xs`}>
+                    {roleLabels[u.role || 'usuario']}
+                  </Badge>
+                </div>
+
+                {isAdmin ? (
                   <Select
                     value={u.role}
                     onValueChange={(value) => handleRoleChange(u.id, value)}
                     disabled={updating === u.id}
                   >
-                    <SelectTrigger>
-                      <SelectValue />
+                    <SelectTrigger className="h-8 text-xs">
+                      <div className="flex items-center gap-1.5">
+                        <Shield className="w-3 h-3" />
+                        <SelectValue />
+                      </div>
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="usuario">Usuário</SelectItem>
@@ -413,20 +420,20 @@ export default function Usuarios() {
                       <SelectItem value="admin">Administrador</SelectItem>
                     </SelectContent>
                   </Select>
-                </div>
-              ) : (
-                <div className="flex items-center gap-2 text-sm text-muted-foreground pt-2">
-                  <Lock className="w-4 h-4" />
-                  <span>Apenas administradores podem alterar papéis</span>
-                </div>
-              )}
+                ) : (
+                  <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                    <Lock className="w-3 h-3" />
+                    <span>Somente admin altera</span>
+                  </div>
+                )}
 
-              <div className="text-xs text-muted-foreground pt-2 border-t">
-                Desde: {new Date(u.created_at).toLocaleDateString('pt-BR')}
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+                <div className="text-[11px] text-muted-foreground pt-2 border-t mt-auto">
+                  Desde {new Date(u.created_at).toLocaleDateString('pt-BR')}
+                </div>
+              </CardContent>
+            </Card>
+          );
+        })}
       </div>
 
       {users.length === 0 && (
