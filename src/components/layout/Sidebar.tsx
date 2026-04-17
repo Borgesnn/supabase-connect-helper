@@ -14,6 +14,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Lightbulb,
+  Truck,
   Menu,
   X
 } from 'lucide-react';
