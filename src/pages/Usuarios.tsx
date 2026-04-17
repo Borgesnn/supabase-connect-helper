@@ -483,12 +483,12 @@ export default function Usuarios() {
             </div>
           </div>
           <DialogFooter className="flex gap-2 sm:justify-end">
+            <Button variant="destructive" onClick={() => setEditUser(null)} disabled={savingEdit}>
+              Cancelar
+            </Button>
             <Button variant="outline" onClick={handleSaveEdit} disabled={savingEdit}>
               {savingEdit ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
               Salvar
-            </Button>
-            <Button variant="destructive" onClick={() => setEditUser(null)} disabled={savingEdit}>
-              Cancelar
             </Button>
           </DialogFooter>
         </DialogContent>
