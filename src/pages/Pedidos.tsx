@@ -12,9 +12,10 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { Plus, Check, X, Clock, ShoppingCart, Loader2 } from 'lucide-react';
+import { Plus, Check, X, Clock, ShoppingCart, Loader2, Crown } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { useUserAreas } from '@/hooks/useAreas';
 
 interface Pedido {
   id: string;
@@ -23,6 +24,7 @@ interface Pedido {
   solicitante_id: string;
   motivo: string | null;
   status: string;
+  prioridade?: string;
   data_aprovacao: string | null;
   created_at: string;
   produtos?: {
@@ -38,6 +40,7 @@ interface Pedido {
 export default function Pedidos() {
   const { user } = useAuth();
   const { canManage } = useUserRole();
+  const { isDiretoria } = useUserAreas();
   const [pedidos, setPedidos] = useState<Pedido[]>([]);
   const [produtos, setProdutos] = useState<Produto[]>([]);
   const [loading, setLoading] = useState(true);
@@ -66,6 +69,7 @@ export default function Pedidos() {
         supabase
           .from('pedidos')
           .select('*, produtos(nome, codigo, quantidade)')
+          .order('prioridade', { ascending: false }) // diretoria > normal
           .order('created_at', { ascending: false }),
         supabase.from('produtos').select('*').order('nome'),
       ]);
@@ -102,6 +106,7 @@ export default function Pedidos() {
         quantidade: formData.quantidade,
         solicitante_id: user.id,
         motivo: formData.motivo || null,
+        prioridade: isDiretoria ? 'diretoria' : 'normal',
       }]);
 
       if (error) throw error;
@@ -318,7 +323,12 @@ export default function Pedidos() {
       {/* Pedidos Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {filteredPedidos.map((pedido) => (
-          <Card key={pedido.id} className="hover:shadow-lg transition-all duration-200">
+          <Card
+            key={pedido.id}
+            className={`hover:shadow-lg transition-all duration-200 ${
+              pedido.prioridade === 'diretoria' ? 'border-warning border-2 ring-1 ring-warning/30' : ''
+            }`}
+          >
             <CardHeader className="pb-3">
               <div className="flex items-start justify-between">
                 <div className="flex items-center gap-3">
@@ -334,7 +344,14 @@ export default function Pedidos() {
                     </p>
                   </div>
                 </div>
-                {getStatusBadge(pedido.status)}
+                <div className="flex flex-col items-end gap-1">
+                  {pedido.prioridade === 'diretoria' && (
+                    <Badge className="bg-warning text-warning-foreground gap-1">
+                      <Crown className="w-3 h-3" /> Diretoria
+                    </Badge>
+                  )}
+                  {getStatusBadge(pedido.status)}
+                </div>
               </div>
             </CardHeader>
             <CardContent className="space-y-4">

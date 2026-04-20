@@ -14,10 +14,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useToast } from '@/hooks/use-toast';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Plus, Search, Edit, Trash2, Gift, AlertTriangle, Loader2, Upload, X, ShoppingCart } from 'lucide-react';
+import { AreasSelector } from '@/components/areas/AreasSelector';
+import { useUserAreas } from '@/hooks/useAreas';
 
 export default function Brindes() {
   const { user } = useAuth();
   const { canManage, isAdmin, loading: roleLoading } = useUserRole();
+  const { isDiretoria } = useUserAreas();
   const [produtos, setProdutos] = useState<Produto[]>([]);
   const [categorias, setCategorias] = useState<Categoria[]>([]);
   const [loading, setLoading] = useState(true);
@@ -30,6 +33,7 @@ export default function Brindes() {
   const [formLoading, setFormLoading] = useState(false);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [productAreaIds, setProductAreaIds] = useState<string[]>([]);
   
   // Estado para solicitação
   const [requestQuantidade, setRequestQuantidade] = useState(1);
@@ -132,7 +136,7 @@ export default function Brindes() {
     return { label: 'Normal', variant: 'success' as const };
   };
 
-  const handleOpenDialog = (produto?: Produto) => {
+  const handleOpenDialog = async (produto?: Produto) => {
     if (produto) {
       setEditingProduto(produto);
       setFormData({
@@ -146,6 +150,11 @@ export default function Brindes() {
         descricao: produto.descricao || '',
       });
       setImagePreview(produto.imagem_url || null);
+      const { data: pa } = await supabase
+        .from('produto_areas')
+        .select('area_id')
+        .eq('produto_id', produto.id);
+      setProductAreaIds((pa || []).map((r: any) => r.area_id));
     } else {
       setEditingProduto(null);
       setFormData({
@@ -159,6 +168,7 @@ export default function Brindes() {
         descricao: '',
       });
       setImagePreview(null);
+      setProductAreaIds([]);
     }
     setImageFile(null);
     setIsDialogOpen(true);
@@ -230,6 +240,7 @@ export default function Brindes() {
         imagem_url: imagemUrl,
       };
 
+      let produtoId = editingProduto?.id;
       if (editingProduto) {
         const { error } = await supabase
           .from('produtos')
@@ -239,12 +250,25 @@ export default function Brindes() {
         if (error) throw error;
         toast({ title: 'Brinde atualizado com sucesso!' });
       } else {
-        const { error } = await supabase
+        const { data: created, error } = await supabase
           .from('produtos')
-          .insert([submitData]);
+          .insert([submitData])
+          .select('id')
+          .single();
 
         if (error) throw error;
+        produtoId = created?.id;
         toast({ title: 'Brinde adicionado com sucesso!' });
+      }
+
+      // Sincronizar áreas vinculadas ao produto
+      if (produtoId) {
+        await supabase.from('produto_areas').delete().eq('produto_id', produtoId);
+        if (productAreaIds.length > 0) {
+          await supabase.from('produto_areas').insert(
+            productAreaIds.map((area_id) => ({ produto_id: produtoId!, area_id }))
+          );
+        }
       }
 
       setIsDialogOpen(false);
@@ -325,7 +349,8 @@ export default function Brindes() {
           quantidade: requestQuantidade,
           solicitante_id: user.id,
           motivo: motivoCompleto,
-          status: 'pendente'
+          status: 'pendente',
+          prioridade: isDiretoria ? 'diretoria' : 'normal',
         }]);
 
       if (error) throw error;
@@ -470,6 +495,13 @@ export default function Brindes() {
                 />
               </div>
 
+              <div className="space-y-2">
+                <Label>Áreas com acesso a este brinde</Label>
+                <p className="text-xs text-muted-foreground">
+                  Selecione as áreas que poderão visualizar este brinde. Vazio = visível para todos.
+                </p>
+                <AreasSelector selectedIds={productAreaIds} onChange={setProductAreaIds} />
+              </div>
               <div className="space-y-2">
                 <Label>Imagem do Brinde</Label>
                 {imagePreview ? (
