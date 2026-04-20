@@ -14,6 +14,44 @@ export type Database = {
   }
   public: {
     Tables: {
+      areas: {
+        Row: {
+          created_at: string
+          id: string
+          is_diretoria: boolean
+          nivel: number
+          nome: string
+          ordem: number
+          parent_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_diretoria?: boolean
+          nivel?: number
+          nome: string
+          ordem?: number
+          parent_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_diretoria?: boolean
+          nivel?: number
+          nome?: string
+          ordem?: number
+          parent_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "areas_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "areas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       categorias: {
         Row: {
           created_at: string
@@ -329,6 +367,7 @@ export type Database = {
           data_aprovacao: string | null
           id: string
           motivo: string | null
+          prioridade: string
           produto_id: string
           quantidade: number
           solicitante_id: string
@@ -340,6 +379,7 @@ export type Database = {
           data_aprovacao?: string | null
           id?: string
           motivo?: string | null
+          prioridade?: string
           produto_id: string
           quantidade: number
           solicitante_id: string
@@ -351,6 +391,7 @@ export type Database = {
           data_aprovacao?: string | null
           id?: string
           motivo?: string | null
+          prioridade?: string
           produto_id?: string
           quantidade?: number
           solicitante_id?: string
@@ -359,6 +400,42 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "pedidos_produto_id_fkey"
+            columns: ["produto_id"]
+            isOneToOne: false
+            referencedRelation: "produtos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      produto_areas: {
+        Row: {
+          area_id: string
+          created_at: string
+          id: string
+          produto_id: string
+        }
+        Insert: {
+          area_id: string
+          created_at?: string
+          id?: string
+          produto_id: string
+        }
+        Update: {
+          area_id?: string
+          created_at?: string
+          id?: string
+          produto_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "produto_areas_area_id_fkey"
+            columns: ["area_id"]
+            isOneToOne: false
+            referencedRelation: "areas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "produto_areas_produto_id_fkey"
             columns: ["produto_id"]
             isOneToOne: false
             referencedRelation: "produtos"
@@ -473,6 +550,35 @@ export type Database = {
         }
         Relationships: []
       }
+      user_areas: {
+        Row: {
+          area_id: string
+          created_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          area_id: string
+          created_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          area_id?: string
+          created_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_areas_area_id_fkey"
+            columns: ["area_id"]
+            isOneToOne: false
+            referencedRelation: "areas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           id: string
@@ -501,6 +607,11 @@ export type Database = {
           _role: Database["public"]["Enums"]["app_role"]
           _user_id: string
         }
+        Returns: boolean
+      }
+      is_diretoria: { Args: { _user_id: string }; Returns: boolean }
+      user_can_see_produto: {
+        Args: { _produto_id: string; _user_id: string }
         Returns: boolean
       }
     }
