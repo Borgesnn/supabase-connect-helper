@@ -136,7 +136,7 @@ export default function Brindes() {
     return { label: 'Normal', variant: 'success' as const };
   };
 
-  const handleOpenDialog = (produto?: Produto) => {
+  const handleOpenDialog = async (produto?: Produto) => {
     if (produto) {
       setEditingProduto(produto);
       setFormData({
@@ -150,6 +150,11 @@ export default function Brindes() {
         descricao: produto.descricao || '',
       });
       setImagePreview(produto.imagem_url || null);
+      const { data: pa } = await supabase
+        .from('produto_areas')
+        .select('area_id')
+        .eq('produto_id', produto.id);
+      setProductAreaIds((pa || []).map((r: any) => r.area_id));
     } else {
       setEditingProduto(null);
       setFormData({
@@ -163,6 +168,7 @@ export default function Brindes() {
         descricao: '',
       });
       setImagePreview(null);
+      setProductAreaIds([]);
     }
     setImageFile(null);
     setIsDialogOpen(true);
@@ -234,6 +240,7 @@ export default function Brindes() {
         imagem_url: imagemUrl,
       };
 
+      let produtoId = editingProduto?.id;
       if (editingProduto) {
         const { error } = await supabase
           .from('produtos')
@@ -243,12 +250,25 @@ export default function Brindes() {
         if (error) throw error;
         toast({ title: 'Brinde atualizado com sucesso!' });
       } else {
-        const { error } = await supabase
+        const { data: created, error } = await supabase
           .from('produtos')
-          .insert([submitData]);
+          .insert([submitData])
+          .select('id')
+          .single();
 
         if (error) throw error;
+        produtoId = created?.id;
         toast({ title: 'Brinde adicionado com sucesso!' });
+      }
+
+      // Sincronizar áreas vinculadas ao produto
+      if (produtoId) {
+        await supabase.from('produto_areas').delete().eq('produto_id', produtoId);
+        if (productAreaIds.length > 0) {
+          await supabase.from('produto_areas').insert(
+            productAreaIds.map((area_id) => ({ produto_id: produtoId!, area_id }))
+          );
+        }
       }
 
       setIsDialogOpen(false);
