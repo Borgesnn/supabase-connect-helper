@@ -36,6 +36,7 @@ const navItems: NavItem[] = [
   { path: '/sugestoes', label: 'Sugestões', icon: Lightbulb },
   { path: '/usuarios', label: 'Usuários', icon: Users, requiredRoles: ['admin', 'operario'] },
   { path: '/fornecedores', label: 'Fornecedores', icon: Truck, requiredRoles: ['admin', 'operario'] },
+  { path: '/cotacoes', label: 'Cotações', icon: FileText },
   { path: '/configuracoes', label: 'Configurações', icon: Settings },
 ];
 
