@@ -15,6 +15,7 @@ import Usuarios from "./pages/Usuarios";
 import Configuracoes from "./pages/Configuracoes";
 import Sugestoes from "./pages/Sugestoes";
 import Fornecedores from "./pages/Fornecedores";
+import Cotacoes from "./pages/Cotacoes";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -75,6 +76,13 @@ const App = () => (
             <Route path="/fornecedores" element={
               <ProtectedRoute requiredRoles={['admin', 'operario']}>
                 <MainLayout><Fornecedores /></MainLayout>
+              </ProtectedRoute>
+            } />
+
+            {/* Cotações - todos veem, admin/operário gerencia */}
+            <Route path="/cotacoes" element={
+              <ProtectedRoute>
+                <MainLayout><Cotacoes /></MainLayout>
               </ProtectedRoute>
             } />
             

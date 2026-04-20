@@ -32,6 +32,160 @@ export type Database = {
         }
         Relationships: []
       }
+      cotacao_anexos: {
+        Row: {
+          arquivo_url: string
+          categoria: string | null
+          cotacao_id: string
+          created_at: string
+          id: string
+          nome_arquivo: string
+          tamanho_bytes: number | null
+          tipo: string | null
+          uploaded_by: string
+        }
+        Insert: {
+          arquivo_url: string
+          categoria?: string | null
+          cotacao_id: string
+          created_at?: string
+          id?: string
+          nome_arquivo: string
+          tamanho_bytes?: number | null
+          tipo?: string | null
+          uploaded_by: string
+        }
+        Update: {
+          arquivo_url?: string
+          categoria?: string | null
+          cotacao_id?: string
+          created_at?: string
+          id?: string
+          nome_arquivo?: string
+          tamanho_bytes?: number | null
+          tipo?: string | null
+          uploaded_by?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cotacao_anexos_cotacao_id_fkey"
+            columns: ["cotacao_id"]
+            isOneToOne: false
+            referencedRelation: "cotacoes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cotacao_historico: {
+        Row: {
+          cotacao_id: string
+          created_at: string
+          id: string
+          observacao: string | null
+          status_anterior: string | null
+          status_novo: string
+          usuario_id: string
+        }
+        Insert: {
+          cotacao_id: string
+          created_at?: string
+          id?: string
+          observacao?: string | null
+          status_anterior?: string | null
+          status_novo: string
+          usuario_id: string
+        }
+        Update: {
+          cotacao_id?: string
+          created_at?: string
+          id?: string
+          observacao?: string | null
+          status_anterior?: string | null
+          status_novo?: string
+          usuario_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cotacao_historico_cotacao_id_fkey"
+            columns: ["cotacao_id"]
+            isOneToOne: false
+            referencedRelation: "cotacoes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cotacoes: {
+        Row: {
+          created_at: string
+          created_by: string
+          data_prevista: string | null
+          data_solicitacao: string | null
+          fornecedor_id: string | null
+          id: string
+          nome: string
+          observacoes: string | null
+          prazo_dias: number | null
+          produto_id: string | null
+          quantidade: number | null
+          responsavel: string | null
+          status: string
+          updated_at: string
+          valor_estimado: number | null
+          valor_final: number | null
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          data_prevista?: string | null
+          data_solicitacao?: string | null
+          fornecedor_id?: string | null
+          id?: string
+          nome: string
+          observacoes?: string | null
+          prazo_dias?: number | null
+          produto_id?: string | null
+          quantidade?: number | null
+          responsavel?: string | null
+          status?: string
+          updated_at?: string
+          valor_estimado?: number | null
+          valor_final?: number | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          data_prevista?: string | null
+          data_solicitacao?: string | null
+          fornecedor_id?: string | null
+          id?: string
+          nome?: string
+          observacoes?: string | null
+          prazo_dias?: number | null
+          produto_id?: string | null
+          quantidade?: number | null
+          responsavel?: string | null
+          status?: string
+          updated_at?: string
+          valor_estimado?: number | null
+          valor_final?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cotacoes_fornecedor_id_fkey"
+            columns: ["fornecedor_id"]
+            isOneToOne: false
+            referencedRelation: "fornecedores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cotacoes_produto_id_fkey"
+            columns: ["produto_id"]
+            isOneToOne: false
+            referencedRelation: "produtos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       fornecedor_anexos: {
         Row: {
           arquivo_url: string
