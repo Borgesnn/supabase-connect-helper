@@ -78,6 +78,13 @@ const App = () => (
                 <MainLayout><Fornecedores /></MainLayout>
               </ProtectedRoute>
             } />
+
+            {/* Cotações - todos veem, admin/operário gerencia */}
+            <Route path="/cotacoes" element={
+              <ProtectedRoute>
+                <MainLayout><Cotacoes /></MainLayout>
+              </ProtectedRoute>
+            } />
             
             {/* Configurações - todos podem acessar */}
             <Route path="/configuracoes" element={
