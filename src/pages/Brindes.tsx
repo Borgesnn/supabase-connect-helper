@@ -14,10 +14,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useToast } from '@/hooks/use-toast';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Plus, Search, Edit, Trash2, Gift, AlertTriangle, Loader2, Upload, X, ShoppingCart } from 'lucide-react';
+import { AreasSelector } from '@/components/areas/AreasSelector';
+import { useUserAreas } from '@/hooks/useAreas';
 
 export default function Brindes() {
   const { user } = useAuth();
   const { canManage, isAdmin, loading: roleLoading } = useUserRole();
+  const { isDiretoria } = useUserAreas();
   const [produtos, setProdutos] = useState<Produto[]>([]);
   const [categorias, setCategorias] = useState<Categoria[]>([]);
   const [loading, setLoading] = useState(true);
@@ -30,6 +33,7 @@ export default function Brindes() {
   const [formLoading, setFormLoading] = useState(false);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [productAreaIds, setProductAreaIds] = useState<string[]>([]);
   
   // Estado para solicitação
   const [requestQuantidade, setRequestQuantidade] = useState(1);

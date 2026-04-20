@@ -61,7 +61,7 @@ export function AreasSelector({ selectedIds, onChange, disabled }: AreasSelector
             {node.nome}
           </span>
           {node.is_diretoria && (
-            <Badge className="bg-amber-500 text-white hover:bg-amber-600 text-[10px] gap-1">
+            <Badge className="bg-warning text-warning-foreground hover:bg-warning/90 text-[10px] gap-1">
               <Crown className="w-3 h-3" /> Acesso total
             </Badge>
           )}
