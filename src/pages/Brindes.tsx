@@ -496,6 +496,16 @@ export default function Brindes() {
 
               <div className="space-y-2">
                 <Label>Imagem do Brinde</Label>
+              </div>
+              <div className="space-y-2">
+                <Label>Áreas com acesso a este brinde</Label>
+                <p className="text-xs text-muted-foreground">
+                  Selecione as áreas que poderão visualizar este brinde. Vazio = visível para todos.
+                </p>
+                <AreasSelector selectedIds={productAreaIds} onChange={setProductAreaIds} />
+              </div>
+              <div className="space-y-2">
+                <Label>Imagem (selecione abaixo)</Label>
                 {imagePreview ? (
                   <div className="relative w-full h-40 rounded-lg border overflow-hidden">
                     <img 
