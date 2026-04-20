@@ -11,6 +11,7 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Users, Shield, Loader2, Lock, UserPlus, Eye, EyeOff, X, Pencil } from 'lucide-react';
+import { AreasSelector } from '@/components/areas/AreasSelector';
 
 interface UserProfile {
   id: string;
@@ -58,6 +59,7 @@ export default function Usuarios() {
   const [editSobrenome, setEditSobrenome] = useState('');
   const [editCargo, setEditCargo] = useState('');
   const [savingEdit, setSavingEdit] = useState(false);
+  const [editAreaIds, setEditAreaIds] = useState<string[]>([]);
 
   useEffect(() => {
     fetchUsers();
@@ -209,11 +211,16 @@ export default function Usuarios() {
     }
   }
 
-  function openEditDialog(u: UserProfile) {
+  async function openEditDialog(u: UserProfile) {
     setEditUser(u);
     setEditNome(u.nome || '');
     setEditSobrenome(u.sobrenome || '');
     setEditCargo(u.cargo || '');
+    const { data } = await supabase
+      .from('user_areas')
+      .select('area_id')
+      .eq('user_id', u.id);
+    setEditAreaIds((data || []).map((r: any) => r.area_id));
   }
 
   async function handleSaveEdit() {
@@ -225,6 +232,13 @@ export default function Usuarios() {
         .update({ nome: editNome, sobrenome: editSobrenome, cargo: editCargo || null })
         .eq('id', editUser.id);
       if (error) throw error;
+      // Sincronizar áreas
+      await supabase.from('user_areas').delete().eq('user_id', editUser.id);
+      if (editAreaIds.length > 0) {
+        await supabase.from('user_areas').insert(
+          editAreaIds.map((area_id) => ({ user_id: editUser.id, area_id }))
+        );
+      }
       toast({ title: 'Usuário atualizado com sucesso!' });
       setEditUser(null);
       fetchUsers();
@@ -480,6 +494,13 @@ export default function Usuarios() {
             <div className="space-y-2">
               <Label>Cargo</Label>
               <Input value={editCargo} onChange={(e) => setEditCargo(e.target.value)} placeholder="Cargo" />
+            </div>
+            <div className="space-y-2">
+              <Label>Áreas / Categorias de acesso</Label>
+              <p className="text-xs text-muted-foreground">
+                Selecione as áreas que este usuário poderá visualizar. Vincular a "Diretoria" concede acesso total.
+              </p>
+              <AreasSelector selectedIds={editAreaIds} onChange={setEditAreaIds} />
             </div>
           </div>
           <DialogFooter className="flex gap-2 sm:justify-end">
