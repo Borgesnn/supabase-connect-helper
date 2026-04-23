@@ -654,6 +654,14 @@ export default function Brindes() {
                     <span className="text-muted-foreground">Mín.</span>
                     <span>{produto.estoque_minimo}</span>
                   </div>
+                  {canManage && produto.valor_compra != null && (
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Valor compra</span>
+                      <span className="font-medium">
+                        {Number(produto.valor_compra).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                      </span>
+                    </div>
+                  )}
                 </div>
 
                 {canManage ? (
