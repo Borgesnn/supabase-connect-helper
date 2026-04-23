@@ -1,0 +1,1 @@
+ALTER TABLE public.produtos ADD COLUMN valor_compra numeric(10,2);
