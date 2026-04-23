@@ -54,6 +54,7 @@ export default function Brindes() {
     localizacao: '',
     fornecedor: '',
     descricao: '',
+    valor_compra: '' as string,
   });
 
   const { toast } = useToast();
