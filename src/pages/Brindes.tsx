@@ -149,6 +149,7 @@ export default function Brindes() {
         localizacao: produto.localizacao || '',
         fornecedor: produto.fornecedor || '',
         descricao: produto.descricao || '',
+        valor_compra: produto.valor_compra != null ? String(produto.valor_compra) : '',
       });
       setImagePreview(produto.imagem_url || null);
       const { data: pa } = await supabase
@@ -167,6 +168,7 @@ export default function Brindes() {
         localizacao: '',
         fornecedor: '',
         descricao: '',
+        valor_compra: '',
       });
       setImagePreview(null);
       setProductAreaIds([]);
