@@ -241,6 +241,7 @@ export default function Brindes() {
         ...formData,
         categoria_id: formData.categoria_id || null,
         imagem_url: imagemUrl,
+        valor_compra: formData.valor_compra === '' ? null : parseFloat(formData.valor_compra),
       };
 
       let produtoId = editingProduto?.id;
