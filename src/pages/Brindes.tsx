@@ -490,6 +490,20 @@ export default function Brindes() {
               </div>
 
               <div className="space-y-2">
+                <Label htmlFor="valor_compra">Valor de compra (R$)</Label>
+                <Input
+                  id="valor_compra"
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  placeholder="0,00"
+                  value={formData.valor_compra}
+                  onChange={(e) => setFormData({ ...formData, valor_compra: e.target.value })}
+                />
+                <p className="text-xs text-muted-foreground">Custo unitário do item</p>
+              </div>
+
+              <div className="space-y-2">
                 <Label htmlFor="descricao">Descrição</Label>
                 <Textarea
                   id="descricao"
