@@ -25,6 +25,7 @@ export interface Produto {
   imagem_url: string | null;
   fornecedor: string | null;
   descricao: string | null;
+  valor_compra: number | null;
   created_at: string;
   updated_at: string;
   categoria?: Categoria;

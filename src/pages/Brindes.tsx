@@ -54,6 +54,7 @@ export default function Brindes() {
     localizacao: '',
     fornecedor: '',
     descricao: '',
+    valor_compra: '' as string,
   });
 
   const { toast } = useToast();
@@ -148,6 +149,7 @@ export default function Brindes() {
         localizacao: produto.localizacao || '',
         fornecedor: produto.fornecedor || '',
         descricao: produto.descricao || '',
+        valor_compra: produto.valor_compra != null ? String(produto.valor_compra) : '',
       });
       setImagePreview(produto.imagem_url || null);
       const { data: pa } = await supabase
@@ -166,6 +168,7 @@ export default function Brindes() {
         localizacao: '',
         fornecedor: '',
         descricao: '',
+        valor_compra: '',
       });
       setImagePreview(null);
       setProductAreaIds([]);
@@ -238,6 +241,7 @@ export default function Brindes() {
         ...formData,
         categoria_id: formData.categoria_id || null,
         imagem_url: imagemUrl,
+        valor_compra: formData.valor_compra === '' ? null : parseFloat(formData.valor_compra),
       };
 
       let produtoId = editingProduto?.id;
@@ -486,6 +490,20 @@ export default function Brindes() {
               </div>
 
               <div className="space-y-2">
+                <Label htmlFor="valor_compra">Valor de compra (R$)</Label>
+                <Input
+                  id="valor_compra"
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  placeholder="0,00"
+                  value={formData.valor_compra}
+                  onChange={(e) => setFormData({ ...formData, valor_compra: e.target.value })}
+                />
+                <p className="text-xs text-muted-foreground">Custo unitário do item</p>
+              </div>
+
+              <div className="space-y-2">
                 <Label htmlFor="descricao">Descrição</Label>
                 <Textarea
                   id="descricao"
@@ -636,6 +654,14 @@ export default function Brindes() {
                     <span className="text-muted-foreground">Mín.</span>
                     <span>{produto.estoque_minimo}</span>
                   </div>
+                  {canManage && produto.valor_compra != null && (
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Valor compra</span>
+                      <span className="font-medium">
+                        {Number(produto.valor_compra).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                      </span>
+                    </div>
+                  )}
                 </div>
 
                 {canManage ? (
