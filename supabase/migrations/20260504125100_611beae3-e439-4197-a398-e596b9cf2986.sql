@@ -1,0 +1,1 @@
+ALTER TABLE public.movimentacoes ADD COLUMN setor text;

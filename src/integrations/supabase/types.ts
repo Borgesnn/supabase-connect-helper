@@ -329,6 +329,7 @@ export type Database = {
           observacao: string | null
           produto_id: string
           quantidade: number
+          setor: string | null
           tipo: string
           usuario_id: string
         }
@@ -338,6 +339,7 @@ export type Database = {
           observacao?: string | null
           produto_id: string
           quantidade: number
+          setor?: string | null
           tipo: string
           usuario_id: string
         }
@@ -347,6 +349,7 @@ export type Database = {
           observacao?: string | null
           produto_id?: string
           quantidade?: number
+          setor?: string | null
           tipo?: string
           usuario_id?: string
         }
