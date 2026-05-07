@@ -8,6 +8,7 @@ interface SetorSubsetorSelectorProps {
   onSetorChange: (id: string) => void;
   onSubsetorChange: (id: string) => void;
   disabled?: boolean;
+  excludeGeral?: boolean;
 }
 
 export function SetorSubsetorSelector({
@@ -16,12 +17,13 @@ export function SetorSubsetorSelector({
   onSetorChange,
   onSubsetorChange,
   disabled,
+  excludeGeral,
 }: SetorSubsetorSelectorProps) {
   const { areas, loading } = useAreas();
 
   if (loading) return <p className="text-sm text-muted-foreground">Carregando setores...</p>;
 
-  const setores = areas.filter((a) => a.parent_id === null);
+  const setores = areas.filter((a) => a.parent_id === null && !(excludeGeral && a.nome === 'Geral'));
   const subsetores = setorId ? areas.filter((a) => a.parent_id === setorId) : [];
   const selectedSetor = setores.find((s) => s.id === setorId);
   const needsSubsetor = selectedSetor && (selectedSetor.nome === 'Caminhões' || selectedSetor.nome === 'Máquinas');
