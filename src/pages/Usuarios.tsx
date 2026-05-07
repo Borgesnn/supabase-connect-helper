@@ -11,7 +11,6 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Users, Shield, Loader2, Lock, UserPlus, Eye, EyeOff, X, Pencil } from 'lucide-react';
-import { AreasSelector } from '@/components/areas/AreasSelector';
 import { SetorSubsetorSelector } from '@/components/areas/SetorSubsetorSelector';
 import { useAreas } from '@/hooks/useAreas';
 
