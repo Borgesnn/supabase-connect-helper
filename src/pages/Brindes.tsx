@@ -14,13 +14,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useToast } from '@/hooks/use-toast';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Plus, Search, Edit, Trash2, Gift, AlertTriangle, Loader2, Upload, X, ShoppingCart } from 'lucide-react';
-import { AreasSelector } from '@/components/areas/AreasSelector';
-import { useUserAreas } from '@/hooks/useAreas';
+import { SetorSubsetorSelector } from '@/components/areas/SetorSubsetorSelector';
+import { useUserAreas, useAreas } from '@/hooks/useAreas';
 
 export default function Brindes() {
   const { user } = useAuth();
   const { canManage, isAdmin, loading: roleLoading } = useUserRole();
   const { isDiretoria } = useUserAreas();
+  const { areas } = useAreas();
   const [produtos, setProdutos] = useState<Produto[]>([]);
   const [categorias, setCategorias] = useState<Categoria[]>([]);
   const [loading, setLoading] = useState(true);
@@ -34,6 +35,8 @@ export default function Brindes() {
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [productAreaIds, setProductAreaIds] = useState<string[]>([]);
+  const [productSetorId, setProductSetorId] = useState('');
+  const [productSubsetorId, setProductSubsetorId] = useState('');
   
   // Estado para solicitação
   const [requestQuantidade, setRequestQuantidade] = useState(1);
@@ -156,7 +159,26 @@ export default function Brindes() {
         .from('produto_areas')
         .select('area_id')
         .eq('produto_id', produto.id);
-      setProductAreaIds((pa || []).map((r: any) => r.area_id));
+      const ids = (pa || []).map((r: any) => r.area_id as string);
+      setProductAreaIds(ids);
+      // Derive setor/subsetor
+      const setores = areas.filter((a) => a.parent_id === null);
+      const linkedSetor = setores.find((s) => ids.includes(s.id));
+      if (linkedSetor) {
+        setProductSetorId(linkedSetor.id);
+        const sub = areas.find((a) => a.parent_id === linkedSetor.id && ids.includes(a.id));
+        setProductSubsetorId(sub?.id || '');
+      } else {
+        const linkedSub = areas.find((a) => a.parent_id !== null && ids.includes(a.id));
+        if (linkedSub) {
+          setProductSetorId(linkedSub.parent_id!);
+          setProductSubsetorId(linkedSub.id);
+        } else {
+          const geralId = areas.find((a) => a.nome === 'Geral' && a.parent_id === null)?.id || '';
+          setProductSetorId(geralId);
+          setProductSubsetorId('');
+        }
+      }
     } else {
       setEditingProduto(null);
       setFormData({
@@ -171,7 +193,11 @@ export default function Brindes() {
         valor_compra: '',
       });
       setImagePreview(null);
-      setProductAreaIds([]);
+      // Default to Geral
+      const geralId = areas.find((a) => a.nome === 'Geral' && a.parent_id === null)?.id || '';
+      setProductSetorId(geralId);
+      setProductSubsetorId('');
+      setProductAreaIds([geralId].filter(Boolean));
     }
     setImageFile(null);
     setIsDialogOpen(true);
@@ -268,9 +294,12 @@ export default function Brindes() {
       // Sincronizar áreas vinculadas ao produto
       if (produtoId) {
         await supabase.from('produto_areas').delete().eq('produto_id', produtoId);
-        if (productAreaIds.length > 0) {
+        const areaIdsToSave: string[] = [];
+        if (productSetorId) areaIdsToSave.push(productSetorId);
+        if (productSubsetorId) areaIdsToSave.push(productSubsetorId);
+        if (areaIdsToSave.length > 0) {
           await supabase.from('produto_areas').insert(
-            productAreaIds.map((area_id) => ({ produto_id: produtoId!, area_id }))
+            areaIdsToSave.map((area_id) => ({ produto_id: produtoId!, area_id }))
           );
         }
       }
@@ -514,11 +543,16 @@ export default function Brindes() {
               </div>
 
               <div className="space-y-2">
-                <Label>Áreas com acesso a este brinde</Label>
+                <Label>Setor / Subsetor</Label>
                 <p className="text-xs text-muted-foreground">
-                  Selecione as áreas que poderão visualizar este brinde. Vazio = visível para todos.
+                  Selecione o setor do brinde. "Geral" = visível para todos.
                 </p>
-                <AreasSelector selectedIds={productAreaIds} onChange={setProductAreaIds} />
+                <SetorSubsetorSelector
+                  setorId={productSetorId}
+                  subsetorId={productSubsetorId}
+                  onSetorChange={setProductSetorId}
+                  onSubsetorChange={setProductSubsetorId}
+                />
               </div>
               <div className="space-y-2">
                 <Label>Imagem do Brinde</Label>
