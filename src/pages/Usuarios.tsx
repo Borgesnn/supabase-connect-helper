@@ -11,7 +11,8 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Users, Shield, Loader2, Lock, UserPlus, Eye, EyeOff, X, Pencil } from 'lucide-react';
-import { AreasSelector } from '@/components/areas/AreasSelector';
+import { SetorSubsetorSelector } from '@/components/areas/SetorSubsetorSelector';
+import { useAreas } from '@/hooks/useAreas';
 
 interface UserProfile {
   id: string;
@@ -60,6 +61,9 @@ export default function Usuarios() {
   const [editCargo, setEditCargo] = useState('');
   const [savingEdit, setSavingEdit] = useState(false);
   const [editAreaIds, setEditAreaIds] = useState<string[]>([]);
+  const [editSetorId, setEditSetorId] = useState('');
+  const [editSubsetorId, setEditSubsetorId] = useState('');
+  const { areas } = useAreas();
 
   useEffect(() => {
     fetchUsers();
@@ -220,11 +224,37 @@ export default function Usuarios() {
       .from('user_areas')
       .select('area_id')
       .eq('user_id', u.id);
-    setEditAreaIds((data || []).map((r: any) => r.area_id));
+    const ids = (data || []).map((r: any) => r.area_id as string);
+    setEditAreaIds(ids);
+    // Determine setor/subsetor from linked areas
+    const setores = areas.filter((a) => a.parent_id === null);
+    const linkedSetor = setores.find((s) => ids.includes(s.id));
+    if (linkedSetor) {
+      setEditSetorId(linkedSetor.id);
+      const sub = areas.find((a) => a.parent_id === linkedSetor.id && ids.includes(a.id));
+      setEditSubsetorId(sub?.id || '');
+    } else {
+      // Check if a subsetor is linked (derive setor from parent)
+      const linkedSub = areas.find((a) => a.parent_id !== null && ids.includes(a.id));
+      if (linkedSub) {
+        setEditSetorId(linkedSub.parent_id!);
+        setEditSubsetorId(linkedSub.id);
+      } else {
+        const geralId = areas.find((a) => a.nome === 'Geral' && a.parent_id === null)?.id || '';
+        setEditSetorId(geralId);
+        setEditSubsetorId('');
+      }
+    }
   }
 
   async function handleSaveEdit() {
     if (!editUser) return;
+    // Validate subsetor requirement
+    const selectedSetor = areas.find((a) => a.id === editSetorId);
+    if (selectedSetor && (selectedSetor.nome === 'Caminhões' || selectedSetor.nome === 'Máquinas') && !editSubsetorId) {
+      toast({ title: 'Selecione o subsetor', variant: 'destructive' });
+      return;
+    }
     setSavingEdit(true);
     try {
       const { error } = await supabase
@@ -234,9 +264,12 @@ export default function Usuarios() {
       if (error) throw error;
       // Sincronizar áreas
       await supabase.from('user_areas').delete().eq('user_id', editUser.id);
-      if (editAreaIds.length > 0) {
+      const newAreaIds: string[] = [];
+      if (editSetorId) newAreaIds.push(editSetorId);
+      if (editSubsetorId) newAreaIds.push(editSubsetorId);
+      if (newAreaIds.length > 0) {
         await supabase.from('user_areas').insert(
-          editAreaIds.map((area_id) => ({ user_id: editUser.id, area_id }))
+          newAreaIds.map((area_id) => ({ user_id: editUser!.id, area_id }))
         );
       }
       toast({ title: 'Usuário atualizado com sucesso!' });
@@ -496,11 +529,16 @@ export default function Usuarios() {
               <Input value={editCargo} onChange={(e) => setEditCargo(e.target.value)} placeholder="Cargo" />
             </div>
             <div className="space-y-2">
-              <Label>Áreas / Categorias de acesso</Label>
+              <Label>Setor / Subsetor</Label>
               <p className="text-xs text-muted-foreground">
-                Selecione as áreas que este usuário poderá visualizar. Vincular a "Diretoria" concede acesso total.
+                Selecione o setor do usuário. "Diretoria" concede acesso total. "Geral" é o padrão.
               </p>
-              <AreasSelector selectedIds={editAreaIds} onChange={setEditAreaIds} />
+              <SetorSubsetorSelector
+                setorId={editSetorId}
+                subsetorId={editSubsetorId}
+                onSetorChange={setEditSetorId}
+                onSubsetorChange={setEditSubsetorId}
+              />
             </div>
           </div>
           <DialogFooter className="flex gap-2 sm:justify-end">
