@@ -240,8 +240,7 @@ export default function Usuarios() {
         setEditSetorId(linkedSub.parent_id!);
         setEditSubsetorId(linkedSub.id);
       } else {
-        const geralId = areas.find((a) => a.nome === 'Geral' && a.parent_id === null)?.id || '';
-        setEditSetorId(geralId);
+        setEditSetorId('');
         setEditSubsetorId('');
       }
     }
@@ -531,13 +530,14 @@ export default function Usuarios() {
             <div className="space-y-2">
               <Label>Setor / Subsetor</Label>
               <p className="text-xs text-muted-foreground">
-                Selecione o setor do usuário. "Diretoria" concede acesso total. "Geral" é o padrão.
+                Selecione o setor operacional do usuário. "Diretoria" concede acesso total.
               </p>
               <SetorSubsetorSelector
                 setorId={editSetorId}
                 subsetorId={editSubsetorId}
                 onSetorChange={setEditSetorId}
                 onSubsetorChange={setEditSubsetorId}
+                excludeGeral
               />
             </div>
           </div>
