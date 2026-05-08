@@ -16,6 +16,7 @@ import {
   Lightbulb,
   Truck,
   FileText,
+  FileSpreadsheet,
   Menu,
   X
 } from 'lucide-react';
@@ -37,6 +38,7 @@ const navItems: NavItem[] = [
   { path: '/usuarios', label: 'Usuários', icon: Users, requiredRoles: ['admin', 'operario'] },
   { path: '/fornecedores', label: 'Fornecedores', icon: Truck, requiredRoles: ['admin', 'operario'] },
   { path: '/cotacoes', label: 'Cotações', icon: FileText },
+  { path: '/importar-exportar', label: 'Importar / Exportar', icon: FileSpreadsheet, requiredRoles: ['admin', 'operario'] },
   { path: '/configuracoes', label: 'Configurações', icon: Settings },
 ];
 
