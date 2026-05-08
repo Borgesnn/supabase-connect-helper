@@ -16,6 +16,7 @@ import Configuracoes from "./pages/Configuracoes";
 import Sugestoes from "./pages/Sugestoes";
 import Fornecedores from "./pages/Fornecedores";
 import Cotacoes from "./pages/Cotacoes";
+import ImportarExportar from "./pages/ImportarExportar";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -83,6 +84,13 @@ const App = () => (
             <Route path="/cotacoes" element={
               <ProtectedRoute>
                 <MainLayout><Cotacoes /></MainLayout>
+              </ProtectedRoute>
+            } />
+
+            {/* Importar/Exportar - apenas admin e operário */}
+            <Route path="/importar-exportar" element={
+              <ProtectedRoute requiredRoles={['admin', 'operario']}>
+                <MainLayout><ImportarExportar /></MainLayout>
               </ProtectedRoute>
             } />
             
