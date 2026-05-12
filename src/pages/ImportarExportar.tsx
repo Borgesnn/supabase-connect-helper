@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from 'react';
+import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useUserRole } from '@/hooks/useUserRole';
@@ -90,25 +90,8 @@ export default function ImportarExportar() {
   const [expDataFim, setExpDataFim] = useState<string>(() =>
     format(endOfMonth(new Date()), 'yyyy-MM-dd')
   );
-  const [expSetor, setExpSetor] = useState<string>('todos');
-  const [expSubsetor, setExpSubsetor] = useState<string>('todos');
   const [expTipoMov, setExpTipoMov] = useState<string>('todos');
-  const [expBrinde, setExpBrinde] = useState<string>('');
   const [exporting, setExporting] = useState(false);
-
-  const setoresRoot = useMemo(
-    () => areas.filter((a) => a.parent_id === null).sort((a, b) => a.nome.localeCompare(b.nome)),
-    [areas],
-  );
-  const subsetoresFiltrados = useMemo(() => {
-    const setor = setoresRoot.find((s) => s.id === expSetor);
-    if (!setor) return [];
-    return areas.filter((a) => a.parent_id === setor.id);
-  }, [areas, setoresRoot, expSetor]);
-
-  useEffect(() => {
-    setExpSubsetor('todos');
-  }, [expSetor]);
 
   // ============== TEMPLATE ==============
   const handleDownloadTemplate = () => {
@@ -688,34 +671,6 @@ export default function ImportarExportar() {
               <Input type="date" value={expDataFim} onChange={(e) => setExpDataFim(e.target.value)} />
             </div>
             <div className="space-y-2">
-              <Label>Setor</Label>
-              <Select value={expSetor} onValueChange={setExpSetor}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="todos">Todos</SelectItem>
-                  {setoresRoot.map((s) => (
-                    <SelectItem key={s.id} value={s.id}>{s.nome}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label>Subsetor</Label>
-              <Select
-                value={expSubsetor}
-                onValueChange={setExpSubsetor}
-                disabled={subsetoresFiltrados.length === 0}
-              >
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="todos">Todos</SelectItem>
-                  {subsetoresFiltrados.map((s) => (
-                    <SelectItem key={s.id} value={s.id}>{s.nome}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
               <Label>Tipo de movimentação</Label>
               <Select value={expTipoMov} onValueChange={setExpTipoMov}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
@@ -725,14 +680,6 @@ export default function ImportarExportar() {
                   <SelectItem value="saida">Saída</SelectItem>
                 </SelectContent>
               </Select>
-            </div>
-            <div className="space-y-2">
-              <Label>Nome do brinde</Label>
-              <Input
-                placeholder="Filtrar por nome..."
-                value={expBrinde}
-                onChange={(e) => setExpBrinde(e.target.value)}
-              />
             </div>
           </div>
 
