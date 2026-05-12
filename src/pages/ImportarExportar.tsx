@@ -379,7 +379,7 @@ export default function ImportarExportar() {
       const inicio = expDataInicio ? new Date(expDataInicio + 'T00:00:00').toISOString() : null;
       const fim = expDataFim ? new Date(expDataFim + 'T23:59:59').toISOString() : null;
 
-      // Brindes
+      // Brindes — catálogo completo (sem filtros de setor/subsetor/nome)
       const { data: produtos, error: pErr } = await supabase
         .from('produtos')
         .select('*, categorias(nome), produto_areas(area_id)')
@@ -387,45 +387,32 @@ export default function ImportarExportar() {
       if (pErr) throw pErr;
 
       const byId = buildAreaIndex();
-      const setorNomeFiltro = expSetor !== 'todos'
-        ? setoresRoot.find((s) => s.id === expSetor)?.nome
-        : undefined;
-      const subsetorNomeFiltro = expSubsetor !== 'todos'
-        ? subsetoresFiltrados.find((s) => s.id === expSubsetor)?.nome
-        : undefined;
-      const brindeFiltroNorm = normalize(expBrinde);
 
-      const brindesData = (produtos || [])
-        .map((p: any) => {
-          const { setor, subsetor } = getProdutoSetorSubsetor(p.produto_areas, byId);
-          return {
-            codigo: p.codigo,
-            nome: p.nome,
-            categoria: p.categorias?.nome || '',
-            setor, subsetor,
-            quantidade: p.quantidade,
-            estoque_minimo: p.estoque_minimo,
-            valor_compra: Number(p.valor_compra || 0),
-            valor_total_estoque: Number(p.valor_compra || 0) * (p.quantidade || 0),
-            localizacao: p.localizacao || '',
-            fornecedor: p.fornecedor || '',
-            descricao: p.descricao || '',
-            data_cadastro: p.created_at
-              ? format(new Date(p.created_at), 'dd/MM/yyyy HH:mm', { locale: ptBR }) : '',
-            imagem_url: p.imagem_url || '',
-            _produto_id: p.id, _setor: setor, _subsetor: subsetor,
-          };
-        })
-        .filter((b) => {
-          if (setorNomeFiltro && b._setor !== setorNomeFiltro) return false;
-          if (subsetorNomeFiltro && b._subsetor !== subsetorNomeFiltro) return false;
-          if (brindeFiltroNorm && !normalize(b.nome).includes(brindeFiltroNorm)) return false;
-          return true;
-        });
+      const brindesData = (produtos || []).map((p: any) => {
+        const { setor, subsetor } = getProdutoSetorSubsetor(p.produto_areas, byId);
+        return {
+          codigo: p.codigo,
+          nome: p.nome,
+          categoria: p.categorias?.nome || '',
+          setor,
+          subsetor,
+          quantidade: p.quantidade,
+          estoque_minimo: p.estoque_minimo,
+          valor_compra: Number(p.valor_compra || 0),
+          valor_total_estoque: Number(p.valor_compra || 0) * (p.quantidade || 0),
+          localizacao: p.localizacao || '',
+          fornecedor: p.fornecedor || '',
+          descricao: p.descricao || '',
+          data_cadastro: p.created_at
+            ? format(new Date(p.created_at), 'dd/MM/yyyy HH:mm', { locale: ptBR }) : '',
+          imagem_url: p.imagem_url || '',
+          _produto_id: p.id,
+          _setor: setor,
+          _subsetor: subsetor,
+        };
+      });
 
-      const produtoIds = new Set(brindesData.map((b) => b._produto_id));
-
-      // Movimentações
+      // Movimentações (filtro por data e tipo, sem restrição de brinde)
       const { data: movs, error: mErr } = await supabase
         .from('movimentacoes')
         .select('*, produtos(nome, codigo, valor_compra), profiles:usuario_id(nome, sobrenome)')
@@ -435,7 +422,6 @@ export default function ImportarExportar() {
 
       const movsData = (movs || [])
         .filter((m: any) => {
-          if (!produtoIds.has(m.produto_id)) return false;
           const d = new Date(m.created_at);
           if (inicio && d < new Date(inicio)) return false;
           if (fim && d > new Date(fim)) return false;
@@ -460,7 +446,7 @@ export default function ImportarExportar() {
           };
         });
 
-      // Pedidos / Solicitações
+      // Pedidos / Solicitações (filtro por data, sem restrição de brinde)
       const { data: pedidos, error: pedErr } = await supabase
         .from('pedidos')
         .select('*, produtos(nome, codigo), profiles:solicitante_id(nome, sobrenome)')
@@ -470,7 +456,6 @@ export default function ImportarExportar() {
 
       const pedidosData = (pedidos || [])
         .filter((p: any) => {
-          if (!produtoIds.has(p.produto_id)) return false;
           const d = new Date(p.created_at);
           if (inicio && d < new Date(inicio)) return false;
           if (fim && d > new Date(fim)) return false;
