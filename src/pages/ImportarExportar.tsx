@@ -82,14 +82,6 @@ export default function ImportarExportar() {
   const [importing, setImporting] = useState(false);
   const [result, setResult] = useState<ImportResult | null>(null);
 
-  // Export filters
-  const [expDataInicio, setExpDataInicio] = useState<string>(() =>
-    format(startOfMonth(new Date()), 'yyyy-MM-dd')
-  );
-  const [expDataFim, setExpDataFim] = useState<string>(() =>
-    format(endOfMonth(new Date()), 'yyyy-MM-dd')
-  );
-  const [expTipoMov, setExpTipoMov] = useState<string>('todos');
   const [exporting, setExporting] = useState(false);
 
   // ============== TEMPLATE ==============
@@ -357,11 +349,7 @@ export default function ImportarExportar() {
   const handleExport = async (formato: 'xlsx' | 'csv') => {
     setExporting(true);
     try {
-      // Datas
-      const inicio = expDataInicio ? new Date(expDataInicio + 'T00:00:00').toISOString() : null;
-      const fim = expDataFim ? new Date(expDataFim + 'T23:59:59').toISOString() : null;
-
-      // Brindes — catálogo completo (sem filtros de setor/subsetor/nome)
+      // Brindes — catálogo completo
       const { data: produtos, error: pErr } = await supabase
         .from('produtos')
         .select('*, categorias(nome), produto_areas(area_id)')
@@ -394,7 +382,7 @@ export default function ImportarExportar() {
         };
       });
 
-      // Movimentações (filtro por data e tipo, sem restrição de brinde)
+      // Movimentações — todas
       const { data: movs, error: mErr } = await supabase
         .from('movimentacoes')
         .select('*, produtos(nome, codigo, valor_compra), profiles:usuario_id(nome, sobrenome)')
@@ -402,33 +390,25 @@ export default function ImportarExportar() {
         .limit(10000);
       if (mErr) throw mErr;
 
-      const movsData = (movs || [])
-        .filter((m: any) => {
-          const d = new Date(m.created_at);
-          if (inicio && d < new Date(inicio)) return false;
-          if (fim && d > new Date(fim)) return false;
-          if (expTipoMov !== 'todos' && m.tipo !== expTipoMov) return false;
-          return true;
-        })
-        .map((m: any) => {
-          const valor = Number(m.produtos?.valor_compra || 0);
-          return {
-            data: format(new Date(m.created_at), 'dd/MM/yyyy HH:mm', { locale: ptBR }),
-            brinde: m.produtos?.nome || '',
-            codigo: m.produtos?.codigo || '',
-            tipo: m.tipo,
-            quantidade: m.quantidade,
-            valor_compra: valor,
-            valor_total: valor * m.quantidade,
-            setor: m.setor || '',
-            observacao: m.observacao || '',
-            usuario: m.profiles
-              ? `${m.profiles.nome || ''} ${m.profiles.sobrenome || ''}`.trim()
-              : '',
-          };
-        });
+      const movsData = (movs || []).map((m: any) => {
+        const valor = Number(m.produtos?.valor_compra || 0);
+        return {
+          data: format(new Date(m.created_at), 'dd/MM/yyyy HH:mm', { locale: ptBR }),
+          brinde: m.produtos?.nome || '',
+          codigo: m.produtos?.codigo || '',
+          tipo: m.tipo,
+          quantidade: m.quantidade,
+          valor_compra: valor,
+          valor_total: valor * m.quantidade,
+          setor: m.setor || '',
+          observacao: m.observacao || '',
+          usuario: m.profiles
+            ? `${m.profiles.nome || ''} ${m.profiles.sobrenome || ''}`.trim()
+            : '',
+        };
+      });
 
-      // Pedidos / Solicitações (filtro por data, sem restrição de brinde)
+      // Pedidos / Solicitações — todas
       const { data: pedidos, error: pedErr } = await supabase
         .from('pedidos')
         .select('*, produtos(nome, codigo), profiles:solicitante_id(nome, sobrenome)')
@@ -436,14 +416,7 @@ export default function ImportarExportar() {
         .limit(10000);
       if (pedErr) throw pedErr;
 
-      const pedidosData = (pedidos || [])
-        .filter((p: any) => {
-          const d = new Date(p.created_at);
-          if (inicio && d < new Date(inicio)) return false;
-          if (fim && d > new Date(fim)) return false;
-          return true;
-        })
-        .map((p: any) => ({
+      const pedidosData = (pedidos || []).map((p: any) => ({
           data: format(new Date(p.created_at), 'dd/MM/yyyy HH:mm', { locale: ptBR }),
           brinde: p.produtos?.nome || '',
           codigo: p.produtos?.codigo || '',
@@ -653,36 +626,11 @@ export default function ImportarExportar() {
             Exportar dados do estoque
           </CardTitle>
           <CardDescription>
-            Exporte brindes, movimentações e solicitações filtrados em Excel ou CSV.
+            Exporte todos os brindes, movimentações e solicitações em Excel ou CSV.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="flex items-center gap-2 text-sm font-medium">
-            <Filter className="w-4 h-4" /> Filtros
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-            <div className="space-y-2">
-              <Label>Data início</Label>
-              <Input type="date" value={expDataInicio} onChange={(e) => setExpDataInicio(e.target.value)} />
-            </div>
-            <div className="space-y-2">
-              <Label>Data fim</Label>
-              <Input type="date" value={expDataFim} onChange={(e) => setExpDataFim(e.target.value)} />
-            </div>
-            <div className="space-y-2">
-              <Label>Tipo de movimentação</Label>
-              <Select value={expTipoMov} onValueChange={setExpTipoMov}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="todos">Todos</SelectItem>
-                  <SelectItem value="entrada">Entrada</SelectItem>
-                  <SelectItem value="saida">Saída</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          <div className="flex flex-col sm:flex-row gap-3 pt-2">
+          <div className="flex flex-col sm:flex-row gap-3">
             <Button onClick={() => handleExport('xlsx')} disabled={exporting} className="gradient-primary">
               {exporting ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <FileSpreadsheet className="w-4 h-4 mr-2" />}
               Exportar Excel (.xlsx)
