@@ -671,34 +671,6 @@ export default function ImportarExportar() {
               <Input type="date" value={expDataFim} onChange={(e) => setExpDataFim(e.target.value)} />
             </div>
             <div className="space-y-2">
-              <Label>Setor</Label>
-              <Select value={expSetor} onValueChange={setExpSetor}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="todos">Todos</SelectItem>
-                  {setoresRoot.map((s) => (
-                    <SelectItem key={s.id} value={s.id}>{s.nome}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label>Subsetor</Label>
-              <Select
-                value={expSubsetor}
-                onValueChange={setExpSubsetor}
-                disabled={subsetoresFiltrados.length === 0}
-              >
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="todos">Todos</SelectItem>
-                  {subsetoresFiltrados.map((s) => (
-                    <SelectItem key={s.id} value={s.id}>{s.nome}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
               <Label>Tipo de movimentação</Label>
               <Select value={expTipoMov} onValueChange={setExpTipoMov}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
@@ -708,14 +680,6 @@ export default function ImportarExportar() {
                   <SelectItem value="saida">Saída</SelectItem>
                 </SelectContent>
               </Select>
-            </div>
-            <div className="space-y-2">
-              <Label>Nome do brinde</Label>
-              <Input
-                placeholder="Filtrar por nome..."
-                value={expBrinde}
-                onChange={(e) => setExpBrinde(e.target.value)}
-              />
             </div>
           </div>
 
