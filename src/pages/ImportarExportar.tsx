@@ -90,25 +90,8 @@ export default function ImportarExportar() {
   const [expDataFim, setExpDataFim] = useState<string>(() =>
     format(endOfMonth(new Date()), 'yyyy-MM-dd')
   );
-  const [expSetor, setExpSetor] = useState<string>('todos');
-  const [expSubsetor, setExpSubsetor] = useState<string>('todos');
   const [expTipoMov, setExpTipoMov] = useState<string>('todos');
-  const [expBrinde, setExpBrinde] = useState<string>('');
   const [exporting, setExporting] = useState(false);
-
-  const setoresRoot = useMemo(
-    () => areas.filter((a) => a.parent_id === null).sort((a, b) => a.nome.localeCompare(b.nome)),
-    [areas],
-  );
-  const subsetoresFiltrados = useMemo(() => {
-    const setor = setoresRoot.find((s) => s.id === expSetor);
-    if (!setor) return [];
-    return areas.filter((a) => a.parent_id === setor.id);
-  }, [areas, setoresRoot, expSetor]);
-
-  useEffect(() => {
-    setExpSubsetor('todos');
-  }, [expSetor]);
 
   // ============== TEMPLATE ==============
   const handleDownloadTemplate = () => {
