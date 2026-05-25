@@ -385,13 +385,36 @@ export default function ImportarExportar() {
       // Movimentações — todas
       const { data: movs, error: mErr } = await supabase
         .from('movimentacoes')
-        .select('*, produtos(nome, codigo, valor_compra), profiles:usuario_id(nome, sobrenome)')
-        .order('created_at', { ascending: false })
-        .limit(10000);
+        .select('*, produtos(nome, codigo, valor_compra)')
+        .order('created_at', { ascending: false });
       if (mErr) throw mErr;
+
+      // Pedidos / Solicitações — todas
+      const { data: pedidos, error: pedErr } = await supabase
+        .from('pedidos')
+        .select('*, produtos(nome, codigo)')
+        .order('created_at', { ascending: false });
+      if (pedErr) throw pedErr;
+
+      // Carrega perfis envolvidos em movimentações e pedidos
+      const userIds = Array.from(new Set([
+        ...(movs || []).map((m: any) => m.usuario_id).filter(Boolean),
+        ...(pedidos || []).map((p: any) => p.solicitante_id).filter(Boolean),
+      ]));
+      const profilesMap = new Map<string, { nome: string; sobrenome: string | null }>();
+      if (userIds.length > 0) {
+        const { data: profs } = await supabase
+          .from('profiles')
+          .select('id, nome, sobrenome')
+          .in('id', userIds);
+        (profs || []).forEach((p: any) =>
+          profilesMap.set(p.id, { nome: p.nome, sobrenome: p.sobrenome }),
+        );
+      }
 
       const movsData = (movs || []).map((m: any) => {
         const valor = Number(m.produtos?.valor_compra || 0);
+        const prof = profilesMap.get(m.usuario_id);
         return {
           data: format(new Date(m.created_at), 'dd/MM/yyyy HH:mm', { locale: ptBR }),
           brinde: m.produtos?.nome || '',
@@ -402,35 +425,26 @@ export default function ImportarExportar() {
           valor_total: valor * m.quantidade,
           setor: m.setor || '',
           observacao: m.observacao || '',
-          usuario: m.profiles
-            ? `${m.profiles.nome || ''} ${m.profiles.sobrenome || ''}`.trim()
-            : '',
+          usuario: prof ? `${prof.nome || ''} ${prof.sobrenome || ''}`.trim() : '',
         };
       });
 
-      // Pedidos / Solicitações — todas
-      const { data: pedidos, error: pedErr } = await supabase
-        .from('pedidos')
-        .select('*, produtos(nome, codigo), profiles:solicitante_id(nome, sobrenome)')
-        .order('created_at', { ascending: false })
-        .limit(10000);
-      if (pedErr) throw pedErr;
-
-      const pedidosData = (pedidos || []).map((p: any) => ({
+      const pedidosData = (pedidos || []).map((p: any) => {
+        const prof = profilesMap.get(p.solicitante_id);
+        return {
           data: format(new Date(p.created_at), 'dd/MM/yyyy HH:mm', { locale: ptBR }),
           brinde: p.produtos?.nome || '',
           codigo: p.produtos?.codigo || '',
           quantidade: p.quantidade,
           status: p.status,
           prioridade: p.prioridade,
-          solicitante: p.profiles
-            ? `${p.profiles.nome || ''} ${p.profiles.sobrenome || ''}`.trim()
-            : '',
+          solicitante: prof ? `${prof.nome || ''} ${prof.sobrenome || ''}`.trim() : '',
           motivo: p.motivo || '',
           data_aprovacao: p.data_aprovacao
             ? format(new Date(p.data_aprovacao), 'dd/MM/yyyy HH:mm', { locale: ptBR })
             : '',
-        }));
+        };
+      });
 
       // Limpa campos internos
       const brindesExport = brindesData.map(({ _produto_id, _setor, _subsetor, ...rest }) => rest);
