@@ -608,6 +608,15 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      approve_pedido_atomic: {
+        Args: {
+          p_aprovador_id: string
+          p_motivo_rejeicao?: string
+          p_pedido_id: string
+          p_status: string
+        }
+        Returns: Json
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -616,6 +625,17 @@ export type Database = {
         Returns: boolean
       }
       is_diretoria: { Args: { _user_id: string }; Returns: boolean }
+      register_movement_atomic: {
+        Args: {
+          p_observacao: string
+          p_produto_id: string
+          p_quantidade: number
+          p_setor: string
+          p_tipo: string
+          p_usuario_id: string
+        }
+        Returns: Json
+      }
       user_can_see_produto: {
         Args: { _produto_id: string; _user_id: string }
         Returns: boolean
