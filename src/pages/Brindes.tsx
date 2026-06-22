@@ -16,6 +16,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Plus, Search, Edit, Trash2, Gift, AlertTriangle, Loader2, Upload, X, ShoppingCart } from 'lucide-react';
 import { SetorSubsetorSelector } from '@/components/areas/SetorSubsetorSelector';
 import { useUserAreas, useAreas } from '@/hooks/useAreas';
+import { SignedImage } from '@/components/SignedImage';
 
 export default function Brindes() {
   const { user } = useAuth();
