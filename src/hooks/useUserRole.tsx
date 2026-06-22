@@ -13,24 +13,33 @@ interface UseUserRoleReturn {
 }
 
 export function useUserRole(): UseUserRoleReturn {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const [role, setRole] = useState<AppRole | null>(null);
   const [loading, setLoading] = useState(true);
+  const userId = user?.id ?? null;
 
   useEffect(() => {
+    let cancelled = false;
     async function fetchRole() {
-      if (!user) {
+      if (authLoading) {
+        setLoading(true);
+        return;
+      }
+      if (!userId) {
         setRole(null);
         setLoading(false);
         return;
       }
 
+      setLoading(true);
+
       try {
         const { data, error } = await supabase
           .from('user_roles')
           .select('role')
-          .eq('user_id', user.id)
-          .single();
+          .eq('user_id', userId)
+          .maybeSingle();
+        if (cancelled) return;
 
         if (error) {
           console.error('Error fetching user role:', error);
@@ -39,15 +48,17 @@ export function useUserRole(): UseUserRoleReturn {
           setRole(data?.role as AppRole || 'usuario');
         }
       } catch (error) {
+        if (cancelled) return;
         console.error('Error fetching user role:', error);
         setRole('usuario');
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     }
 
     fetchRole();
-  }, [user]);
+    return () => { cancelled = true; };
+  }, [userId, authLoading]);
 
   const isAdmin = role === 'admin';
   const isOperario = role === 'operario';
