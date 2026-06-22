@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
+import { getSignedFileUrl } from '@/lib/storage';
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription,
 } from '@/components/ui/dialog';
@@ -588,8 +589,12 @@ export default function Cotacoes() {
                             </div>
                           </div>
                           <div className="flex gap-1 flex-shrink-0">
-                            <Button asChild size="icon" variant="ghost" className="h-8 w-8">
-                              <a href={a.arquivo_url} target="_blank" rel="noopener noreferrer"><Download className="w-4 h-4" /></a>
+                            <Button size="icon" variant="ghost" className="h-8 w-8"
+                              onClick={async () => {
+                                const u = await getSignedFileUrl('cotacoes', a.arquivo_url);
+                                if (u) window.open(u, '_blank', 'noopener,noreferrer');
+                              }}>
+                              <Download className="w-4 h-4" />
                             </Button>
                             {canManage && (
                               <Button size="icon" variant="ghost" className="h-8 w-8 text-destructive" onClick={() => removeAnexo(a.id)}>
