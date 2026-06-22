@@ -645,10 +645,12 @@ export default function Brindes() {
                 <div className="flex items-start gap-3">
                   <div className="w-16 h-16 rounded-lg bg-muted flex items-center justify-center overflow-hidden flex-shrink-0">
                     {produto.imagem_url ? (
-                      <img 
-                        src={produto.imagem_url} 
+                      <SignedImage
+                        bucket="produtos"
+                        source={produto.imagem_url}
                         alt={produto.nome}
                         className="w-full h-full object-cover"
+                        fallback={<Gift className="w-6 h-6 text-muted-foreground" />}
                       />
                     ) : (
                       <Gift className="w-6 h-6 text-muted-foreground" />
@@ -758,10 +760,12 @@ export default function Brindes() {
               <div className="flex items-center gap-3 p-3 bg-muted rounded-lg">
                 <div className="w-12 h-12 rounded-lg bg-background flex items-center justify-center overflow-hidden">
                   {selectedProduto.imagem_url ? (
-                    <img 
-                      src={selectedProduto.imagem_url} 
+                    <SignedImage
+                      bucket="produtos"
+                      source={selectedProduto.imagem_url}
                       alt={selectedProduto.nome}
                       className="w-full h-full object-cover"
+                      fallback={<Gift className="w-5 h-5 text-muted-foreground" />}
                     />
                   ) : (
                     <Gift className="w-5 h-5 text-muted-foreground" />
