@@ -151,21 +151,23 @@ export default function Usuarios() {
 
     setCreatingUser(true);
     try {
-      const { data, error } = await supabase.auth.signUp({
-        email: newUserEmail,
-        password: newUserPassword,
-        options: { data: { nome: newUserName, sobrenome: newUserSobrenome } },
+      const { data: { session } } = await supabase.auth.getSession();
+      const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/create-user`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session?.access_token}`,
+        },
+        body: JSON.stringify({
+          email: newUserEmail,
+          password: newUserPassword,
+          nome: newUserName,
+          sobrenome: newUserSobrenome,
+          role: newUserRole,
+        }),
       });
-
-      if (error) throw error;
-
-      if (data.user && newUserRole !== 'usuario') {
-        const { error: roleError } = await supabase
-          .from('user_roles')
-          .update({ role: newUserRole })
-          .eq('user_id', data.user.id);
-        if (roleError) console.error('Error updating role:', roleError);
-      }
+      const result = await res.json();
+      if (!res.ok) throw new Error(result.error || 'Erro ao criar usuário');
 
       toast({
         title: 'Usuário criado com sucesso!',
