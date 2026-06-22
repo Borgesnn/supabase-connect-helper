@@ -25,6 +25,8 @@ import {
 import {
   Plus, Search, Pencil, Trash2, Truck, Star, Paperclip, Upload, ExternalLink, Download, X,
 } from 'lucide-react';
+import { SignedImage } from '@/components/SignedImage';
+import { getSignedFileUrl } from '@/lib/storage';
 
 interface Fornecedor {
   id: string;
@@ -309,7 +311,7 @@ export default function Fornecedores() {
                 <TableCell>
                   <div className="w-10 h-10 rounded-md bg-muted flex items-center justify-center overflow-hidden">
                     {f.logo_url
-                      ? <img src={f.logo_url} alt={f.nome} className="w-full h-full object-cover" />
+                      ? <SignedImage bucket="fornecedores" source={f.logo_url} alt={f.nome} className="w-full h-full object-cover" fallback={<Truck className="w-5 h-5 text-muted-foreground" />} />
                       : <Truck className="w-5 h-5 text-muted-foreground" />}
                   </div>
                 </TableCell>
@@ -359,7 +361,7 @@ export default function Fornecedores() {
                   {logoFile
                     ? <img src={URL.createObjectURL(logoFile)} alt="preview" className="w-full h-full object-cover" />
                     : form.logo_url
-                      ? <img src={form.logo_url} alt="logo" className="w-full h-full object-cover" />
+                      ? <SignedImage bucket="fornecedores" source={form.logo_url} alt="logo" className="w-full h-full object-cover" fallback={<Truck className="w-6 h-6 text-muted-foreground" />} />
                       : <Truck className="w-6 h-6 text-muted-foreground" />}
                 </div>
                 <Input type="file" accept="image/*" onChange={e => setLogoFile(e.target.files?.[0] ?? null)} />
@@ -444,7 +446,7 @@ export default function Fornecedores() {
                 <div className="flex items-start gap-4">
                   <div className="w-16 h-16 rounded-md bg-muted flex items-center justify-center overflow-hidden flex-shrink-0">
                     {selected.logo_url
-                      ? <img src={selected.logo_url} alt={selected.nome} className="w-full h-full object-cover" />
+                      ? <SignedImage bucket="fornecedores" source={selected.logo_url} alt={selected.nome} className="w-full h-full object-cover" fallback={<Truck className="w-7 h-7 text-muted-foreground" />} />
                       : <Truck className="w-7 h-7 text-muted-foreground" />}
                   </div>
                   <div className="flex-1 min-w-0">
@@ -515,8 +517,12 @@ export default function Fornecedores() {
                             <span className="text-sm truncate">{a.nome_arquivo}</span>
                           </div>
                           <div className="flex gap-1 flex-shrink-0">
-                            <Button asChild size="icon" variant="ghost" className="h-8 w-8">
-                              <a href={a.arquivo_url} target="_blank" rel="noopener noreferrer"><Download className="w-4 h-4" /></a>
+                            <Button size="icon" variant="ghost" className="h-8 w-8"
+                              onClick={async () => {
+                                const u = await getSignedFileUrl('fornecedores', a.arquivo_url);
+                                if (u) window.open(u, '_blank', 'noopener,noreferrer');
+                              }}>
+                              <Download className="w-4 h-4" />
                             </Button>
                             {canManage && (
                               <Button size="icon" variant="ghost" className="h-8 w-8 text-destructive"
