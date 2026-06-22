@@ -130,55 +130,13 @@ export default function Pedidos() {
     if (!user || !canManage) return;
 
     try {
-      const pedido = pedidos.find(p => p.id === pedidoId);
-      if (!pedido) return;
-
-      const updateData: any = {
-        status: newStatus,
-        data_aprovacao: new Date().toISOString(),
-        aprovador_id: user.id,
-      };
-
-      // If rejected, store the rejection reason in motivo
-      if (newStatus === 'rejeitada' && motivoRejeicao) {
-        updateData.motivo = `[Rejeitado] ${motivoRejeicao}`;
-      }
-
-      const { error: updateError } = await supabase
-        .from('pedidos')
-        .update(updateData)
-        .eq('id', pedidoId);
-
-      if (updateError) throw updateError;
-
-      // If approved, update product quantity
-      if (newStatus === 'aprovada' && pedido.produtos) {
-        const novaQuantidade = pedido.produtos.quantidade - pedido.quantidade;
-        
-        if (novaQuantidade < 0) {
-          toast({
-            title: 'Estoque insuficiente',
-            description: 'Quantidade em estoque menor que a solicitada',
-            variant: 'destructive',
-          });
-          return;
-        }
-
-        const { error: prodError } = await supabase
-          .from('produtos')
-          .update({ quantidade: novaQuantidade })
-          .eq('id', pedido.produto_id);
-
-        if (prodError) throw prodError;
-
-        await supabase.from('movimentacoes').insert([{
-          produto_id: pedido.produto_id,
-          tipo: 'saida',
-          quantidade: pedido.quantidade,
-          observacao: `Pedido #${pedido.id.slice(0, 8)} aprovado`,
-          usuario_id: user.id,
-        }]);
-      }
+      const { error: rpcError } = await supabase.rpc('approve_pedido_atomic', {
+        p_pedido_id: pedidoId,
+        p_status: newStatus,
+        p_aprovador_id: user.id,
+        p_motivo_rejeicao: newStatus === 'rejeitada' ? (motivoRejeicao ?? null) : null,
+      });
+      if (rpcError) throw rpcError;
 
       toast({ 
         title: newStatus === 'aprovada' ? 'Pedido aprovado!' : 'Pedido rejeitado',
