@@ -136,27 +136,15 @@ export default function Movimentacoes() {
     setSubmitting(true);
 
     try {
-      const { error: movError } = await supabase.from('movimentacoes').insert([{
-        produto_id: selectedProduto,
-        tipo,
-        quantidade,
-        observacao: observacao || null,
-        setor: setor || null,
-        usuario_id: user.id,
-      }]);
-
-      if (movError) throw movError;
-
-      const novaQuantidade = tipo === 'entrada'
-        ? (selectedProdutoData?.quantidade || 0) + quantidade
-        : (selectedProdutoData?.quantidade || 0) - quantidade;
-
-      const { error: updateError } = await supabase
-        .from('produtos')
-        .update({ quantidade: novaQuantidade })
-        .eq('id', selectedProduto);
-
-      if (updateError) throw updateError;
+      const { error: rpcError } = await supabase.rpc('register_movement_atomic', {
+        p_produto_id: selectedProduto,
+        p_tipo: tipo,
+        p_quantidade: quantidade,
+        p_observacao: observacao || null,
+        p_setor: setor || null,
+        p_usuario_id: user.id,
+      });
+      if (rpcError) throw rpcError;
 
       toast({
         title: `${tipo === 'entrada' ? 'Entrada' : 'Saída'} registrada com sucesso!`,
