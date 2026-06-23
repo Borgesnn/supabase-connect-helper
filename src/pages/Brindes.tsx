@@ -13,7 +13,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Plus, Search, Edit, Trash2, Gift, AlertTriangle, Loader2, Upload, X, ShoppingCart } from 'lucide-react';
+import { Plus, Search, Edit, Trash2, Gift, AlertTriangle, Loader2, Upload, X, ShoppingCart, Check } from 'lucide-react';
 import { SetorSubsetorSelector } from '@/components/areas/SetorSubsetorSelector';
 import { useUserAreas, useAreas } from '@/hooks/useAreas';
 import { SignedImage } from '@/components/SignedImage';
@@ -38,6 +38,11 @@ export default function Brindes() {
   const [productAreaIds, setProductAreaIds] = useState<string[]>([]);
   const [productSetorId, setProductSetorId] = useState('');
   const [productSubsetorId, setProductSubsetorId] = useState('');
+
+  // Gestão inline de categorias (apenas admin)
+  const [newCategoriaNome, setNewCategoriaNome] = useState('');
+  const [savingCategoria, setSavingCategoria] = useState(false);
+  const [deletingCategoriaId, setDeletingCategoriaId] = useState<string | null>(null);
   
   // Estado para solicitação
   const [requestQuantidade, setRequestQuantidade] = useState(1);
@@ -124,6 +129,49 @@ export default function Brindes() {
       setCategorias(data || []);
     } catch (error) {
       console.error('Error fetching categorias:', error);
+    }
+  }
+
+  async function handleAddCategoria() {
+    const nome = newCategoriaNome.trim();
+    if (!nome) return;
+    if (categorias.some((c) => c.nome.toLowerCase() === nome.toLowerCase())) {
+      toast({ title: 'Categoria já existe', variant: 'destructive' });
+      return;
+    }
+    setSavingCategoria(true);
+    try {
+      const { data, error } = await supabase
+        .from('categorias')
+        .insert({ nome })
+        .select()
+        .single();
+      if (error) throw error;
+      setCategorias((prev) => [...prev, data as Categoria].sort((a, b) => a.nome.localeCompare(b.nome)));
+      setNewCategoriaNome('');
+      toast({ title: 'Categoria adicionada' });
+    } catch (error: any) {
+      toast({ title: 'Erro ao adicionar categoria', description: error.message, variant: 'destructive' });
+    } finally {
+      setSavingCategoria(false);
+    }
+  }
+
+  async function handleDeleteCategoria(id: string, nome: string) {
+    if (!confirm(`Excluir a categoria "${nome}"? Brindes vinculados ficarão sem categoria.`)) return;
+    setDeletingCategoriaId(id);
+    try {
+      const { error } = await supabase.from('categorias').delete().eq('id', id);
+      if (error) throw error;
+      setCategorias((prev) => prev.filter((c) => c.id !== id));
+      if (formData.categoria_id === id) {
+        setFormData((prev) => ({ ...prev, categoria_id: '' }));
+      }
+      toast({ title: 'Categoria excluída' });
+    } catch (error: any) {
+      toast({ title: 'Erro ao excluir categoria', description: error.message, variant: 'destructive' });
+    } finally {
+      setDeletingCategoriaId(null);
     }
   }
 
@@ -474,6 +522,55 @@ export default function Brindes() {
                       ))}
                     </SelectContent>
                   </Select>
+                  {isAdmin && (
+                    <div className="space-y-2 rounded-md border border-border bg-muted/30 p-2">
+                      <div className="flex gap-2">
+                        <Input
+                          placeholder="Nova categoria"
+                          value={newCategoriaNome}
+                          onChange={(e) => setNewCategoriaNome(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              e.preventDefault();
+                              handleAddCategoria();
+                            }
+                          }}
+                          className="h-8"
+                        />
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="outline"
+                          onClick={handleAddCategoria}
+                          disabled={savingCategoria || !newCategoriaNome.trim()}
+                        >
+                          {savingCategoria ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
+                        </Button>
+                      </div>
+                      {categorias.length > 0 && (
+                        <div className="flex flex-wrap gap-1">
+                          {categorias.map((cat) => (
+                            <Badge key={cat.id} variant="secondary" className="gap-1 pr-1">
+                              <span>{cat.nome}</span>
+                              <button
+                                type="button"
+                                onClick={() => handleDeleteCategoria(cat.id, cat.nome)}
+                                disabled={deletingCategoriaId === cat.id}
+                                className="ml-1 rounded-sm hover:bg-destructive/20 p-0.5"
+                                aria-label={`Excluir ${cat.nome}`}
+                              >
+                                {deletingCategoriaId === cat.id ? (
+                                  <Loader2 className="h-3 w-3 animate-spin" />
+                                ) : (
+                                  <X className="h-3 w-3" />
+                                )}
+                              </button>
+                            </Badge>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="localizacao">Localização</Label>
