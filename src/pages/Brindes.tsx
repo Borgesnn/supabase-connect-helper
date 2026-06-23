@@ -132,6 +132,49 @@ export default function Brindes() {
     }
   }
 
+  async function handleAddCategoria() {
+    const nome = newCategoriaNome.trim();
+    if (!nome) return;
+    if (categorias.some((c) => c.nome.toLowerCase() === nome.toLowerCase())) {
+      toast({ title: 'Categoria já existe', variant: 'destructive' });
+      return;
+    }
+    setSavingCategoria(true);
+    try {
+      const { data, error } = await supabase
+        .from('categorias')
+        .insert({ nome })
+        .select()
+        .single();
+      if (error) throw error;
+      setCategorias((prev) => [...prev, data as Categoria].sort((a, b) => a.nome.localeCompare(b.nome)));
+      setNewCategoriaNome('');
+      toast({ title: 'Categoria adicionada' });
+    } catch (error: any) {
+      toast({ title: 'Erro ao adicionar categoria', description: error.message, variant: 'destructive' });
+    } finally {
+      setSavingCategoria(false);
+    }
+  }
+
+  async function handleDeleteCategoria(id: string, nome: string) {
+    if (!confirm(`Excluir a categoria "${nome}"? Brindes vinculados ficarão sem categoria.`)) return;
+    setDeletingCategoriaId(id);
+    try {
+      const { error } = await supabase.from('categorias').delete().eq('id', id);
+      if (error) throw error;
+      setCategorias((prev) => prev.filter((c) => c.id !== id));
+      if (formData.categoria_id === id) {
+        setFormData((prev) => ({ ...prev, categoria_id: '' }));
+      }
+      toast({ title: 'Categoria excluída' });
+    } catch (error: any) {
+      toast({ title: 'Erro ao excluir categoria', description: error.message, variant: 'destructive' });
+    } finally {
+      setDeletingCategoriaId(null);
+    }
+  }
+
   const filteredProdutos = produtos.filter(p => {
     const matchesSearch = 
       p.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
