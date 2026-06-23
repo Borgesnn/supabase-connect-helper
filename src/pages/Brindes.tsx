@@ -43,6 +43,11 @@ export default function Brindes() {
   const [newCategoriaNome, setNewCategoriaNome] = useState('');
   const [savingCategoria, setSavingCategoria] = useState(false);
   const [deletingCategoriaId, setDeletingCategoriaId] = useState<string | null>(null);
+
+  // Categorias pendentes no diálogo (só salvas no banco ao confirmar)
+  const [dialogCategorias, setDialogCategorias] = useState<Categoria[]>([]);
+  const [pendingCategoriaAdds, setPendingCategoriaAdds] = useState<{ tempId: string; nome: string }[]>([]);
+  const [pendingCategoriaDeletes, setPendingCategoriaDeletes] = useState<string[]>([]);
   
   // Estado para solicitação
   const [requestQuantidade, setRequestQuantidade] = useState(1);
