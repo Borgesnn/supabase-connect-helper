@@ -140,26 +140,15 @@ export default function Brindes() {
   async function handleAddCategoria() {
     const nome = newCategoriaNome.trim();
     if (!nome) return;
-    if (categorias.some((c) => c.nome.toLowerCase() === nome.toLowerCase())) {
+    if (dialogCategorias.some((c) => c.nome.toLowerCase() === nome.toLowerCase())) {
       toast({ title: 'Categoria já existe', variant: 'destructive' });
       return;
     }
-    setSavingCategoria(true);
-    try {
-      const { data, error } = await supabase
-        .from('categorias')
-        .insert({ nome })
-        .select()
-        .single();
-      if (error) throw error;
-      setCategorias((prev) => [...prev, data as Categoria].sort((a, b) => a.nome.localeCompare(b.nome)));
-      setNewCategoriaNome('');
-      toast({ title: 'Categoria adicionada' });
-    } catch (error: any) {
-      toast({ title: 'Erro ao adicionar categoria', description: error.message, variant: 'destructive' });
-    } finally {
-      setSavingCategoria(false);
-    }
+    const tempId = `temp-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    const novaCat: Categoria = { id: tempId, nome, created_at: new Date().toISOString() };
+    setDialogCategorias((prev) => [...prev, novaCat].sort((a, b) => a.nome.localeCompare(b.nome)));
+    setPendingCategoriaAdds((prev) => [...prev, { tempId, nome }]);
+    setNewCategoriaNome('');
   }
 
   async function handleDeleteCategoria(id: string, nome: string) {
