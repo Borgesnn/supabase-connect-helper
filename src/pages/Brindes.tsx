@@ -548,7 +548,7 @@ export default function Brindes() {
                       <SelectValue placeholder="Selecione" />
                     </SelectTrigger>
                     <SelectContent>
-                      {categorias.map((cat) => (
+                      {dialogCategorias.map((cat) => (
                         <SelectItem key={cat.id} value={cat.id}>
                           {cat.nome}
                         </SelectItem>
