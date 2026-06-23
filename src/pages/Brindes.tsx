@@ -43,6 +43,11 @@ export default function Brindes() {
   const [newCategoriaNome, setNewCategoriaNome] = useState('');
   const [savingCategoria, setSavingCategoria] = useState(false);
   const [deletingCategoriaId, setDeletingCategoriaId] = useState<string | null>(null);
+
+  // Categorias pendentes no diálogo (só salvas no banco ao confirmar)
+  const [dialogCategorias, setDialogCategorias] = useState<Categoria[]>([]);
+  const [pendingCategoriaAdds, setPendingCategoriaAdds] = useState<{ tempId: string; nome: string }[]>([]);
+  const [pendingCategoriaDeletes, setPendingCategoriaDeletes] = useState<string[]>([]);
   
   // Estado para solicitação
   const [requestQuantidade, setRequestQuantidade] = useState(1);
@@ -135,43 +140,68 @@ export default function Brindes() {
   async function handleAddCategoria() {
     const nome = newCategoriaNome.trim();
     if (!nome) return;
-    if (categorias.some((c) => c.nome.toLowerCase() === nome.toLowerCase())) {
+    if (dialogCategorias.some((c) => c.nome.toLowerCase() === nome.toLowerCase())) {
       toast({ title: 'Categoria já existe', variant: 'destructive' });
       return;
     }
-    setSavingCategoria(true);
-    try {
-      const { data, error } = await supabase
-        .from('categorias')
-        .insert({ nome })
-        .select()
-        .single();
-      if (error) throw error;
-      setCategorias((prev) => [...prev, data as Categoria].sort((a, b) => a.nome.localeCompare(b.nome)));
-      setNewCategoriaNome('');
-      toast({ title: 'Categoria adicionada' });
-    } catch (error: any) {
-      toast({ title: 'Erro ao adicionar categoria', description: error.message, variant: 'destructive' });
-    } finally {
-      setSavingCategoria(false);
-    }
+    const tempId = `temp-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    const novaCat: Categoria = { id: tempId, nome, created_at: new Date().toISOString() };
+    setDialogCategorias((prev) => [...prev, novaCat].sort((a, b) => a.nome.localeCompare(b.nome)));
+    setPendingCategoriaAdds((prev) => [...prev, { tempId, nome }]);
+    setNewCategoriaNome('');
   }
 
   async function handleDeleteCategoria(id: string, nome: string) {
     if (!confirm(`Excluir a categoria "${nome}"? Brindes vinculados ficarão sem categoria.`)) return;
     setDeletingCategoriaId(id);
+    setDialogCategorias((prev) => prev.filter((c) => c.id !== id));
+    if (id.startsWith('temp-')) {
+      setPendingCategoriaAdds((prev) => prev.filter((a) => a.tempId !== id));
+    } else {
+      setPendingCategoriaDeletes((prev) => [...prev, id]);
+    }
+    if (formData.categoria_id === id) {
+      setFormData((prev) => ({ ...prev, categoria_id: '' }));
+    }
+    setTimeout(() => setDeletingCategoriaId(null), 300);
+  }
+
+  async function handleSaveCategorias() {
+    if (pendingCategoriaDeletes.length === 0 && pendingCategoriaAdds.length === 0) return;
+    setSavingCategoria(true);
     try {
-      const { error } = await supabase.from('categorias').delete().eq('id', id);
-      if (error) throw error;
-      setCategorias((prev) => prev.filter((c) => c.id !== id));
-      if (formData.categoria_id === id) {
-        setFormData((prev) => ({ ...prev, categoria_id: '' }));
+      // Excluir categorias removidas
+      if (pendingCategoriaDeletes.length > 0) {
+        const { error } = await supabase.from('categorias').delete().in('id', pendingCategoriaDeletes);
+        if (error) throw error;
       }
-      toast({ title: 'Categoria excluída' });
+      // Inserir novas categorias
+      const tempToReal = new Map<string, string>();
+      if (pendingCategoriaAdds.length > 0) {
+        const { data, error } = await supabase
+          .from('categorias')
+          .insert(pendingCategoriaAdds.map((a) => ({ nome: a.nome })))
+          .select('id, nome');
+        if (error) throw error;
+        for (const row of (data || [])) {
+          const match = pendingCategoriaAdds.find((a) => a.nome === row.nome);
+          if (match) tempToReal.set(match.tempId, row.id);
+        }
+      }
+      // Atualizar estado global
+      await fetchCategorias();
+      // Atualizar categoria selecionada se era temp
+      if (formData.categoria_id && tempToReal.has(formData.categoria_id)) {
+        setFormData((prev) => ({ ...prev, categoria_id: tempToReal.get(prev.categoria_id)! }));
+      }
+      setDialogCategorias(categorias);
+      setPendingCategoriaAdds([]);
+      setPendingCategoriaDeletes([]);
+      toast({ title: 'Categorias salvas com sucesso!' });
     } catch (error: any) {
-      toast({ title: 'Erro ao excluir categoria', description: error.message, variant: 'destructive' });
+      toast({ title: 'Erro ao salvar categorias', description: error.message, variant: 'destructive' });
     } finally {
-      setDeletingCategoriaId(null);
+      setSavingCategoria(false);
     }
   }
 
@@ -248,6 +278,9 @@ export default function Brindes() {
       setProductSubsetorId('');
       setProductAreaIds([geralId].filter(Boolean));
     }
+    setDialogCategorias([...categorias]);
+    setPendingCategoriaAdds([]);
+    setPendingCategoriaDeletes([]);
     setImageFile(null);
     setIsDialogOpen(true);
   };
@@ -302,6 +335,11 @@ export default function Brindes() {
     setFormLoading(true);
 
     try {
+      // Salvar alterações pendentes em categorias antes de criar o brinde
+      if (!editingProduto && (pendingCategoriaAdds.length > 0 || pendingCategoriaDeletes.length > 0)) {
+        await handleSaveCategorias();
+      }
+
       let imagemUrl = editingProduto?.imagem_url || null;
 
       // Upload nova imagem se selecionada
@@ -515,7 +553,7 @@ export default function Brindes() {
                       <SelectValue placeholder="Selecione" />
                     </SelectTrigger>
                     <SelectContent>
-                      {categorias.map((cat) => (
+                      {dialogCategorias.map((cat) => (
                         <SelectItem key={cat.id} value={cat.id}>
                           {cat.nome}
                         </SelectItem>
@@ -547,9 +585,9 @@ export default function Brindes() {
                           {savingCategoria ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
                         </Button>
                       </div>
-                      {categorias.length > 0 && (
+                      {dialogCategorias.length > 0 && (
                         <div className="flex flex-wrap gap-1">
-                          {categorias.map((cat) => (
+                          {dialogCategorias.map((cat) => (
                             <Badge key={cat.id} variant="secondary" className="gap-1 pr-1">
                               <span>{cat.nome}</span>
                               <button
@@ -568,6 +606,19 @@ export default function Brindes() {
                             </Badge>
                           ))}
                         </div>
+                      )}
+                      {(pendingCategoriaAdds.length > 0 || pendingCategoriaDeletes.length > 0) && (
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="default"
+                          className="w-full"
+                          onClick={handleSaveCategorias}
+                          disabled={savingCategoria}
+                        >
+                          {savingCategoria ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Check className="h-4 w-4 mr-2" />}
+                          Salvar alterações nas categorias
+                        </Button>
                       )}
                     </div>
                   )}
