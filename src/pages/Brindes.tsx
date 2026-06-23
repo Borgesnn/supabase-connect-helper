@@ -335,6 +335,11 @@ export default function Brindes() {
     setFormLoading(true);
 
     try {
+      // Salvar alterações pendentes em categorias antes de criar o brinde
+      if (!editingProduto && (pendingCategoriaAdds.length > 0 || pendingCategoriaDeletes.length > 0)) {
+        await handleSaveCategorias();
+      }
+
       let imagemUrl = editingProduto?.imagem_url || null;
 
       // Upload nova imagem se selecionada
