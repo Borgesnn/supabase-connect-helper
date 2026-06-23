@@ -278,6 +278,9 @@ export default function Brindes() {
       setProductSubsetorId('');
       setProductAreaIds([geralId].filter(Boolean));
     }
+    setDialogCategorias([...categorias]);
+    setPendingCategoriaAdds([]);
+    setPendingCategoriaDeletes([]);
     setImageFile(null);
     setIsDialogOpen(true);
   };
