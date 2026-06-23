@@ -154,18 +154,54 @@ export default function Brindes() {
   async function handleDeleteCategoria(id: string, nome: string) {
     if (!confirm(`Excluir a categoria "${nome}"? Brindes vinculados ficarão sem categoria.`)) return;
     setDeletingCategoriaId(id);
+    setDialogCategorias((prev) => prev.filter((c) => c.id !== id));
+    if (id.startsWith('temp-')) {
+      setPendingCategoriaAdds((prev) => prev.filter((a) => a.tempId !== id));
+    } else {
+      setPendingCategoriaDeletes((prev) => [...prev, id]);
+    }
+    if (formData.categoria_id === id) {
+      setFormData((prev) => ({ ...prev, categoria_id: '' }));
+    }
+    setTimeout(() => setDeletingCategoriaId(null), 300);
+  }
+
+  async function handleSaveCategorias() {
+    if (pendingCategoriaDeletes.length === 0 && pendingCategoriaAdds.length === 0) return;
+    setSavingCategoria(true);
     try {
-      const { error } = await supabase.from('categorias').delete().eq('id', id);
-      if (error) throw error;
-      setCategorias((prev) => prev.filter((c) => c.id !== id));
-      if (formData.categoria_id === id) {
-        setFormData((prev) => ({ ...prev, categoria_id: '' }));
+      // Excluir categorias removidas
+      if (pendingCategoriaDeletes.length > 0) {
+        const { error } = await supabase.from('categorias').delete().in('id', pendingCategoriaDeletes);
+        if (error) throw error;
       }
-      toast({ title: 'Categoria excluída' });
+      // Inserir novas categorias
+      const tempToReal = new Map<string, string>();
+      if (pendingCategoriaAdds.length > 0) {
+        const { data, error } = await supabase
+          .from('categorias')
+          .insert(pendingCategoriaAdds.map((a) => ({ nome: a.nome })))
+          .select('id, nome');
+        if (error) throw error;
+        for (const row of (data || [])) {
+          const match = pendingCategoriaAdds.find((a) => a.nome === row.nome);
+          if (match) tempToReal.set(match.tempId, row.id);
+        }
+      }
+      // Atualizar estado global
+      await fetchCategorias();
+      // Atualizar categoria selecionada se era temp
+      if (formData.categoria_id && tempToReal.has(formData.categoria_id)) {
+        setFormData((prev) => ({ ...prev, categoria_id: tempToReal.get(prev.categoria_id)! }));
+      }
+      setDialogCategorias(categorias);
+      setPendingCategoriaAdds([]);
+      setPendingCategoriaDeletes([]);
+      toast({ title: 'Categorias salvas com sucesso!' });
     } catch (error: any) {
-      toast({ title: 'Erro ao excluir categoria', description: error.message, variant: 'destructive' });
+      toast({ title: 'Erro ao salvar categorias', description: error.message, variant: 'destructive' });
     } finally {
-      setDeletingCategoriaId(null);
+      setSavingCategoria(false);
     }
   }
 
