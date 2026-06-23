@@ -522,7 +522,7 @@ export default function Brindes() {
                       ))}
                     </SelectContent>
                   </Select>
-                  {isAdmin && (
+                  {isAdmin && !editingProduto && (
                     <div className="space-y-2 rounded-md border border-border bg-muted/30 p-2">
                       <div className="flex gap-2">
                         <Input
