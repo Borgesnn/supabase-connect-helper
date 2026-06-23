@@ -580,9 +580,9 @@ export default function Brindes() {
                           {savingCategoria ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
                         </Button>
                       </div>
-                      {categorias.length > 0 && (
+                      {dialogCategorias.length > 0 && (
                         <div className="flex flex-wrap gap-1">
-                          {categorias.map((cat) => (
+                          {dialogCategorias.map((cat) => (
                             <Badge key={cat.id} variant="secondary" className="gap-1 pr-1">
                               <span>{cat.nome}</span>
                               <button
@@ -601,6 +601,19 @@ export default function Brindes() {
                             </Badge>
                           ))}
                         </div>
+                      )}
+                      {(pendingCategoriaAdds.length > 0 || pendingCategoriaDeletes.length > 0) && (
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="default"
+                          className="w-full"
+                          onClick={handleSaveCategorias}
+                          disabled={savingCategoria}
+                        >
+                          {savingCategoria ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Check className="h-4 w-4 mr-2" />}
+                          Salvar alterações nas categorias
+                        </Button>
                       )}
                     </div>
                   )}
