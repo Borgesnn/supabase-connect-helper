@@ -13,6 +13,7 @@ interface Props {
   value: string;
   onSelect?: (p: Produto) => void;
   onTextChange?: (t: string) => void;
+  onClear?: () => void;
   placeholder?: string;
   showStock?: boolean;
   showSetor?: boolean;
@@ -34,6 +35,7 @@ export function ProdutoAutocomplete({
   value,
   onSelect,
   onTextChange,
+  onClear,
   placeholder = 'Pesquisar brinde...',
   showStock = false,
   showSetor = false,
@@ -131,13 +133,23 @@ export function ProdutoAutocomplete({
         onKeyDown={handleKeyDown}
         className="pl-10 pr-9"
       />
-      {mode === 'select' && selected && !open && (
+      {mode === 'select' && selected && !open && onClear && (
         <button
           type="button"
           onClick={() => {
-            onSelect?.({ ...selected, id: '' } as Produto);
+            onClear();
             setQuery('');
           }}
+          className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded hover:bg-muted"
+          aria-label="Limpar"
+        >
+          <X className="w-3.5 h-3.5 text-muted-foreground" />
+        </button>
+      )}
+      {mode === 'search' && value && onTextChange && !open && (
+        <button
+          type="button"
+          onClick={() => onTextChange('')}
           className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded hover:bg-muted"
           aria-label="Limpar"
         >
