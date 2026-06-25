@@ -99,8 +99,6 @@ export default function Sidebar({ collapsed, onToggle, mobileOpen, onMobileToggl
     })
     .filter((x): x is NavEntry => x !== null);
 
-  const groupKeys = filteredNavItems.filter(isGroup).map((g) => g.key);
-
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>(() => {
     try {
       const raw = localStorage.getItem('sidebar:openGroups');
