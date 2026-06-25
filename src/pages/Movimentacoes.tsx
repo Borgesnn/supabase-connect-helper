@@ -15,6 +15,7 @@ import { ArrowUpCircle, ArrowDownCircle, Loader2, History, DollarSign, FileSprea
 import { format, startOfMonth, endOfMonth } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import * as XLSX from 'xlsx';
+import { ProdutoAutocomplete } from '@/components/ProdutoAutocomplete';
 
 interface Movimentacao {
   id: string;
@@ -243,18 +244,16 @@ export default function Movimentacoes() {
 
               <div className="space-y-2">
                 <Label>Produto</Label>
-                <Select value={selectedProduto} onValueChange={setSelectedProduto}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione um produto" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {produtos.map((p) => (
-                      <SelectItem key={p.id} value={p.id}>
-                        {p.codigo} - {p.nome}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <ProdutoAutocomplete
+                  produtos={produtos}
+                  mode="select"
+                  value={selectedProduto}
+                  onSelect={(p) => setSelectedProduto(p.id)}
+                  onClear={() => setSelectedProduto('')}
+                  placeholder="Pesquisar brinde..."
+                  showStock
+                  showSetor
+                />
               </div>
 
               {selectedProdutoData && (
