@@ -16,6 +16,7 @@ import { Plus, Check, X, Clock, ShoppingCart, Loader2, Crown } from 'lucide-reac
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { useUserAreas } from '@/hooks/useAreas';
+import { ProdutoAutocomplete } from '@/components/ProdutoAutocomplete';
 
 interface Pedido {
   id: string;
@@ -211,21 +212,15 @@ export default function Pedidos() {
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
                 <Label>Produto</Label>
-                <Select
+                <ProdutoAutocomplete
+                  produtos={produtos}
+                  mode="select"
                   value={formData.produto_id}
-                  onValueChange={(value) => setFormData({ ...formData, produto_id: value })}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione um produto" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {produtos.map((p) => (
-                      <SelectItem key={p.id} value={p.id}>
-                        {p.codigo} - {p.nome} (Estoque: {p.quantidade})
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                  onSelect={(p) => setFormData({ ...formData, produto_id: p.id })}
+                  onClear={() => setFormData({ ...formData, produto_id: '' })}
+                  placeholder="Pesquisar brinde..."
+                  showStock
+                />
               </div>
 
               <div className="space-y-2">
