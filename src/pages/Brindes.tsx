@@ -17,6 +17,7 @@ import { Plus, Search, Edit, Trash2, Gift, AlertTriangle, Loader2, Upload, X, Sh
 import { SetorSubsetorSelector } from '@/components/areas/SetorSubsetorSelector';
 import { useUserAreas, useAreas } from '@/hooks/useAreas';
 import { SignedImage } from '@/components/SignedImage';
+import { ProdutoAutocomplete } from '@/components/ProdutoAutocomplete';
 
 export default function Brindes() {
   const { user } = useAuth();
@@ -760,15 +761,15 @@ export default function Brindes() {
 
       {/* Filters */}
       <div className="flex flex-col md:flex-row gap-4">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <Input
-            placeholder="Buscar por nome ou código..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10"
-          />
-        </div>
+        <ProdutoAutocomplete
+          produtos={produtos}
+          mode="search"
+          value={searchTerm}
+          onTextChange={setSearchTerm}
+          onSelect={(p) => setSearchTerm(p.nome)}
+          placeholder="Buscar por nome ou código..."
+          className="flex-1"
+        />
         <Select value={filterCategoria} onValueChange={setFilterCategoria}>
           <SelectTrigger className="w-full md:w-48">
             <SelectValue placeholder="Categoria" />
