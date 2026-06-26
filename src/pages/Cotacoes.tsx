@@ -27,6 +27,7 @@ import {
   MessageSquare, CheckCircle2, ShoppingBag, PackageCheck, History,
 } from 'lucide-react';
 import { ProdutoAutocomplete } from '@/components/ProdutoAutocomplete';
+import { FornecedorAutocomplete } from '@/components/FornecedorAutocomplete';
 import type { Produto as ProdutoFull } from '@/types/database';
 
 type Status = 'em_negociacao' | 'cotacao_feita' | 'pedido_solicitado' | 'pedido_chegou';
@@ -117,6 +118,11 @@ export default function Cotacoes() {
   const [novoBrinde, setNovoBrinde] = useState({ codigo: '', nome: '' });
   const [savingBrinde, setSavingBrinde] = useState(false);
 
+  // Novo fornecedor rápido
+  const [novoFornOpen, setNovoFornOpen] = useState(false);
+  const [novoFornNome, setNovoFornNome] = useState('');
+  const [savingForn, setSavingForn] = useState(false);
+
   const loadAll = async () => {
     setLoading(true);
     const [cRes, fRes, pRes] = await Promise.all([
@@ -153,6 +159,30 @@ export default function Cotacoes() {
       toast.error(e.message ?? 'Erro ao criar brinde');
     } finally {
       setSavingBrinde(false);
+    }
+  };
+
+  const handleCriarFornecedor = async () => {
+    const nome = novoFornNome.trim();
+    if (!nome) { toast.error('Nome é obrigatório'); return; }
+    setSavingForn(true);
+    try {
+      const { data, error } = await supabase
+        .from('fornecedores')
+        .insert({ nome, ativo: true })
+        .select('id,nome')
+        .single();
+      if (error) throw error;
+      const novo = data as Fornecedor;
+      setFornecedores(prev => [...prev, novo].sort((a, b) => a.nome.localeCompare(b.nome)));
+      setForm(f => ({ ...f, fornecedor_id: novo.id }));
+      toast.success('Fornecedor criado');
+      setNovoFornOpen(false);
+      setNovoFornNome('');
+    } catch (e: any) {
+      toast.error(e.message ?? 'Erro ao criar fornecedor');
+    } finally {
+      setSavingForn(false);
     }
   };
 
@@ -459,12 +489,27 @@ export default function Cotacoes() {
             </div>
             <div className="space-y-2">
               <Label>Fornecedor</Label>
-              <Select value={form.fornecedor_id} onValueChange={v => setForm({ ...form, fornecedor_id: v })}>
-                <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
-                <SelectContent>
-                  {fornecedores.map(f => <SelectItem key={f.id} value={f.id}>{f.nome}</SelectItem>)}
-                </SelectContent>
-              </Select>
+              <div className="flex gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="flex-shrink-0"
+                  onClick={() => { setNovoFornNome(''); setNovoFornOpen(true); }}
+                >
+                  +
+                </Button>
+                <div className="flex-1 min-w-0">
+                  <FornecedorAutocomplete
+                    fornecedores={fornecedores}
+                    mode="select"
+                    value={form.fornecedor_id}
+                    onSelect={(f) => setForm({ ...form, fornecedor_id: f.id })}
+                    onClear={() => setForm({ ...form, fornecedor_id: '' })}
+                    placeholder="Pesquisar fornecedor..."
+                  />
+                </div>
+              </div>
             </div>
             <div className="space-y-2">
               <Label>Brinde vinculado</Label>
@@ -768,6 +813,32 @@ export default function Cotacoes() {
             <Button variant="destructive" onClick={() => setNovoBrindeOpen(false)}>Cancelar</Button>
             <Button variant="outline" onClick={handleCriarBrinde} disabled={savingBrinde}>
               {savingBrinde ? 'Salvando...' : 'Criar brinde'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Novo Fornecedor rápido */}
+      <Dialog open={novoFornOpen} onOpenChange={setNovoFornOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Novo fornecedor</DialogTitle>
+            <DialogDescription>Cadastro rápido. Edite outros dados depois em Fornecedores.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="space-y-2">
+              <Label>Nome *</Label>
+              <Input
+                value={novoFornNome}
+                onChange={e => setNovoFornNome(e.target.value)}
+                placeholder="Nome do fornecedor"
+              />
+            </div>
+          </div>
+          <DialogFooter className="flex-row gap-2 sm:justify-end">
+            <Button variant="destructive" onClick={() => setNovoFornOpen(false)}>Cancelar</Button>
+            <Button variant="outline" onClick={handleCriarFornecedor} disabled={savingForn}>
+              {savingForn ? 'Salvando...' : 'Criar fornecedor'}
             </Button>
           </DialogFooter>
         </DialogContent>
