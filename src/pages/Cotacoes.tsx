@@ -738,6 +738,40 @@ export default function Cotacoes() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Novo Brinde rápido */}
+      <Dialog open={novoBrindeOpen} onOpenChange={setNovoBrindeOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Novo brinde</DialogTitle>
+            <DialogDescription>Cadastro rápido. Edite outros campos depois no catálogo.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="space-y-2">
+              <Label>Código *</Label>
+              <Input
+                value={novoBrinde.codigo}
+                onChange={e => setNovoBrinde({ ...novoBrinde, codigo: e.target.value })}
+                placeholder="Ex: BRD200"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Nome *</Label>
+              <Input
+                value={novoBrinde.nome}
+                onChange={e => setNovoBrinde({ ...novoBrinde, nome: e.target.value })}
+                placeholder="Nome do brinde"
+              />
+            </div>
+          </div>
+          <DialogFooter className="flex-row gap-2 sm:justify-end">
+            <Button variant="destructive" onClick={() => setNovoBrindeOpen(false)}>Cancelar</Button>
+            <Button variant="outline" onClick={handleCriarBrinde} disabled={savingBrinde}>
+              {savingBrinde ? 'Salvando...' : 'Criar brinde'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
