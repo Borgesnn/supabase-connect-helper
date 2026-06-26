@@ -817,6 +817,32 @@ export default function Cotacoes() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Novo Fornecedor rápido */}
+      <Dialog open={novoFornOpen} onOpenChange={setNovoFornOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Novo fornecedor</DialogTitle>
+            <DialogDescription>Cadastro rápido. Edite outros dados depois em Fornecedores.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="space-y-2">
+              <Label>Nome *</Label>
+              <Input
+                value={novoFornNome}
+                onChange={e => setNovoFornNome(e.target.value)}
+                placeholder="Nome do fornecedor"
+              />
+            </div>
+          </div>
+          <DialogFooter className="flex-row gap-2 sm:justify-end">
+            <Button variant="destructive" onClick={() => setNovoFornOpen(false)}>Cancelar</Button>
+            <Button variant="outline" onClick={handleCriarFornecedor} disabled={savingForn}>
+              {savingForn ? 'Salvando...' : 'Criar fornecedor'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
