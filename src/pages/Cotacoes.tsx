@@ -26,6 +26,8 @@ import {
   Plus, Search, Pencil, Trash2, FileText, Paperclip, Upload, Download, X,
   MessageSquare, CheckCircle2, ShoppingBag, PackageCheck, History,
 } from 'lucide-react';
+import { ProdutoAutocomplete } from '@/components/ProdutoAutocomplete';
+import type { Produto as ProdutoFull } from '@/types/database';
 
 type Status = 'em_negociacao' | 'cotacao_feita' | 'pedido_solicitado' | 'pedido_chegou';
 
@@ -85,7 +87,7 @@ export default function Cotacoes() {
 
   const [cotacoes, setCotacoes] = useState<Cotacao[]>([]);
   const [fornecedores, setFornecedores] = useState<Fornecedor[]>([]);
-  const [produtos, setProdutos] = useState<Produto[]>([]);
+  const [produtos, setProdutos] = useState<ProdutoFull[]>([]);
   const [loading, setLoading] = useState(true);
 
   const [search, setSearch] = useState('');
@@ -110,18 +112,48 @@ export default function Cotacoes() {
 
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
+  // Novo brinde rápido
+  const [novoBrindeOpen, setNovoBrindeOpen] = useState(false);
+  const [novoBrinde, setNovoBrinde] = useState({ codigo: '', nome: '' });
+  const [savingBrinde, setSavingBrinde] = useState(false);
+
   const loadAll = async () => {
     setLoading(true);
     const [cRes, fRes, pRes] = await Promise.all([
       supabase.from('cotacoes').select('*, fornecedor:fornecedores(id,nome), produto:produtos(id,nome,codigo)').order('created_at', { ascending: false }),
       supabase.from('fornecedores').select('id,nome').order('nome'),
-      supabase.from('produtos').select('id,nome,codigo').order('nome'),
+      supabase.from('produtos').select('*').order('nome'),
     ]);
     if (cRes.error) toast.error('Erro ao carregar cotações');
     else setCotacoes((cRes.data ?? []) as any);
     setFornecedores((fRes.data ?? []) as Fornecedor[]);
-    setProdutos((pRes.data ?? []) as Produto[]);
+    setProdutos((pRes.data ?? []) as ProdutoFull[]);
     setLoading(false);
+  };
+
+  const handleCriarBrinde = async () => {
+    if (!novoBrinde.codigo.trim() || !novoBrinde.nome.trim()) {
+      toast.error('Código e nome são obrigatórios');
+      return;
+    }
+    setSavingBrinde(true);
+    try {
+      const { data, error } = await supabase.from('produtos').insert({
+        codigo: novoBrinde.codigo.trim(),
+        nome: novoBrinde.nome.trim(),
+      }).select('*').single();
+      if (error) throw error;
+      const novo = data as ProdutoFull;
+      setProdutos(prev => [...prev, novo].sort((a, b) => a.nome.localeCompare(b.nome)));
+      setForm(f => ({ ...f, produto_id: novo.id }));
+      toast.success('Brinde criado');
+      setNovoBrindeOpen(false);
+      setNovoBrinde({ codigo: '', nome: '' });
+    } catch (e: any) {
+      toast.error(e.message ?? 'Erro ao criar brinde');
+    } finally {
+      setSavingBrinde(false);
+    }
   };
 
   useEffect(() => { loadAll(); }, []);
@@ -436,12 +468,27 @@ export default function Cotacoes() {
             </div>
             <div className="space-y-2">
               <Label>Brinde vinculado</Label>
-              <Select value={form.produto_id} onValueChange={v => setForm({ ...form, produto_id: v })}>
-                <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
-                <SelectContent>
-                  {produtos.map(p => <SelectItem key={p.id} value={p.id}>{p.codigo} — {p.nome}</SelectItem>)}
-                </SelectContent>
-              </Select>
+              <div className="flex gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="flex-shrink-0"
+                  onClick={() => setNovoBrindeOpen(true)}
+                >
+                  <Plus className="w-4 h-4 mr-1" /> Novo brinde
+                </Button>
+                <div className="flex-1 min-w-0">
+                  <ProdutoAutocomplete
+                    produtos={produtos}
+                    mode="select"
+                    value={form.produto_id}
+                    onSelect={(p) => setForm({ ...form, produto_id: p.id })}
+                    onClear={() => setForm({ ...form, produto_id: '' })}
+                    placeholder="Pesquisar brinde..."
+                  />
+                </div>
+              </div>
             </div>
             <div className="space-y-2">
               <Label>Status</Label>
@@ -691,6 +738,40 @@ export default function Cotacoes() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Novo Brinde rápido */}
+      <Dialog open={novoBrindeOpen} onOpenChange={setNovoBrindeOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Novo brinde</DialogTitle>
+            <DialogDescription>Cadastro rápido. Edite outros campos depois no catálogo.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="space-y-2">
+              <Label>Código *</Label>
+              <Input
+                value={novoBrinde.codigo}
+                onChange={e => setNovoBrinde({ ...novoBrinde, codigo: e.target.value })}
+                placeholder="Ex: BRD200"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Nome *</Label>
+              <Input
+                value={novoBrinde.nome}
+                onChange={e => setNovoBrinde({ ...novoBrinde, nome: e.target.value })}
+                placeholder="Nome do brinde"
+              />
+            </div>
+          </div>
+          <DialogFooter className="flex-row gap-2 sm:justify-end">
+            <Button variant="destructive" onClick={() => setNovoBrindeOpen(false)}>Cancelar</Button>
+            <Button variant="outline" onClick={handleCriarBrinde} disabled={savingBrinde}>
+              {savingBrinde ? 'Salvando...' : 'Criar brinde'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
