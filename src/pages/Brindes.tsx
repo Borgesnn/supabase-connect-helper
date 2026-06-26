@@ -18,6 +18,7 @@ import { SetorSubsetorSelector } from '@/components/areas/SetorSubsetorSelector'
 import { useUserAreas, useAreas } from '@/hooks/useAreas';
 import { SignedImage } from '@/components/SignedImage';
 import { ProdutoAutocomplete } from '@/components/ProdutoAutocomplete';
+import { FornecedorAutocomplete, type FornecedorOption } from '@/components/FornecedorAutocomplete';
 
 export default function Brindes() {
   const { user } = useAuth();
@@ -26,6 +27,7 @@ export default function Brindes() {
   const { areas } = useAreas();
   const [produtos, setProdutos] = useState<Produto[]>([]);
   const [categorias, setCategorias] = useState<Categoria[]>([]);
+  const [fornecedoresList, setFornecedoresList] = useState<FornecedorOption[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterCategoria, setFilterCategoria] = useState<string>('all');
@@ -77,6 +79,7 @@ export default function Brindes() {
   useEffect(() => {
     fetchProdutos();
     fetchCategorias();
+    fetchFornecedoresList();
   }, []);
 
   useEffect(() => {
@@ -135,6 +138,20 @@ export default function Brindes() {
       setCategorias(data || []);
     } catch (error) {
       console.error('Error fetching categorias:', error);
+    }
+  }
+
+  async function fetchFornecedoresList() {
+    try {
+      const { data, error } = await supabase
+        .from('fornecedores')
+        .select('id,nome')
+        .eq('ativo', true)
+        .order('nome');
+      if (error) throw error;
+      setFornecedoresList((data ?? []) as FornecedorOption[]);
+    } catch (error) {
+      console.error('Error fetching fornecedores:', error);
     }
   }
 
