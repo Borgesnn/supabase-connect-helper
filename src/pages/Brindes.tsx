@@ -678,10 +678,12 @@ export default function Brindes() {
 
               <div className="space-y-2">
                 <Label htmlFor="fornecedor">Fornecedor</Label>
-                <Input
-                  id="fornecedor"
+                <FornecedorAutocomplete
+                  fornecedores={fornecedoresList}
+                  mode="text"
                   value={formData.fornecedor}
-                  onChange={(e) => setFormData({ ...formData, fornecedor: e.target.value })}
+                  onTextChange={(t) => setFormData({ ...formData, fornecedor: t })}
+                  placeholder="Pesquisar ou digitar fornecedor..."
                 />
               </div>
 
