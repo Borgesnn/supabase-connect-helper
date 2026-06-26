@@ -476,7 +476,7 @@ export default function Cotacoes() {
                   className="flex-shrink-0"
                   onClick={() => setNovoBrindeOpen(true)}
                 >
-                  <Plus className="w-4 h-4 mr-1" /> Novo brinde
+                  +
                 </Button>
                 <div className="flex-1 min-w-0">
                   <ProdutoAutocomplete
