@@ -618,7 +618,7 @@ export default function Brindes() {
                           disabled={savingCategoria}
                         >
                           {savingCategoria ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Check className="h-4 w-4 mr-2" />}
-                          Salvar alterações nas categorias
+                          Salvar{"\u00a0"}
                         </Button>
                       )}
                     </div>
