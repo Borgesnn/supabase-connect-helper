@@ -20,6 +20,8 @@ import { SignedImage } from '@/components/SignedImage';
 import { ProdutoAutocomplete } from '@/components/ProdutoAutocomplete';
 import { FornecedorAutocomplete, type FornecedorOption } from '@/components/FornecedorAutocomplete';
 
+interface Marca { id: string; nome: string }
+
 export default function Brindes() {
   const { user } = useAuth();
   const { canManage, isAdmin, loading: roleLoading } = useUserRole();
@@ -27,10 +29,13 @@ export default function Brindes() {
   const { areas } = useAreas();
   const [produtos, setProdutos] = useState<Produto[]>([]);
   const [categorias, setCategorias] = useState<Categoria[]>([]);
+  const [marcas, setMarcas] = useState<Marca[]>([]);
+  const [produtoAreasMap, setProdutoAreasMap] = useState<Record<string, string[]>>({});
   const [fornecedoresList, setFornecedoresList] = useState<FornecedorOption[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterCategoria, setFilterCategoria] = useState<string>('all');
+  const [filterMarca, setFilterMarca] = useState<string>('all');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isRequestDialogOpen, setIsRequestDialogOpen] = useState(false);
   const [selectedProduto, setSelectedProduto] = useState<Produto | null>(null);
@@ -41,6 +46,10 @@ export default function Brindes() {
   const [productAreaIds, setProductAreaIds] = useState<string[]>([]);
   const [productSetorId, setProductSetorId] = useState('');
   const [productSubsetorId, setProductSubsetorId] = useState('');
+
+  // Gestão inline de marcas (admin no diálogo)
+  const [newMarcaNome, setNewMarcaNome] = useState('');
+  const [savingMarca, setSavingMarca] = useState(false);
 
   // Gestão inline de categorias (apenas admin)
   const [newCategoriaNome, setNewCategoriaNome] = useState('');
@@ -66,6 +75,7 @@ export default function Brindes() {
     codigo: '',
     nome: '',
     categoria_id: '',
+    marca_id: '',
     quantidade: 0,
     estoque_minimo: 0,
     localizacao: '',
@@ -79,6 +89,7 @@ export default function Brindes() {
   useEffect(() => {
     fetchProdutos();
     fetchCategorias();
+    fetchMarcas();
     fetchFornecedoresList();
   }, []);
 
@@ -116,6 +127,22 @@ export default function Brindes() {
       })) || [];
       
       setProdutos(transformedData);
+
+      // Fetch produto_areas in one go for setor display
+      const ids = transformedData.map((p: any) => p.id);
+      if (ids.length > 0) {
+        const { data: pa } = await supabase
+          .from('produto_areas')
+          .select('produto_id, area_id')
+          .in('produto_id', ids);
+        const map: Record<string, string[]> = {};
+        (pa || []).forEach((r: any) => {
+          (map[r.produto_id] ||= []).push(r.area_id);
+        });
+        setProdutoAreasMap(map);
+      } else {
+        setProdutoAreasMap({});
+      }
     } catch (error) {
       console.error('Error fetching produtos:', error);
       toast({
@@ -152,6 +179,53 @@ export default function Brindes() {
       setFornecedoresList((data ?? []) as FornecedorOption[]);
     } catch (error) {
       console.error('Error fetching fornecedores:', error);
+    }
+  }
+
+  async function fetchMarcas() {
+    try {
+      const { data, error } = await supabase
+        .from('marcas')
+        .select('id, nome')
+        .order('nome');
+      if (error) throw error;
+      setMarcas((data || []) as Marca[]);
+    } catch (error) {
+      console.error('Error fetching marcas:', error);
+    }
+  }
+
+  async function handleAddMarca() {
+    const nome = newMarcaNome.trim();
+    if (!nome) return;
+    if (marcas.some((m) => m.nome.toLowerCase() === nome.toLowerCase())) {
+      toast({ title: 'Marca já existe', variant: 'destructive' });
+      return;
+    }
+    setSavingMarca(true);
+    try {
+      const { data, error } = await supabase.from('marcas').insert({ nome }).select('id, nome').single();
+      if (error) throw error;
+      setMarcas((prev) => [...prev, data as Marca].sort((a, b) => a.nome.localeCompare(b.nome)));
+      setFormData((prev) => ({ ...prev, marca_id: (data as Marca).id }));
+      setNewMarcaNome('');
+    } catch (error: any) {
+      toast({ title: 'Erro ao adicionar marca', description: error.message, variant: 'destructive' });
+    } finally {
+      setSavingMarca(false);
+    }
+  }
+
+  async function handleDeleteMarca(id: string, nome: string) {
+    if (!confirm(`Excluir a marca "${nome}"? Brindes vinculados ficarão sem marca.`)) return;
+    try {
+      const { error } = await supabase.from('marcas').delete().eq('id', id);
+      if (error) throw error;
+      setMarcas((prev) => prev.filter((m) => m.id !== id));
+      if (formData.marca_id === id) setFormData((prev) => ({ ...prev, marca_id: '' }));
+      toast({ title: 'Marca excluída' });
+    } catch (error: any) {
+      toast({ title: 'Erro ao excluir marca', description: error.message, variant: 'destructive' });
     }
   }
 
