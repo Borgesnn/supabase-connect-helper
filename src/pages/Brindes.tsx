@@ -729,6 +729,68 @@ export default function Brindes() {
                 </div>
               </div>
 
+              <div className="space-y-2">
+                <Label htmlFor="marca">Marca</Label>
+                <Select
+                  value={formData.marca_id || 'none'}
+                  onValueChange={(value) => setFormData({ ...formData, marca_id: value === 'none' ? '' : value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione a marca" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">Sem marca</SelectItem>
+                    {marcas.map((m) => (
+                      <SelectItem key={m.id} value={m.id}>{m.nome}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {isAdmin && !editingProduto && (
+                  <div className="space-y-2 rounded-md border border-border bg-muted/30 p-2">
+                    <div className="flex gap-2">
+                      <Input
+                        placeholder="Nova marca"
+                        value={newMarcaNome}
+                        onChange={(e) => setNewMarcaNome(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            handleAddMarca();
+                          }
+                        }}
+                        className="h-8"
+                      />
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="outline"
+                        onClick={handleAddMarca}
+                        disabled={savingMarca || !newMarcaNome.trim()}
+                      >
+                        {savingMarca ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
+                      </Button>
+                    </div>
+                    {marcas.length > 0 && (
+                      <div className="flex flex-wrap gap-1">
+                        {marcas.map((m) => (
+                          <Badge key={m.id} variant="secondary" className="gap-1 pr-1">
+                            <span>{m.nome}</span>
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteMarca(m.id, m.nome)}
+                              className="ml-1 rounded-sm hover:bg-destructive/20 p-0.5"
+                              aria-label={`Excluir ${m.nome}`}
+                            >
+                              <X className="h-3 w-3" />
+                            </button>
+                          </Badge>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="quantidade">Quantidade</Label>
