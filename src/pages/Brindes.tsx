@@ -13,7 +13,9 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Plus, Search, Edit, Trash2, Gift, AlertTriangle, Loader2, Upload, X, ShoppingCart, Check } from 'lucide-react';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
+import { Plus, Search, Edit, Trash2, Gift, AlertTriangle, Loader2, Upload, X, ShoppingCart, Check, LayoutGrid, List } from 'lucide-react';
 import { SetorSubsetorSelector } from '@/components/areas/SetorSubsetorSelector';
 import { useUserAreas, useAreas } from '@/hooks/useAreas';
 import { SignedImage } from '@/components/SignedImage';
@@ -36,6 +38,7 @@ export default function Brindes() {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterCategoria, setFilterCategoria] = useState<string>('all');
   const [filterMarca, setFilterMarca] = useState<string>('all');
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isRequestDialogOpen, setIsRequestDialogOpen] = useState(false);
   const [selectedProduto, setSelectedProduto] = useState<Produto | null>(null);
@@ -963,137 +966,246 @@ export default function Brindes() {
             <X className="w-4 h-4 mr-1" /> Limpar filtros
           </Button>
         )}
+        <ToggleGroup
+          type="single"
+          value={viewMode}
+          onValueChange={(v) => v && setViewMode(v as 'grid' | 'list')}
+          variant="outline"
+          className="ml-auto"
+        >
+          <ToggleGroupItem value="grid" aria-label="Grade">
+            <LayoutGrid className="w-4 h-4" />
+          </ToggleGroupItem>
+          <ToggleGroupItem value="list" aria-label="Lista">
+            <List className="w-4 h-4" />
+          </ToggleGroupItem>
+        </ToggleGroup>
       </div>
 
-      {/* Products Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-        {filteredProdutos.map((produto) => {
-          const status = getStockStatus(produto.quantidade, produto.estoque_minimo);
-          return (
-            <Card key={produto.id} className="hover:shadow-lg transition-all duration-200 group">
-              <CardHeader className="pb-3">
-                <div className="flex items-start gap-3">
-                  <div className="w-16 h-16 rounded-lg bg-muted flex items-center justify-center overflow-hidden flex-shrink-0">
-                    {produto.imagem_url ? (
-                      <SignedImage
-                        bucket="produtos"
-                        source={produto.imagem_url}
-                        alt={produto.nome}
-                        className="w-full h-full object-cover"
-                        fallback={<Gift className="w-6 h-6 text-muted-foreground" />}
-                      />
-                    ) : (
-                      <Gift className="w-6 h-6 text-muted-foreground" />
+      {viewMode === 'grid' ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          {filteredProdutos.map((produto) => {
+            const status = getStockStatus(produto.quantidade, produto.estoque_minimo);
+            return (
+              <Card key={produto.id} className="hover:shadow-lg transition-all duration-200 group">
+                <CardHeader className="pb-3">
+                  <div className="flex items-start gap-3">
+                    <div className="w-16 h-16 rounded-lg bg-muted flex items-center justify-center overflow-hidden flex-shrink-0">
+                      {produto.imagem_url ? (
+                        <SignedImage
+                          bucket="produtos"
+                          source={produto.imagem_url}
+                          alt={produto.nome}
+                          className="w-full h-full object-cover"
+                          fallback={<Gift className="w-6 h-6 text-muted-foreground" />}
+                        />
+                      ) : (
+                        <Gift className="w-6 h-6 text-muted-foreground" />
+                      )}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <CardTitle className="text-base font-semibold truncate">{produto.nome}</CardTitle>
+                      <p className="text-sm text-muted-foreground">{produto.codigo}</p>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <span className="text-2xl font-bold text-foreground">{produto.quantidade}</span>
+                    <Badge 
+                      variant={status.variant === 'destructive' ? 'destructive' : 'default'}
+                      className={status.variant === 'warning' ? 'bg-warning text-warning-foreground' : status.variant === 'success' ? 'bg-success' : ''}
+                    >
+                      {status.label}
+                    </Badge>
+                  </div>
+                  
+                  <div className="space-y-2 text-sm">
+                    {produto.categoria && (
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Categoria</span>
+                        <span>{produto.categoria.nome}</span>
+                      </div>
+                    )}
+                    {(() => {
+                      const marcaId = (produto as any).marca_id as string | null;
+                      const marca = marcaId ? marcas.find((m) => m.id === marcaId) : null;
+                      return marca ? (
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Marca</span>
+                          <span>{marca.nome}</span>
+                        </div>
+                      ) : null;
+                    })()}
+                    {(() => {
+                      const ids = produtoAreasMap[produto.id] || [];
+                      if (ids.length === 0) return null;
+                      const nomes = ids
+                        .map((id) => areas.find((a) => a.id === id)?.nome)
+                        .filter(Boolean) as string[];
+                      if (nomes.length === 0) return null;
+                      return (
+                        <div className="flex justify-between gap-2">
+                          <span className="text-muted-foreground">Setor</span>
+                          <span className="text-right truncate">{nomes.join(' / ')}</span>
+                        </div>
+                      );
+                    })()}
+                    {produto.localizacao && (
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Local</span>
+                        <span>{produto.localizacao}</span>
+                      </div>
+                    )}
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Mín.</span>
+                      <span>{produto.estoque_minimo}</span>
+                    </div>
+                    {canManage && produto.valor_compra != null && (
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Valor compra</span>
+                        <span className="font-medium">
+                          {Number(produto.valor_compra).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                        </span>
+                      </div>
                     )}
                   </div>
-                  <div className="min-w-0 flex-1">
-                    <CardTitle className="text-base font-semibold truncate">{produto.nome}</CardTitle>
-                    <p className="text-sm text-muted-foreground">{produto.codigo}</p>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <span className="text-2xl font-bold text-foreground">{produto.quantidade}</span>
-                  <Badge 
-                    variant={status.variant === 'destructive' ? 'destructive' : 'default'}
-                    className={status.variant === 'warning' ? 'bg-warning text-warning-foreground' : status.variant === 'success' ? 'bg-success' : ''}
-                  >
-                    {status.label}
-                  </Badge>
-                </div>
-                
-                <div className="space-y-2 text-sm">
-                  {produto.categoria && (
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Categoria</span>
-                      <span>{produto.categoria.nome}</span>
-                    </div>
-                  )}
-                  {(() => {
-                    const marcaId = (produto as any).marca_id as string | null;
-                    const marca = marcaId ? marcas.find((m) => m.id === marcaId) : null;
-                    return marca ? (
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Marca</span>
-                        <span>{marca.nome}</span>
-                      </div>
-                    ) : null;
-                  })()}
-                  {(() => {
-                    const ids = produtoAreasMap[produto.id] || [];
-                    if (ids.length === 0) return null;
-                    const nomes = ids
-                      .map((id) => areas.find((a) => a.id === id)?.nome)
-                      .filter(Boolean) as string[];
-                    if (nomes.length === 0) return null;
-                    return (
-                      <div className="flex justify-between gap-2">
-                        <span className="text-muted-foreground">Setor</span>
-                        <span className="text-right truncate">{nomes.join(' / ')}</span>
-                      </div>
-                    );
-                  })()}
-                  {produto.localizacao && (
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Local</span>
-                      <span>{produto.localizacao}</span>
-                    </div>
-                  )}
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Mín.</span>
-                    <span>{produto.estoque_minimo}</span>
-                  </div>
-                  {canManage && produto.valor_compra != null && (
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Valor compra</span>
-                      <span className="font-medium">
-                        {Number(produto.valor_compra).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
-                      </span>
-                    </div>
-                  )}
-                </div>
 
-                {canManage ? (
-                  <div className="flex gap-2 pt-2 border-t">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="flex-1"
-                      onClick={() => handleOpenDialog(produto)}
-                    >
-                      <Edit className="w-4 h-4 mr-1" />
-                      Editar
-                    </Button>
-                    {isAdmin && (
+                  {canManage ? (
+                    <div className="flex gap-2 pt-2 border-t">
                       <Button
                         variant="outline"
                         size="sm"
-                        className="text-destructive hover:bg-destructive hover:text-destructive-foreground"
-                        onClick={() => handleDelete(produto.id)}
+                        className="flex-1"
+                        onClick={() => handleOpenDialog(produto)}
                       >
-                        <Trash2 className="w-4 h-4" />
+                        <Edit className="w-4 h-4 mr-1" />
+                        Editar
                       </Button>
+                      {isAdmin && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="text-destructive hover:bg-destructive hover:text-destructive-foreground"
+                          onClick={() => handleDelete(produto.id)}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="pt-2 border-t">
+                      <Button
+                        variant="default"
+                        size="sm"
+                        className="w-full gradient-primary hover:opacity-90"
+                        onClick={() => handleOpenRequestDialog(produto)}
+                      >
+                        <ShoppingCart className="w-4 h-4 mr-1" />
+                        Solicitar
+                      </Button>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
+      ) : (
+        <div className="border border-border rounded-lg overflow-hidden bg-card">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="w-14"></TableHead>
+                <TableHead>Código</TableHead>
+                <TableHead>Nome</TableHead>
+                <TableHead>Marca</TableHead>
+                <TableHead>Categoria</TableHead>
+                <TableHead>Qtd. Estoque</TableHead>
+                <TableHead>Estoque Mín.</TableHead>
+                {canManage && <TableHead>Valor Compra</TableHead>}
+                <TableHead>Status</TableHead>
+                {canManage && <TableHead className="w-24 text-right">Ações</TableHead>}
+                {!canManage && <TableHead className="w-28 text-right">Ação</TableHead>}
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filteredProdutos.map((produto) => {
+                const status = getStockStatus(produto.quantidade, produto.estoque_minimo);
+                const marcaId = (produto as any).marca_id as string | null;
+                const marca = marcaId ? marcas.find((m) => m.id === marcaId) : null;
+                return (
+                  <TableRow key={produto.id}>
+                    <TableCell>
+                      <div className="w-10 h-10 rounded-md bg-muted flex items-center justify-center overflow-hidden">
+                        {produto.imagem_url ? (
+                          <SignedImage
+                            bucket="produtos"
+                            source={produto.imagem_url}
+                            alt={produto.nome}
+                            className="w-full h-full object-cover"
+                            fallback={<Gift className="w-5 h-5 text-muted-foreground" />}
+                          />
+                        ) : (
+                          <Gift className="w-5 h-5 text-muted-foreground" />
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell className="font-medium">{produto.codigo}</TableCell>
+                    <TableCell>{produto.nome}</TableCell>
+                    <TableCell>{marca?.nome || <span className="text-muted-foreground">—</span>}</TableCell>
+                    <TableCell>{produto.categoria?.nome || <span className="text-muted-foreground">—</span>}</TableCell>
+                    <TableCell>{produto.quantidade}</TableCell>
+                    <TableCell>{produto.estoque_minimo}</TableCell>
+                    {canManage && (
+                      <TableCell>
+                        {produto.valor_compra != null
+                          ? Number(produto.valor_compra).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
+                          : <span className="text-muted-foreground">—</span>}
+                      </TableCell>
                     )}
-                  </div>
-                ) : (
-                  <div className="pt-2 border-t">
-                    <Button
-                      variant="default"
-                      size="sm"
-                      className="w-full gradient-primary hover:opacity-90"
-                      onClick={() => handleOpenRequestDialog(produto)}
-                    >
-                      <ShoppingCart className="w-4 h-4 mr-1" />
-                      Solicitar
-                    </Button>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          );
-        })}
-      </div>
+                    <TableCell>
+                      <Badge
+                        variant={status.variant === 'destructive' ? 'destructive' : 'default'}
+                        className={status.variant === 'warning' ? 'bg-warning text-warning-foreground' : status.variant === 'success' ? 'bg-success' : ''}
+                      >
+                        {status.label}
+                      </Badge>
+                    </TableCell>
+                    {canManage ? (
+                      <TableCell className="text-right">
+                        <div className="flex justify-end gap-1">
+                          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleOpenDialog(produto)}>
+                            <Edit className="w-4 h-4" />
+                          </Button>
+                          {isAdmin && (
+                            <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive"
+                              onClick={() => handleDelete(produto.id)}>
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          )}
+                        </div>
+                      </TableCell>
+                    ) : (
+                      <TableCell className="text-right">
+                        <Button
+                          variant="default"
+                          size="sm"
+                          className="gradient-primary hover:opacity-90"
+                          onClick={() => handleOpenRequestDialog(produto)}
+                        >
+                          <ShoppingCart className="w-4 h-4 mr-1" />
+                          Solicitar
+                        </Button>
+                      </TableCell>
+                    )}
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
+        </div>
+      )}
 
       {filteredProdutos.length === 0 && (
         <div className="text-center py-12">
