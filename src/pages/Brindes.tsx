@@ -919,7 +919,7 @@ export default function Brindes() {
       </div>
 
       {/* Filters */}
-      <div className="flex flex-col md:flex-row gap-4">
+      <div className="flex flex-col md:flex-row gap-4 md:items-center">
         <ProdutoAutocomplete
           produtos={produtos}
           mode="search"
@@ -942,6 +942,27 @@ export default function Brindes() {
             ))}
           </SelectContent>
         </Select>
+        <Select value={filterMarca} onValueChange={setFilterMarca}>
+          <SelectTrigger className="w-full md:w-48">
+            <SelectValue placeholder="Marca" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todas marcas</SelectItem>
+            {marcas.map((m) => (
+              <SelectItem key={m.id} value={m.id}>{m.nome}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        {(filterCategoria !== 'all' || filterMarca !== 'all' || searchTerm) && (
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={() => { setFilterCategoria('all'); setFilterMarca('all'); setSearchTerm(''); }}
+          >
+            <X className="w-4 h-4 mr-1" /> Limpar filtros
+          </Button>
+        )}
       </div>
 
       {/* Products Grid */}
