@@ -302,7 +302,8 @@ export default function Brindes() {
       p.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
       p.codigo.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategoria = filterCategoria === 'all' || p.categoria_id === filterCategoria;
-    return matchesSearch && matchesCategoria;
+    const matchesMarca = filterMarca === 'all' || (p as any).marca_id === filterMarca;
+    return matchesSearch && matchesCategoria && matchesMarca;
   });
 
   const getStockStatus = (quantidade: number, estoqueMinimo: number) => {
@@ -447,6 +448,7 @@ export default function Brindes() {
       const submitData = {
         ...formData,
         categoria_id: formData.categoria_id || null,
+        marca_id: formData.marca_id || null,
         imagem_url: imagemUrl,
         valor_compra: formData.valor_compra === '' ? null : parseFloat(formData.valor_compra),
       };
