@@ -1010,6 +1010,30 @@ export default function Brindes() {
                       <span>{produto.categoria.nome}</span>
                     </div>
                   )}
+                  {(() => {
+                    const marcaId = (produto as any).marca_id as string | null;
+                    const marca = marcaId ? marcas.find((m) => m.id === marcaId) : null;
+                    return marca ? (
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Marca</span>
+                        <span>{marca.nome}</span>
+                      </div>
+                    ) : null;
+                  })()}
+                  {(() => {
+                    const ids = produtoAreasMap[produto.id] || [];
+                    if (ids.length === 0) return null;
+                    const nomes = ids
+                      .map((id) => areas.find((a) => a.id === id)?.nome)
+                      .filter(Boolean) as string[];
+                    if (nomes.length === 0) return null;
+                    return (
+                      <div className="flex justify-between gap-2">
+                        <span className="text-muted-foreground">Setor</span>
+                        <span className="text-right truncate">{nomes.join(' / ')}</span>
+                      </div>
+                    );
+                  })()}
                   {produto.localizacao && (
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Local</span>
