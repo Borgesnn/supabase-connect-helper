@@ -322,6 +322,24 @@ export type Database = {
         }
         Relationships: []
       }
+      marcas: {
+        Row: {
+          created_at: string
+          id: string
+          nome: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          nome: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          nome?: string
+        }
+        Relationships: []
+      }
       movimentacoes: {
         Row: {
           created_at: string
@@ -457,6 +475,7 @@ export type Database = {
           id: string
           imagem_url: string | null
           localizacao: string | null
+          marca_id: string | null
           nome: string
           quantidade: number
           updated_at: string
@@ -472,6 +491,7 @@ export type Database = {
           id?: string
           imagem_url?: string | null
           localizacao?: string | null
+          marca_id?: string | null
           nome: string
           quantidade?: number
           updated_at?: string
@@ -487,6 +507,7 @@ export type Database = {
           id?: string
           imagem_url?: string | null
           localizacao?: string | null
+          marca_id?: string | null
           nome?: string
           quantidade?: number
           updated_at?: string
@@ -498,6 +519,13 @@ export type Database = {
             columns: ["categoria_id"]
             isOneToOne: false
             referencedRelation: "categorias"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "produtos_marca_id_fkey"
+            columns: ["marca_id"]
+            isOneToOne: false
+            referencedRelation: "marcas"
             referencedColumns: ["id"]
           },
         ]
