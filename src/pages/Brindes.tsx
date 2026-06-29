@@ -966,6 +966,20 @@ export default function Brindes() {
             <X className="w-4 h-4 mr-1" /> Limpar filtros
           </Button>
         )}
+        <ToggleGroup
+          type="single"
+          value={viewMode}
+          onValueChange={(v) => v && setViewMode(v as 'grid' | 'list')}
+          variant="outline"
+          className="ml-auto"
+        >
+          <ToggleGroupItem value="grid" aria-label="Grade">
+            <LayoutGrid className="w-4 h-4" />
+          </ToggleGroupItem>
+          <ToggleGroupItem value="list" aria-label="Lista">
+            <List className="w-4 h-4" />
+          </ToggleGroupItem>
+        </ToggleGroup>
       </div>
 
       {/* Products Grid */}
