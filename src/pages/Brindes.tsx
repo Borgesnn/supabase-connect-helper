@@ -13,6 +13,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { Plus, Search, Edit, Trash2, Gift, AlertTriangle, Loader2, Upload, X, ShoppingCart, Check, LayoutGrid, List } from 'lucide-react';
 import { SetorSubsetorSelector } from '@/components/areas/SetorSubsetorSelector';
 import { useUserAreas, useAreas } from '@/hooks/useAreas';
