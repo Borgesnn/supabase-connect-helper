@@ -20,6 +20,8 @@ import { SignedImage } from '@/components/SignedImage';
 import { ProdutoAutocomplete } from '@/components/ProdutoAutocomplete';
 import { FornecedorAutocomplete, type FornecedorOption } from '@/components/FornecedorAutocomplete';
 
+interface Marca { id: string; nome: string }
+
 export default function Brindes() {
   const { user } = useAuth();
   const { canManage, isAdmin, loading: roleLoading } = useUserRole();
@@ -27,10 +29,13 @@ export default function Brindes() {
   const { areas } = useAreas();
   const [produtos, setProdutos] = useState<Produto[]>([]);
   const [categorias, setCategorias] = useState<Categoria[]>([]);
+  const [marcas, setMarcas] = useState<Marca[]>([]);
+  const [produtoAreasMap, setProdutoAreasMap] = useState<Record<string, string[]>>({});
   const [fornecedoresList, setFornecedoresList] = useState<FornecedorOption[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterCategoria, setFilterCategoria] = useState<string>('all');
+  const [filterMarca, setFilterMarca] = useState<string>('all');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isRequestDialogOpen, setIsRequestDialogOpen] = useState(false);
   const [selectedProduto, setSelectedProduto] = useState<Produto | null>(null);
@@ -41,6 +46,10 @@ export default function Brindes() {
   const [productAreaIds, setProductAreaIds] = useState<string[]>([]);
   const [productSetorId, setProductSetorId] = useState('');
   const [productSubsetorId, setProductSubsetorId] = useState('');
+
+  // Gestão inline de marcas (admin no diálogo)
+  const [newMarcaNome, setNewMarcaNome] = useState('');
+  const [savingMarca, setSavingMarca] = useState(false);
 
   // Gestão inline de categorias (apenas admin)
   const [newCategoriaNome, setNewCategoriaNome] = useState('');
@@ -66,6 +75,7 @@ export default function Brindes() {
     codigo: '',
     nome: '',
     categoria_id: '',
+    marca_id: '',
     quantidade: 0,
     estoque_minimo: 0,
     localizacao: '',
@@ -79,6 +89,7 @@ export default function Brindes() {
   useEffect(() => {
     fetchProdutos();
     fetchCategorias();
+    fetchMarcas();
     fetchFornecedoresList();
   }, []);
 
@@ -116,6 +127,22 @@ export default function Brindes() {
       })) || [];
       
       setProdutos(transformedData);
+
+      // Fetch produto_areas in one go for setor display
+      const ids = transformedData.map((p: any) => p.id);
+      if (ids.length > 0) {
+        const { data: pa } = await supabase
+          .from('produto_areas')
+          .select('produto_id, area_id')
+          .in('produto_id', ids);
+        const map: Record<string, string[]> = {};
+        (pa || []).forEach((r: any) => {
+          (map[r.produto_id] ||= []).push(r.area_id);
+        });
+        setProdutoAreasMap(map);
+      } else {
+        setProdutoAreasMap({});
+      }
     } catch (error) {
       console.error('Error fetching produtos:', error);
       toast({
@@ -152,6 +179,53 @@ export default function Brindes() {
       setFornecedoresList((data ?? []) as FornecedorOption[]);
     } catch (error) {
       console.error('Error fetching fornecedores:', error);
+    }
+  }
+
+  async function fetchMarcas() {
+    try {
+      const { data, error } = await supabase
+        .from('marcas')
+        .select('id, nome')
+        .order('nome');
+      if (error) throw error;
+      setMarcas((data || []) as Marca[]);
+    } catch (error) {
+      console.error('Error fetching marcas:', error);
+    }
+  }
+
+  async function handleAddMarca() {
+    const nome = newMarcaNome.trim();
+    if (!nome) return;
+    if (marcas.some((m) => m.nome.toLowerCase() === nome.toLowerCase())) {
+      toast({ title: 'Marca já existe', variant: 'destructive' });
+      return;
+    }
+    setSavingMarca(true);
+    try {
+      const { data, error } = await supabase.from('marcas').insert({ nome }).select('id, nome').single();
+      if (error) throw error;
+      setMarcas((prev) => [...prev, data as Marca].sort((a, b) => a.nome.localeCompare(b.nome)));
+      setFormData((prev) => ({ ...prev, marca_id: (data as Marca).id }));
+      setNewMarcaNome('');
+    } catch (error: any) {
+      toast({ title: 'Erro ao adicionar marca', description: error.message, variant: 'destructive' });
+    } finally {
+      setSavingMarca(false);
+    }
+  }
+
+  async function handleDeleteMarca(id: string, nome: string) {
+    if (!confirm(`Excluir a marca "${nome}"? Brindes vinculados ficarão sem marca.`)) return;
+    try {
+      const { error } = await supabase.from('marcas').delete().eq('id', id);
+      if (error) throw error;
+      setMarcas((prev) => prev.filter((m) => m.id !== id));
+      if (formData.marca_id === id) setFormData((prev) => ({ ...prev, marca_id: '' }));
+      toast({ title: 'Marca excluída' });
+    } catch (error: any) {
+      toast({ title: 'Erro ao excluir marca', description: error.message, variant: 'destructive' });
     }
   }
 
@@ -228,7 +302,8 @@ export default function Brindes() {
       p.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
       p.codigo.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategoria = filterCategoria === 'all' || p.categoria_id === filterCategoria;
-    return matchesSearch && matchesCategoria;
+    const matchesMarca = filterMarca === 'all' || (p as any).marca_id === filterMarca;
+    return matchesSearch && matchesCategoria && matchesMarca;
   });
 
   const getStockStatus = (quantidade: number, estoqueMinimo: number) => {
@@ -244,6 +319,7 @@ export default function Brindes() {
         codigo: produto.codigo,
         nome: produto.nome,
         categoria_id: produto.categoria_id || '',
+        marca_id: (produto as any).marca_id || '',
         quantidade: produto.quantidade,
         estoque_minimo: produto.estoque_minimo,
         localizacao: produto.localizacao || '',
@@ -282,6 +358,7 @@ export default function Brindes() {
         codigo: '',
         nome: '',
         categoria_id: '',
+        marca_id: '',
         quantidade: 0,
         estoque_minimo: 0,
         localizacao: '',
@@ -371,6 +448,7 @@ export default function Brindes() {
       const submitData = {
         ...formData,
         categoria_id: formData.categoria_id || null,
+        marca_id: formData.marca_id || null,
         imagem_url: imagemUrl,
         valor_compra: formData.valor_compra === '' ? null : parseFloat(formData.valor_compra),
       };
@@ -651,6 +729,68 @@ export default function Brindes() {
                 </div>
               </div>
 
+              <div className="space-y-2">
+                <Label htmlFor="marca">Marca</Label>
+                <Select
+                  value={formData.marca_id || 'none'}
+                  onValueChange={(value) => setFormData({ ...formData, marca_id: value === 'none' ? '' : value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione a marca" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">Sem marca</SelectItem>
+                    {marcas.map((m) => (
+                      <SelectItem key={m.id} value={m.id}>{m.nome}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {isAdmin && !editingProduto && (
+                  <div className="space-y-2 rounded-md border border-border bg-muted/30 p-2">
+                    <div className="flex gap-2">
+                      <Input
+                        placeholder="Nova marca"
+                        value={newMarcaNome}
+                        onChange={(e) => setNewMarcaNome(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            handleAddMarca();
+                          }
+                        }}
+                        className="h-8"
+                      />
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="outline"
+                        onClick={handleAddMarca}
+                        disabled={savingMarca || !newMarcaNome.trim()}
+                      >
+                        {savingMarca ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
+                      </Button>
+                    </div>
+                    {marcas.length > 0 && (
+                      <div className="flex flex-wrap gap-1">
+                        {marcas.map((m) => (
+                          <Badge key={m.id} variant="secondary" className="gap-1 pr-1">
+                            <span>{m.nome}</span>
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteMarca(m.id, m.nome)}
+                              className="ml-1 rounded-sm hover:bg-destructive/20 p-0.5"
+                              aria-label={`Excluir ${m.nome}`}
+                            >
+                              <X className="h-3 w-3" />
+                            </button>
+                          </Badge>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="quantidade">Quantidade</Label>
@@ -779,7 +919,7 @@ export default function Brindes() {
       </div>
 
       {/* Filters */}
-      <div className="flex flex-col md:flex-row gap-4">
+      <div className="flex flex-col md:flex-row gap-4 md:items-center">
         <ProdutoAutocomplete
           produtos={produtos}
           mode="search"
@@ -802,6 +942,27 @@ export default function Brindes() {
             ))}
           </SelectContent>
         </Select>
+        <Select value={filterMarca} onValueChange={setFilterMarca}>
+          <SelectTrigger className="w-full md:w-48">
+            <SelectValue placeholder="Marca" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todas marcas</SelectItem>
+            {marcas.map((m) => (
+              <SelectItem key={m.id} value={m.id}>{m.nome}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        {(filterCategoria !== 'all' || filterMarca !== 'all' || searchTerm) && (
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={() => { setFilterCategoria('all'); setFilterMarca('all'); setSearchTerm(''); }}
+          >
+            <X className="w-4 h-4 mr-1" /> Limpar filtros
+          </Button>
+        )}
       </div>
 
       {/* Products Grid */}
@@ -849,6 +1010,30 @@ export default function Brindes() {
                       <span>{produto.categoria.nome}</span>
                     </div>
                   )}
+                  {(() => {
+                    const marcaId = (produto as any).marca_id as string | null;
+                    const marca = marcaId ? marcas.find((m) => m.id === marcaId) : null;
+                    return marca ? (
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Marca</span>
+                        <span>{marca.nome}</span>
+                      </div>
+                    ) : null;
+                  })()}
+                  {(() => {
+                    const ids = produtoAreasMap[produto.id] || [];
+                    if (ids.length === 0) return null;
+                    const nomes = ids
+                      .map((id) => areas.find((a) => a.id === id)?.nome)
+                      .filter(Boolean) as string[];
+                    if (nomes.length === 0) return null;
+                    return (
+                      <div className="flex justify-between gap-2">
+                        <span className="text-muted-foreground">Setor</span>
+                        <span className="text-right truncate">{nomes.join(' / ')}</span>
+                      </div>
+                    );
+                  })()}
                   {produto.localizacao && (
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Local</span>
