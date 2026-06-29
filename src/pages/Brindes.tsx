@@ -38,6 +38,7 @@ export default function Brindes() {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterCategoria, setFilterCategoria] = useState<string>('all');
   const [filterMarca, setFilterMarca] = useState<string>('all');
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isRequestDialogOpen, setIsRequestDialogOpen] = useState(false);
   const [selectedProduto, setSelectedProduto] = useState<Produto | null>(null);
