@@ -468,7 +468,7 @@ export default function Usuarios() {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="usuario">Usuário</SelectItem>
-                      <SelectItem value="operario">Operário</SelectItem>
+                      <SelectItem value="operario">Editor</SelectItem>
                       <SelectItem value="admin">Administrador</SelectItem>
                     </SelectContent>
                   </Select>
