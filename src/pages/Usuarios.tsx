@@ -102,6 +102,10 @@ export default function Usuarios() {
   }
 
   async function handleRoleChange(userId: string, newRole: string) {
+    if (userId === user?.id) {
+      toast({ title: 'Você não pode alterar seu próprio papel', variant: 'destructive' });
+      return;
+    }
     setUpdating(userId);
     try {
       const { data: existingRole, error: checkError } = await supabase
@@ -450,7 +454,7 @@ export default function Usuarios() {
                   </Badge>
                 </div>
 
-                {isAdmin ? (
+                {isAdmin && u.id !== user?.id ? (
                   <Select
                     value={u.role}
                     onValueChange={(value) => handleRoleChange(u.id, value)}
@@ -471,7 +475,7 @@ export default function Usuarios() {
                 ) : (
                   <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                     <Lock className="w-3 h-3" />
-                    <span>Somente admin altera</span>
+                    <span>{isAdmin && u.id === user?.id ? 'Você não pode alterar seu próprio papel' : 'Somente admin altera'}</span>
                   </div>
                 )}
 
