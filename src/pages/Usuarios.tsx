@@ -25,7 +25,7 @@ interface UserProfile {
 
 const roleLabels: Record<string, string> = {
   admin: 'Administrador',
-  operario: 'Operário',
+  operario: 'Editor',
   usuario: 'Usuário',
 };
 
