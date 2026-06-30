@@ -61,15 +61,15 @@ export function useUserRole(): UseUserRoleReturn {
   }, [userId, authLoading]);
 
   const isAdmin = role === 'admin';
-  const isOperario = role === 'operario';
+  const isEditor = role === 'operario';
   const isUsuario = role === 'usuario';
-  const canManage = isAdmin || isOperario;
+  const canManage = isAdmin || isEditor;
 
   return {
     role,
     loading,
     isAdmin,
-    isOperario,
+    isEditor,
     isUsuario,
     canManage,
   };
