@@ -25,7 +25,7 @@ interface UserProfile {
 
 const roleLabels: Record<string, string> = {
   admin: 'Administrador',
-  operario: 'Operário',
+  operario: 'Editor',
   usuario: 'Usuário',
 };
 
@@ -371,7 +371,7 @@ export default function Usuarios() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="usuario">Usuário</SelectItem>
-                    <SelectItem value="operario">Operário</SelectItem>
+                    <SelectItem value="operario">Editor</SelectItem>
                     <SelectItem value="admin">Administrador</SelectItem>
                   </SelectContent>
                 </Select>
@@ -468,7 +468,7 @@ export default function Usuarios() {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="usuario">Usuário</SelectItem>
-                      <SelectItem value="operario">Operário</SelectItem>
+                      <SelectItem value="operario">Editor</SelectItem>
                       <SelectItem value="admin">Administrador</SelectItem>
                     </SelectContent>
                   </Select>

@@ -7,9 +7,9 @@ interface UseUserRoleReturn {
   role: AppRole | null;
   loading: boolean;
   isAdmin: boolean;
-  isOperario: boolean;
+  isEditor: boolean;
   isUsuario: boolean;
-  canManage: boolean; // admin ou operário
+  canManage: boolean; // admin ou editor
 }
 
 export function useUserRole(): UseUserRoleReturn {
@@ -61,15 +61,15 @@ export function useUserRole(): UseUserRoleReturn {
   }, [userId, authLoading]);
 
   const isAdmin = role === 'admin';
-  const isOperario = role === 'operario';
+  const isEditor = role === 'operario';
   const isUsuario = role === 'usuario';
-  const canManage = isAdmin || isOperario;
+  const canManage = isAdmin || isEditor;
 
   return {
     role,
     loading,
     isAdmin,
-    isOperario,
+    isEditor,
     isUsuario,
     canManage,
   };

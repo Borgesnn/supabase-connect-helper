@@ -510,7 +510,7 @@ export default function ImportarExportar() {
           <AlertCircle className="w-4 h-4" />
           <AlertTitle>Acesso negado</AlertTitle>
           <AlertDescription>
-            Apenas administradores e operários podem importar ou exportar dados.
+            Apenas administradores e editores podem importar ou exportar dados.
           </AlertDescription>
         </Alert>
       </div>
