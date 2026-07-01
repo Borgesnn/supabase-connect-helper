@@ -99,6 +99,15 @@ export default function Pedidos() {
     e.preventDefault();
     if (!user) return;
 
+    if (formData.motivo.trim().length < 50) {
+      toast({
+        title: 'Motivo muito curto',
+        description: 'O motivo deve ter no mínimo 50 caracteres. Ex: nome do cliente, tipo do brinde, motivo.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
     setSubmitting(true);
 
     try {
@@ -235,20 +244,25 @@ export default function Pedidos() {
               </div>
 
               <div className="space-y-2">
-                <Label>Motivo</Label>
+                <Label>Motivo <span className="text-destructive">*</span></Label>
                 <Textarea
                   value={formData.motivo}
                   onChange={(e) => setFormData({ ...formData, motivo: e.target.value })}
-                  placeholder="Descreva o motivo da solicitação..."
+                  placeholder="Ex: nome do cliente, tipo do brinde, motivo"
                   rows={3}
+                  minLength={50}
+                  required
                 />
+                <p className={`text-xs ${formData.motivo.trim().length < 50 ? 'text-destructive' : 'text-muted-foreground'}`}>
+                  {formData.motivo.trim().length}/50 caracteres (mínimo)
+                </p>
               </div>
 
               <div className="flex justify-end gap-3">
                 <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
                   Cancelar
                 </Button>
-                <Button type="submit" disabled={!formData.produto_id || submitting} className="gradient-primary">
+                <Button type="submit" disabled={!formData.produto_id || submitting || formData.motivo.trim().length < 50} className="gradient-primary">
                   {submitting && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
                   Enviar Solicitação
                 </Button>
