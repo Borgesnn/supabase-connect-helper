@@ -99,6 +99,15 @@ export default function Pedidos() {
     e.preventDefault();
     if (!user) return;
 
+    if (formData.quantidade <= 0) {
+      toast({
+        title: 'Quantidade obrigatória',
+        description: 'Informe uma quantidade maior que zero.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
     if (formData.motivo.trim().length < 50) {
       toast({
         title: 'Motivo muito curto',
