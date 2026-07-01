@@ -1334,14 +1334,14 @@ export default function Brindes() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="request-quantidade">Quantidade</Label>
+                <Label htmlFor="request-quantidade">Quantidade <span className="text-destructive">*</span></Label>
                 <Input
                   id="request-quantidade"
                   type="number"
-                  min="1"
+                  min="0"
                   max={selectedProduto.quantidade}
                   value={requestQuantidade}
-                  onChange={(e) => setRequestQuantidade(parseInt(e.target.value) || 1)}
+                  onChange={(e) => setRequestQuantidade(parseInt(e.target.value) || 0)}
                   required
                 />
               </div>
