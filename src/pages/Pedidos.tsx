@@ -242,12 +242,12 @@ export default function Pedidos() {
               </div>
 
               <div className="space-y-2">
-                <Label>Quantidade</Label>
+                <Label>Quantidade <span className="text-destructive">*</span></Label>
                 <Input
                   type="number"
-                  min="1"
+                  min="0"
                   value={formData.quantidade}
-                  onChange={(e) => setFormData({ ...formData, quantidade: parseInt(e.target.value) || 1 })}
+                  onChange={(e) => setFormData({ ...formData, quantidade: parseInt(e.target.value) || 0 })}
                   required
                 />
               </div>
