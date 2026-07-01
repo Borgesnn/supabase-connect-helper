@@ -271,7 +271,7 @@ export default function Pedidos() {
                 <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
                   Cancelar
                 </Button>
-                <Button type="submit" disabled={!formData.produto_id || submitting || formData.motivo.trim().length < 50} className="gradient-primary">
+                <Button type="submit" disabled={!formData.produto_id || submitting || formData.quantidade <= 0 || formData.motivo.trim().length < 50} className="gradient-primary">
                   {submitting && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
                   Enviar Solicitação
                 </Button>
