@@ -123,7 +123,7 @@ export default function Pedidos() {
 
       toast({ title: 'Pedido criado com sucesso!' });
       setIsDialogOpen(false);
-      setFormData({ produto_id: '', quantidade: 1, motivo: '' });
+      setFormData({ produto_id: '', quantidade: 0, motivo: '' });
       fetchData();
     } catch (error: any) {
       toast({
