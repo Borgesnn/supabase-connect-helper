@@ -548,6 +548,11 @@ export default function Brindes() {
       return;
     }
 
+    if (requestQuantidade <= 0) {
+      toast({ title: 'Quantidade obrigatória', description: 'Informe uma quantidade maior que zero.', variant: 'destructive' });
+      return;
+    }
+
     if (requestMotivo.trim().length < 50) {
       toast({
         title: 'Motivo muito curto',
