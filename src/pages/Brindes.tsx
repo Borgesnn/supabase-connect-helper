@@ -526,7 +526,7 @@ export default function Brindes() {
 
   const handleOpenRequestDialog = (produto: Produto) => {
     setSelectedProduto(produto);
-    setRequestQuantidade(1);
+    setRequestQuantidade(0);
     setRequestMotivo('');
     // Auto-preenche com nome do perfil
     const parts = userProfileName.split(' ');
