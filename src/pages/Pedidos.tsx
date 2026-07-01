@@ -54,7 +54,7 @@ export default function Pedidos() {
   
   const [formData, setFormData] = useState({
     produto_id: '',
-    quantidade: 1,
+    quantidade: 0,
     motivo: '',
   });
 
@@ -99,6 +99,15 @@ export default function Pedidos() {
     e.preventDefault();
     if (!user) return;
 
+    if (formData.quantidade <= 0) {
+      toast({
+        title: 'Quantidade obrigatória',
+        description: 'Informe uma quantidade maior que zero.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
     if (formData.motivo.trim().length < 50) {
       toast({
         title: 'Motivo muito curto',
@@ -123,7 +132,7 @@ export default function Pedidos() {
 
       toast({ title: 'Pedido criado com sucesso!' });
       setIsDialogOpen(false);
-      setFormData({ produto_id: '', quantidade: 1, motivo: '' });
+      setFormData({ produto_id: '', quantidade: 0, motivo: '' });
       fetchData();
     } catch (error: any) {
       toast({
@@ -233,12 +242,12 @@ export default function Pedidos() {
               </div>
 
               <div className="space-y-2">
-                <Label>Quantidade</Label>
+                <Label>Quantidade <span className="text-destructive">*</span></Label>
                 <Input
                   type="number"
-                  min="1"
+                  min="0"
                   value={formData.quantidade}
-                  onChange={(e) => setFormData({ ...formData, quantidade: parseInt(e.target.value) || 1 })}
+                  onChange={(e) => setFormData({ ...formData, quantidade: parseInt(e.target.value) || 0 })}
                   required
                 />
               </div>
@@ -262,7 +271,7 @@ export default function Pedidos() {
                 <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
                   Cancelar
                 </Button>
-                <Button type="submit" disabled={!formData.produto_id || submitting || formData.motivo.trim().length < 50} className="gradient-primary">
+                <Button type="submit" disabled={!formData.produto_id || submitting || formData.quantidade <= 0 || formData.motivo.trim().length < 50} className="gradient-primary">
                   {submitting && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
                   Enviar Solicitação
                 </Button>

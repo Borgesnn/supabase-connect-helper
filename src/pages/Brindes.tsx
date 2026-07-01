@@ -65,7 +65,7 @@ export default function Brindes() {
   const [pendingCategoriaDeletes, setPendingCategoriaDeletes] = useState<string[]>([]);
   
   // Estado para solicitação
-  const [requestQuantidade, setRequestQuantidade] = useState(1);
+  const [requestQuantidade, setRequestQuantidade] = useState(0);
   const [requestMotivo, setRequestMotivo] = useState('');
   const [requestNome, setRequestNome] = useState('');
   const [requestSobrenome, setRequestSobrenome] = useState('');
@@ -526,7 +526,7 @@ export default function Brindes() {
 
   const handleOpenRequestDialog = (produto: Produto) => {
     setSelectedProduto(produto);
-    setRequestQuantidade(1);
+    setRequestQuantidade(0);
     setRequestMotivo('');
     // Auto-preenche com nome do perfil
     const parts = userProfileName.split(' ');
@@ -545,6 +545,11 @@ export default function Brindes() {
 
     if (!requestNome.trim() || !requestSobrenome.trim() || !requestFilial || !requestMotivo.trim()) {
       toast({ title: 'Preencha todos os campos obrigatórios', variant: 'destructive' });
+      return;
+    }
+
+    if (requestQuantidade <= 0) {
+      toast({ title: 'Quantidade obrigatória', description: 'Informe uma quantidade maior que zero.', variant: 'destructive' });
       return;
     }
 
@@ -1334,14 +1339,14 @@ export default function Brindes() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="request-quantidade">Quantidade</Label>
+                <Label htmlFor="request-quantidade">Quantidade <span className="text-destructive">*</span></Label>
                 <Input
                   id="request-quantidade"
                   type="number"
-                  min="1"
+                  min="0"
                   max={selectedProduto.quantidade}
                   value={requestQuantidade}
-                  onChange={(e) => setRequestQuantidade(parseInt(e.target.value) || 1)}
+                  onChange={(e) => setRequestQuantidade(parseInt(e.target.value) || 0)}
                   required
                 />
               </div>
@@ -1366,7 +1371,7 @@ export default function Brindes() {
                 <Button type="button" variant="outline" onClick={() => setIsRequestDialogOpen(false)}>
                   Cancelar
                 </Button>
-                <Button type="submit" disabled={formLoading || !requestNome.trim() || !requestSobrenome.trim() || !requestFilial || requestMotivo.trim().length < 50 || (entregarOutraPessoa && (!outraPessoaNome.trim() || !outraPessoaSobrenome.trim()))} className="gradient-primary">
+                <Button type="submit" disabled={formLoading || !requestNome.trim() || !requestSobrenome.trim() || !requestFilial || requestQuantidade <= 0 || requestMotivo.trim().length < 50 || (entregarOutraPessoa && (!outraPessoaNome.trim() || !outraPessoaSobrenome.trim()))} className="gradient-primary">
                   {formLoading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
                   Enviar Solicitação
                 </Button>
