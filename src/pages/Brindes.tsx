@@ -548,6 +548,15 @@ export default function Brindes() {
       return;
     }
 
+    if (requestMotivo.trim().length < 50) {
+      toast({
+        title: 'Motivo muito curto',
+        description: 'O motivo deve ter no mínimo 50 caracteres.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
     if (entregarOutraPessoa && (!outraPessoaNome.trim() || !outraPessoaSobrenome.trim())) {
       toast({ title: 'Preencha o nome da pessoa que receberá o brinde', variant: 'destructive' });
       return;
@@ -1341,19 +1350,23 @@ export default function Brindes() {
                 <Label htmlFor="request-motivo">Motivo <span className="text-destructive">*</span></Label>
                 <Textarea
                   id="request-motivo"
-                  placeholder="Ex: Evento de marketing, brinde para cliente..."
+                  placeholder="Ex: nome do cliente, tipo do brinde, motivo"
                   value={requestMotivo}
                   onChange={(e) => setRequestMotivo(e.target.value)}
                   rows={3}
+                  minLength={50}
                   required
                 />
+                <p className={`text-xs ${requestMotivo.trim().length < 50 ? 'text-destructive' : 'text-muted-foreground'}`}>
+                  {requestMotivo.trim().length}/50 caracteres (mínimo)
+                </p>
               </div>
 
               <div className="flex justify-end gap-3">
                 <Button type="button" variant="outline" onClick={() => setIsRequestDialogOpen(false)}>
                   Cancelar
                 </Button>
-                <Button type="submit" disabled={formLoading || !requestNome.trim() || !requestSobrenome.trim() || !requestFilial || !requestMotivo.trim() || (entregarOutraPessoa && (!outraPessoaNome.trim() || !outraPessoaSobrenome.trim()))} className="gradient-primary">
+                <Button type="submit" disabled={formLoading || !requestNome.trim() || !requestSobrenome.trim() || !requestFilial || requestMotivo.trim().length < 50 || (entregarOutraPessoa && (!outraPessoaNome.trim() || !outraPessoaSobrenome.trim()))} className="gradient-primary">
                   {formLoading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
                   Enviar Solicitação
                 </Button>
