@@ -54,7 +54,7 @@ export default function Pedidos() {
   
   const [formData, setFormData] = useState({
     produto_id: '',
-    quantidade: 1,
+    quantidade: 0,
     motivo: '',
   });
 
