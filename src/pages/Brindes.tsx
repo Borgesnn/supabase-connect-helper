@@ -65,7 +65,7 @@ export default function Brindes() {
   const [pendingCategoriaDeletes, setPendingCategoriaDeletes] = useState<string[]>([]);
   
   // Estado para solicitação
-  const [requestQuantidade, setRequestQuantidade] = useState(1);
+  const [requestQuantidade, setRequestQuantidade] = useState(0);
   const [requestMotivo, setRequestMotivo] = useState('');
   const [requestNome, setRequestNome] = useState('');
   const [requestSobrenome, setRequestSobrenome] = useState('');
