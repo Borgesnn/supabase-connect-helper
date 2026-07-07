@@ -23,6 +23,9 @@ import { ProdutoAutocomplete } from '@/components/ProdutoAutocomplete';
 import { FornecedorAutocomplete, type FornecedorOption } from '@/components/FornecedorAutocomplete';
 
 interface Marca { id: string; nome: string }
+import { useTamanhos, fetchProdutoTamanhos, type ProdutoTamanhoRow } from '@/hooks/useTamanhos';
+
+interface RequestItem { tamanho_id: string; quantidade: number; }
 
 export default function Brindes() {
   const { user } = useAuth();
@@ -88,6 +91,15 @@ export default function Brindes() {
   });
 
   const { toast } = useToast();
+  const { tamanhos } = useTamanhos();
+
+  // Controle por tamanho — cadastro
+  const [controlaTamanho, setControlaTamanho] = useState(false);
+  const [tamanhoRows, setTamanhoRows] = useState<ProdutoTamanhoRow[]>([]);
+
+  // Solicitação por tamanho
+  const [requestItens, setRequestItens] = useState<RequestItem[]>([]);
+  const [produtoTamanhoStock, setProdutoTamanhoStock] = useState<ProdutoTamanhoRow[]>([]);
 
   useEffect(() => {
     fetchProdutos();
@@ -318,6 +330,18 @@ export default function Brindes() {
   const handleOpenDialog = async (produto?: Produto) => {
     if (produto) {
       setEditingProduto(produto);
+      const controla = (produto as any).controla_tamanho === true;
+      setControlaTamanho(controla);
+      if (controla) {
+        try {
+          const rows = await fetchProdutoTamanhos(produto.id);
+          setTamanhoRows(rows);
+        } catch {
+          setTamanhoRows([]);
+        }
+      } else {
+        setTamanhoRows([]);
+      }
       setFormData({
         codigo: produto.codigo,
         nome: produto.nome,
@@ -357,6 +381,8 @@ export default function Brindes() {
       }
     } else {
       setEditingProduto(null);
+      setControlaTamanho(false);
+      setTamanhoRows([]);
       setFormData({
         codigo: '',
         nome: '',
@@ -433,6 +459,15 @@ export default function Brindes() {
     setFormLoading(true);
 
     try {
+      // Validação de tamanhos
+      if (controlaTamanho) {
+        const validRows = tamanhoRows.filter(r => r.tamanho_id);
+        if (validRows.length === 0) {
+          toast({ title: 'Adicione ao menos um tamanho', variant: 'destructive' });
+          setFormLoading(false);
+          return;
+        }
+      }
       // Salvar alterações pendentes em categorias antes de criar o brinde
       if (!editingProduto && (pendingCategoriaAdds.length > 0 || pendingCategoriaDeletes.length > 0)) {
         await handleSaveCategorias();
@@ -454,13 +489,16 @@ export default function Brindes() {
         marca_id: formData.marca_id || null,
         imagem_url: imagemUrl,
         valor_compra: formData.valor_compra === '' ? null : parseFloat(formData.valor_compra),
+        controla_tamanho: controlaTamanho,
+        // Quando controla por tamanho, o total é recalculado pelo trigger
+        quantidade: controlaTamanho ? 0 : formData.quantidade,
       };
 
       let produtoId = editingProduto?.id;
       if (editingProduto) {
         const { error } = await supabase
           .from('produtos')
-          .update(submitData)
+          .update(submitData as any)
           .eq('id', editingProduto.id);
 
         if (error) throw error;
@@ -468,13 +506,35 @@ export default function Brindes() {
       } else {
         const { data: created, error } = await supabase
           .from('produtos')
-          .insert([submitData])
+          .insert([submitData as any])
           .select('id')
           .single();
 
         if (error) throw error;
         produtoId = created?.id;
         toast({ title: 'Brinde adicionado com sucesso!' });
+      }
+
+      // Sincronizar tamanhos do produto
+      if (produtoId) {
+        if (controlaTamanho) {
+          await supabase.from('produto_tamanhos').delete().eq('produto_id', produtoId);
+          const rowsToSave = tamanhoRows
+            .filter(r => r.tamanho_id)
+            .map(r => ({
+              produto_id: produtoId!,
+              tamanho_id: r.tamanho_id,
+              quantidade: Math.max(0, Number(r.quantidade) || 0),
+              estoque_minimo: Math.max(0, Number(r.estoque_minimo) || 0),
+            }));
+          if (rowsToSave.length > 0) {
+            const { error: ptErr } = await supabase.from('produto_tamanhos').insert(rowsToSave);
+            if (ptErr) throw ptErr;
+          }
+        } else {
+          // Se desabilitou tamanho, limpa registros
+          await supabase.from('produto_tamanhos').delete().eq('produto_id', produtoId);
+        }
       }
 
       // Sincronizar áreas vinculadas ao produto
@@ -528,6 +588,14 @@ export default function Brindes() {
     setSelectedProduto(produto);
     setRequestQuantidade(0);
     setRequestMotivo('');
+    setRequestItens([]);
+    setProdutoTamanhoStock([]);
+    if ((produto as any).controla_tamanho) {
+      fetchProdutoTamanhos(produto.id).then((rows) => {
+        setProdutoTamanhoStock(rows);
+        setRequestItens([{ tamanho_id: '', quantidade: 0 }]);
+      }).catch(() => setProdutoTamanhoStock([]));
+    }
     // Auto-preenche com nome do perfil
     const parts = userProfileName.split(' ');
     setRequestNome(parts[0] || '');
@@ -543,14 +611,33 @@ export default function Brindes() {
     e.preventDefault();
     if (!selectedProduto || !user) return;
 
+    const controla = (selectedProduto as any).controla_tamanho === true;
+
     if (!requestNome.trim() || !requestSobrenome.trim() || !requestFilial || !requestMotivo.trim()) {
       toast({ title: 'Preencha todos os campos obrigatórios', variant: 'destructive' });
       return;
     }
 
-    if (requestQuantidade <= 0) {
-      toast({ title: 'Quantidade obrigatória', description: 'Informe uma quantidade maior que zero.', variant: 'destructive' });
-      return;
+    if (controla) {
+      const validItens = requestItens.filter(i => i.tamanho_id && i.quantidade > 0);
+      if (validItens.length === 0) {
+        toast({ title: 'Informe pelo menos um tamanho com quantidade > 0', variant: 'destructive' });
+        return;
+      }
+      // Verificar estoque por tamanho
+      for (const it of validItens) {
+        const disp = produtoTamanhoStock.find(s => s.tamanho_id === it.tamanho_id)?.quantidade ?? 0;
+        if (it.quantidade > disp) {
+          const nome = tamanhos.find(t => t.id === it.tamanho_id)?.nome || '';
+          toast({ title: `Quantidade indisponível no tamanho ${nome}`, description: `Disponível: ${disp}`, variant: 'destructive' });
+          return;
+        }
+      }
+    } else {
+      if (requestQuantidade <= 0) {
+        toast({ title: 'Quantidade obrigatória', description: 'Informe uma quantidade maior que zero.', variant: 'destructive' });
+        return;
+      }
     }
 
     if (requestMotivo.trim().length < 50) {
@@ -574,19 +661,32 @@ export default function Brindes() {
         motivoCompleto += ` | Entregar a: ${outraPessoaNome} ${outraPessoaSobrenome}`;
       }
       motivoCompleto += requestMotivo ? ` | Motivo: ${requestMotivo}` : '';
-      
-      const { error } = await supabase
-        .from('pedidos')
-        .insert([{
-          produto_id: selectedProduto.id,
-          quantidade: requestQuantidade,
-          solicitante_id: user.id,
-          motivo: motivoCompleto,
-          status: 'pendente',
-          prioridade: isDiretoria ? 'diretoria' : 'normal',
-        }]);
 
-      if (error) throw error;
+      if (controla) {
+        const itens = requestItens
+          .filter(i => i.tamanho_id && i.quantidade > 0)
+          .map(i => ({ tamanho_id: i.tamanho_id, quantidade: i.quantidade }));
+        const { error } = await supabase.rpc('create_pedido_com_itens', {
+          p_solicitante_id: user.id,
+          p_produto_id: selectedProduto.id,
+          p_motivo: motivoCompleto,
+          p_prioridade: isDiretoria ? 'diretoria' : 'normal',
+          p_itens: itens as any,
+        });
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from('pedidos')
+          .insert([{
+            produto_id: selectedProduto.id,
+            quantidade: requestQuantidade,
+            solicitante_id: user.id,
+            motivo: motivoCompleto,
+            status: 'pendente',
+            prioridade: isDiretoria ? 'diretoria' : 'normal',
+          }]);
+        if (error) throw error;
+      }
       
       toast({ title: 'Solicitação enviada com sucesso!' });
       setIsRequestDialogOpen(false);
@@ -808,30 +908,121 @@ export default function Brindes() {
                 )}
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="quantidade">Quantidade</Label>
-                  <Input
-                    id="quantidade"
-                    type="number"
-                    min="0"
-                    value={formData.quantidade}
-                    onChange={(e) => setFormData({ ...formData, quantidade: parseInt(e.target.value) || 0 })}
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="estoque_minimo">Estoque Mínimo</Label>
-                  <Input
-                    id="estoque_minimo"
-                    type="number"
-                    min="0"
-                    value={formData.estoque_minimo}
-                    onChange={(e) => setFormData({ ...formData, estoque_minimo: parseInt(e.target.value) || 0 })}
-                    required
-                  />
-                </div>
+              <div className="flex items-center space-x-2 rounded-md border p-3 bg-muted/30">
+                <Checkbox
+                  id="controla-tamanho"
+                  checked={controlaTamanho}
+                  onCheckedChange={(v) => setControlaTamanho(v === true)}
+                />
+                <Label htmlFor="controla-tamanho" className="cursor-pointer text-sm font-normal">
+                  Controlar estoque por tamanho (camisetas, polos, etc.)
+                </Label>
               </div>
+
+              {!controlaTamanho ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="quantidade">Quantidade</Label>
+                    <Input
+                      id="quantidade"
+                      type="number"
+                      min="0"
+                      value={formData.quantidade}
+                      onChange={(e) => setFormData({ ...formData, quantidade: parseInt(e.target.value) || 0 })}
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="estoque_minimo">Estoque Mínimo</Label>
+                    <Input
+                      id="estoque_minimo"
+                      type="number"
+                      min="0"
+                      value={formData.estoque_minimo}
+                      onChange={(e) => setFormData({ ...formData, estoque_minimo: parseInt(e.target.value) || 0 })}
+                      required
+                    />
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-2 rounded-md border p-3">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-sm">Estoque por tamanho</Label>
+                    <span className="text-xs text-muted-foreground">
+                      Total: {tamanhoRows.reduce((acc, r) => acc + (Number(r.quantidade) || 0), 0)}
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-[1fr_1fr_1fr_auto] gap-2 items-center text-xs text-muted-foreground">
+                    <span>Tamanho</span>
+                    <span>Quantidade</span>
+                    <span>Estoque mín.</span>
+                    <span></span>
+                  </div>
+                  {tamanhoRows.map((row, idx) => (
+                    <div key={idx} className="grid grid-cols-[1fr_1fr_1fr_auto] gap-2 items-center">
+                      <Select
+                        value={row.tamanho_id}
+                        onValueChange={(v) => {
+                          const copy = [...tamanhoRows];
+                          copy[idx] = { ...copy[idx], tamanho_id: v };
+                          setTamanhoRows(copy);
+                        }}
+                      >
+                        <SelectTrigger className="h-9">
+                          <SelectValue placeholder="Tamanho" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {tamanhos
+                            .filter(t => t.id === row.tamanho_id || !tamanhoRows.some(r => r.tamanho_id === t.id))
+                            .map(t => (
+                              <SelectItem key={t.id} value={t.id}>{t.nome}</SelectItem>
+                            ))}
+                        </SelectContent>
+                      </Select>
+                      <Input
+                        type="number"
+                        min="0"
+                        value={row.quantidade}
+                        onChange={(e) => {
+                          const copy = [...tamanhoRows];
+                          copy[idx] = { ...copy[idx], quantidade: parseInt(e.target.value) || 0 };
+                          setTamanhoRows(copy);
+                        }}
+                        className="h-9"
+                      />
+                      <Input
+                        type="number"
+                        min="0"
+                        value={row.estoque_minimo}
+                        onChange={(e) => {
+                          const copy = [...tamanhoRows];
+                          copy[idx] = { ...copy[idx], estoque_minimo: parseInt(e.target.value) || 0 };
+                          setTamanhoRows(copy);
+                        }}
+                        className="h-9"
+                      />
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="h-9 w-9"
+                        onClick={() => setTamanhoRows(tamanhoRows.filter((_, i) => i !== idx))}
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ))}
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setTamanhoRows([...tamanhoRows, { tamanho_id: '', quantidade: 0, estoque_minimo: 0 }])}
+                    disabled={tamanhoRows.length >= tamanhos.length}
+                  >
+                    <Plus className="h-4 w-4 mr-1" /> Adicionar tamanho
+                  </Button>
+                </div>
+              )}
 
               <div className="space-y-2">
                 <Label htmlFor="fornecedor">Fornecedor</Label>
@@ -1338,18 +1529,85 @@ export default function Brindes() {
                 </Select>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="request-quantidade">Quantidade <span className="text-destructive">*</span></Label>
-                <Input
-                  id="request-quantidade"
-                  type="number"
-                  min="0"
-                  max={selectedProduto.quantidade}
-                  value={requestQuantidade}
-                  onChange={(e) => setRequestQuantidade(parseInt(e.target.value) || 0)}
-                  required
-                />
-              </div>
+              {(selectedProduto as any).controla_tamanho ? (
+                <div className="space-y-2 rounded-md border p-3">
+                  <Label className="text-sm">Tamanhos e quantidades <span className="text-destructive">*</span></Label>
+                  {requestItens.map((it, idx) => {
+                    const disp = produtoTamanhoStock.find(s => s.tamanho_id === it.tamanho_id)?.quantidade ?? 0;
+                    return (
+                      <div key={idx} className="grid grid-cols-[1fr_1fr_auto] gap-2 items-center">
+                        <Select
+                          value={it.tamanho_id}
+                          onValueChange={(v) => {
+                            const copy = [...requestItens];
+                            copy[idx] = { ...copy[idx], tamanho_id: v };
+                            setRequestItens(copy);
+                          }}
+                        >
+                          <SelectTrigger className="h-9">
+                            <SelectValue placeholder="Tamanho" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {tamanhos
+                              .filter(t => it.tamanho_id === t.id || !requestItens.some(r => r.tamanho_id === t.id))
+                              .filter(t => (produtoTamanhoStock.find(s => s.tamanho_id === t.id)?.quantidade ?? 0) > 0 || t.id === it.tamanho_id)
+                              .map(t => {
+                                const stock = produtoTamanhoStock.find(s => s.tamanho_id === t.id)?.quantidade ?? 0;
+                                return (
+                                  <SelectItem key={t.id} value={t.id}>{t.nome} — disp: {stock}</SelectItem>
+                                );
+                              })}
+                          </SelectContent>
+                        </Select>
+                        <Input
+                          type="number"
+                          min="0"
+                          max={disp}
+                          value={it.quantidade}
+                          onChange={(e) => {
+                            const copy = [...requestItens];
+                            copy[idx] = { ...copy[idx], quantidade: Math.min(disp, parseInt(e.target.value) || 0) };
+                            setRequestItens(copy);
+                          }}
+                          placeholder="Qtd"
+                          className="h-9"
+                        />
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="h-9 w-9"
+                          onClick={() => setRequestItens(requestItens.filter((_, i) => i !== idx))}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    );
+                  })}
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setRequestItens([...requestItens, { tamanho_id: '', quantidade: 0 }])}
+                    disabled={requestItens.length >= produtoTamanhoStock.filter(s => s.quantidade > 0).length}
+                  >
+                    <Plus className="h-4 w-4 mr-1" /> Adicionar tamanho
+                  </Button>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  <Label htmlFor="request-quantidade">Quantidade <span className="text-destructive">*</span></Label>
+                  <Input
+                    id="request-quantidade"
+                    type="number"
+                    min="0"
+                    max={selectedProduto.quantidade}
+                    value={requestQuantidade}
+                    onChange={(e) => setRequestQuantidade(parseInt(e.target.value) || 0)}
+                    required
+                  />
+                </div>
+              )}
 
               <div className="space-y-2">
                 <Label htmlFor="request-motivo">Motivo <span className="text-destructive">*</span></Label>
@@ -1371,7 +1629,19 @@ export default function Brindes() {
                 <Button type="button" variant="outline" onClick={() => setIsRequestDialogOpen(false)}>
                   Cancelar
                 </Button>
-                <Button type="submit" disabled={formLoading || !requestNome.trim() || !requestSobrenome.trim() || !requestFilial || requestQuantidade <= 0 || requestMotivo.trim().length < 50 || (entregarOutraPessoa && (!outraPessoaNome.trim() || !outraPessoaSobrenome.trim()))} className="gradient-primary">
+                <Button
+                  type="submit"
+                  disabled={
+                    formLoading ||
+                    !requestNome.trim() || !requestSobrenome.trim() || !requestFilial ||
+                    requestMotivo.trim().length < 50 ||
+                    (entregarOutraPessoa && (!outraPessoaNome.trim() || !outraPessoaSobrenome.trim())) ||
+                    ((selectedProduto as any)?.controla_tamanho
+                      ? requestItens.filter(i => i.tamanho_id && i.quantidade > 0).length === 0
+                      : requestQuantidade <= 0)
+                  }
+                  className="gradient-primary"
+                >
                   {formLoading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
                   Enviar Solicitação
                 </Button>
