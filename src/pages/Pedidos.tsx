@@ -292,16 +292,58 @@ export default function Pedidos() {
                 />
               </div>
 
-              <div className="space-y-2">
-                <Label>Quantidade <span className="text-destructive">*</span></Label>
-                <Input
-                  type="number"
-                  min="0"
-                  value={formData.quantidade}
-                  onChange={(e) => setFormData({ ...formData, quantidade: parseInt(e.target.value) || 0 })}
-                  required
-                />
-              </div>
+              {selectedControla ? (
+                <div className="space-y-2 rounded-md border p-3">
+                  <Label className="text-sm">Tamanhos <span className="text-destructive">*</span></Label>
+                  {requestItens.map((it, idx) => {
+                    const disp = produtoTamanhoStock.find(s => s.tamanho_id === it.tamanho_id)?.quantidade ?? 0;
+                    return (
+                      <div key={idx} className="grid grid-cols-[1fr_1fr_auto] gap-2 items-center">
+                        <Select
+                          value={it.tamanho_id}
+                          onValueChange={(v) => {
+                            const c = [...requestItens]; c[idx] = { ...c[idx], tamanho_id: v }; setRequestItens(c);
+                          }}
+                        >
+                          <SelectTrigger className="h-9"><SelectValue placeholder="Tamanho" /></SelectTrigger>
+                          <SelectContent>
+                            {tamanhos
+                              .filter(t => it.tamanho_id === t.id || !requestItens.some(r => r.tamanho_id === t.id))
+                              .filter(t => (produtoTamanhoStock.find(s => s.tamanho_id === t.id)?.quantidade ?? 0) > 0 || t.id === it.tamanho_id)
+                              .map(t => {
+                                const s = produtoTamanhoStock.find(x => x.tamanho_id === t.id)?.quantidade ?? 0;
+                                return <SelectItem key={t.id} value={t.id}>{t.nome} — disp: {s}</SelectItem>;
+                              })}
+                          </SelectContent>
+                        </Select>
+                        <Input type="number" min="0" max={disp} value={it.quantidade} placeholder="Qtd"
+                          onChange={(e) => { const c = [...requestItens]; c[idx] = { ...c[idx], quantidade: Math.min(disp, parseInt(e.target.value) || 0) }; setRequestItens(c); }}
+                          className="h-9" />
+                        <Button type="button" variant="ghost" size="icon" className="h-9 w-9"
+                          onClick={() => setRequestItens(requestItens.filter((_, i) => i !== idx))}>
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    );
+                  })}
+                  <Button type="button" variant="outline" size="sm"
+                    onClick={() => setRequestItens([...requestItens, { tamanho_id: '', quantidade: 0 }])}
+                    disabled={requestItens.length >= produtoTamanhoStock.filter(s => s.quantidade > 0).length}>
+                    <Plus className="h-4 w-4 mr-1" /> Adicionar tamanho
+                  </Button>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  <Label>Quantidade <span className="text-destructive">*</span></Label>
+                  <Input
+                    type="number"
+                    min="0"
+                    value={formData.quantidade}
+                    onChange={(e) => setFormData({ ...formData, quantidade: parseInt(e.target.value) || 0 })}
+                    required
+                  />
+                </div>
+              )}
 
               <div className="space-y-2">
                 <Label>Motivo <span className="text-destructive">*</span></Label>
@@ -322,7 +364,12 @@ export default function Pedidos() {
                 <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
                   Cancelar
                 </Button>
-                <Button type="submit" disabled={!formData.produto_id || submitting || formData.quantidade <= 0 || formData.motivo.trim().length < 50} className="gradient-primary">
+                <Button type="submit" disabled={
+                  !formData.produto_id || submitting || formData.motivo.trim().length < 50 ||
+                  (selectedControla
+                    ? requestItens.filter(i => i.tamanho_id && i.quantidade > 0).length === 0
+                    : formData.quantidade <= 0)
+                } className="gradient-primary">
                   {submitting && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
                   Enviar Solicitação
                 </Button>
@@ -387,6 +434,15 @@ export default function Pedidos() {
                   <span className="text-muted-foreground">Quantidade</span>
                   <span className="font-medium">{pedido.quantidade}</span>
                 </div>
+                {pedido.pedido_itens && pedido.pedido_itens.length > 0 && (
+                  <div className="flex flex-wrap gap-1 pt-1">
+                    {pedido.pedido_itens.map(i => (
+                      <Badge key={i.id} variant="outline">
+                        {i.tamanhos?.nome || 'sem tamanho'}: {i.quantidade}
+                      </Badge>
+                    ))}
+                  </div>
+                )}
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Solicitante</span>
                   <span>{pedido.profiles?.nome || '-'}</span>
