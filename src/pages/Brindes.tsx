@@ -1529,18 +1529,85 @@ export default function Brindes() {
                 </Select>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="request-quantidade">Quantidade <span className="text-destructive">*</span></Label>
-                <Input
-                  id="request-quantidade"
-                  type="number"
-                  min="0"
-                  max={selectedProduto.quantidade}
-                  value={requestQuantidade}
-                  onChange={(e) => setRequestQuantidade(parseInt(e.target.value) || 0)}
-                  required
-                />
-              </div>
+              {(selectedProduto as any).controla_tamanho ? (
+                <div className="space-y-2 rounded-md border p-3">
+                  <Label className="text-sm">Tamanhos e quantidades <span className="text-destructive">*</span></Label>
+                  {requestItens.map((it, idx) => {
+                    const disp = produtoTamanhoStock.find(s => s.tamanho_id === it.tamanho_id)?.quantidade ?? 0;
+                    return (
+                      <div key={idx} className="grid grid-cols-[1fr_1fr_auto] gap-2 items-center">
+                        <Select
+                          value={it.tamanho_id}
+                          onValueChange={(v) => {
+                            const copy = [...requestItens];
+                            copy[idx] = { ...copy[idx], tamanho_id: v };
+                            setRequestItens(copy);
+                          }}
+                        >
+                          <SelectTrigger className="h-9">
+                            <SelectValue placeholder="Tamanho" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {tamanhos
+                              .filter(t => it.tamanho_id === t.id || !requestItens.some(r => r.tamanho_id === t.id))
+                              .filter(t => (produtoTamanhoStock.find(s => s.tamanho_id === t.id)?.quantidade ?? 0) > 0 || t.id === it.tamanho_id)
+                              .map(t => {
+                                const stock = produtoTamanhoStock.find(s => s.tamanho_id === t.id)?.quantidade ?? 0;
+                                return (
+                                  <SelectItem key={t.id} value={t.id}>{t.nome} — disp: {stock}</SelectItem>
+                                );
+                              })}
+                          </SelectContent>
+                        </Select>
+                        <Input
+                          type="number"
+                          min="0"
+                          max={disp}
+                          value={it.quantidade}
+                          onChange={(e) => {
+                            const copy = [...requestItens];
+                            copy[idx] = { ...copy[idx], quantidade: Math.min(disp, parseInt(e.target.value) || 0) };
+                            setRequestItens(copy);
+                          }}
+                          placeholder="Qtd"
+                          className="h-9"
+                        />
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="h-9 w-9"
+                          onClick={() => setRequestItens(requestItens.filter((_, i) => i !== idx))}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    );
+                  })}
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setRequestItens([...requestItens, { tamanho_id: '', quantidade: 0 }])}
+                    disabled={requestItens.length >= produtoTamanhoStock.filter(s => s.quantidade > 0).length}
+                  >
+                    <Plus className="h-4 w-4 mr-1" /> Adicionar tamanho
+                  </Button>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  <Label htmlFor="request-quantidade">Quantidade <span className="text-destructive">*</span></Label>
+                  <Input
+                    id="request-quantidade"
+                    type="number"
+                    min="0"
+                    max={selectedProduto.quantidade}
+                    value={requestQuantidade}
+                    onChange={(e) => setRequestQuantidade(parseInt(e.target.value) || 0)}
+                    required
+                  />
+                </div>
+              )}
 
               <div className="space-y-2">
                 <Label htmlFor="request-motivo">Motivo <span className="text-destructive">*</span></Label>
