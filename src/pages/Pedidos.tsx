@@ -18,7 +18,6 @@ import { ptBR } from 'date-fns/locale';
 import { useUserAreas } from '@/hooks/useAreas';
 import { ProdutoAutocomplete } from '@/components/ProdutoAutocomplete';
 import { useTamanhos, fetchProdutoTamanhos, type ProdutoTamanhoRow } from '@/hooks/useTamanhos';
-import { Plus, X } from 'lucide-react';
 
 interface Pedido {
   id: string;
