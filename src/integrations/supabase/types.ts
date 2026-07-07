@@ -348,6 +348,7 @@ export type Database = {
           produto_id: string
           quantidade: number
           setor: string | null
+          tamanho_id: string | null
           tipo: string
           usuario_id: string
         }
@@ -358,6 +359,7 @@ export type Database = {
           produto_id: string
           quantidade: number
           setor?: string | null
+          tamanho_id?: string | null
           tipo: string
           usuario_id: string
         }
@@ -368,6 +370,7 @@ export type Database = {
           produto_id?: string
           quantidade?: number
           setor?: string | null
+          tamanho_id?: string | null
           tipo?: string
           usuario_id?: string
         }
@@ -377,6 +380,62 @@ export type Database = {
             columns: ["produto_id"]
             isOneToOne: false
             referencedRelation: "produtos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "movimentacoes_tamanho_id_fkey"
+            columns: ["tamanho_id"]
+            isOneToOne: false
+            referencedRelation: "tamanhos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pedido_itens: {
+        Row: {
+          created_at: string
+          id: string
+          pedido_id: string
+          produto_id: string
+          quantidade: number
+          tamanho_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          pedido_id: string
+          produto_id: string
+          quantidade: number
+          tamanho_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          pedido_id?: string
+          produto_id?: string
+          quantidade?: number
+          tamanho_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pedido_itens_pedido_id_fkey"
+            columns: ["pedido_id"]
+            isOneToOne: false
+            referencedRelation: "pedidos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pedido_itens_produto_id_fkey"
+            columns: ["produto_id"]
+            isOneToOne: false
+            referencedRelation: "produtos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pedido_itens_tamanho_id_fkey"
+            columns: ["tamanho_id"]
+            isOneToOne: false
+            referencedRelation: "tamanhos"
             referencedColumns: ["id"]
           },
         ]
@@ -464,10 +523,56 @@ export type Database = {
           },
         ]
       }
+      produto_tamanhos: {
+        Row: {
+          created_at: string
+          estoque_minimo: number
+          id: string
+          produto_id: string
+          quantidade: number
+          tamanho_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          estoque_minimo?: number
+          id?: string
+          produto_id: string
+          quantidade?: number
+          tamanho_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          estoque_minimo?: number
+          id?: string
+          produto_id?: string
+          quantidade?: number
+          tamanho_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "produto_tamanhos_produto_id_fkey"
+            columns: ["produto_id"]
+            isOneToOne: false
+            referencedRelation: "produtos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "produto_tamanhos_tamanho_id_fkey"
+            columns: ["tamanho_id"]
+            isOneToOne: false
+            referencedRelation: "tamanhos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       produtos: {
         Row: {
           categoria_id: string | null
           codigo: string
+          controla_tamanho: boolean
           created_at: string
           descricao: string | null
           estoque_minimo: number
@@ -484,6 +589,7 @@ export type Database = {
         Insert: {
           categoria_id?: string | null
           codigo: string
+          controla_tamanho?: boolean
           created_at?: string
           descricao?: string | null
           estoque_minimo?: number
@@ -500,6 +606,7 @@ export type Database = {
         Update: {
           categoria_id?: string | null
           codigo?: string
+          controla_tamanho?: boolean
           created_at?: string
           descricao?: string | null
           estoque_minimo?: number
@@ -584,6 +691,30 @@ export type Database = {
         }
         Relationships: []
       }
+      tamanhos: {
+        Row: {
+          ativo: boolean
+          created_at: string
+          id: string
+          nome: string
+          ordem: number
+        }
+        Insert: {
+          ativo?: boolean
+          created_at?: string
+          id?: string
+          nome: string
+          ordem?: number
+        }
+        Update: {
+          ativo?: boolean
+          created_at?: string
+          id?: string
+          nome?: string
+          ordem?: number
+        }
+        Relationships: []
+      }
       user_areas: {
         Row: {
           area_id: string
@@ -645,6 +776,16 @@ export type Database = {
         }
         Returns: Json
       }
+      create_pedido_com_itens: {
+        Args: {
+          p_itens: Json
+          p_motivo: string
+          p_prioridade: string
+          p_produto_id: string
+          p_solicitante_id: string
+        }
+        Returns: string
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -653,17 +794,30 @@ export type Database = {
         Returns: boolean
       }
       is_diretoria: { Args: { _user_id: string }; Returns: boolean }
-      register_movement_atomic: {
-        Args: {
-          p_observacao: string
-          p_produto_id: string
-          p_quantidade: number
-          p_setor: string
-          p_tipo: string
-          p_usuario_id: string
-        }
-        Returns: Json
-      }
+      register_movement_atomic:
+        | {
+            Args: {
+              p_observacao: string
+              p_produto_id: string
+              p_quantidade: number
+              p_setor: string
+              p_tipo: string
+              p_usuario_id: string
+            }
+            Returns: Json
+          }
+        | {
+            Args: {
+              p_observacao: string
+              p_produto_id: string
+              p_quantidade: number
+              p_setor: string
+              p_tamanho_id?: string
+              p_tipo: string
+              p_usuario_id: string
+            }
+            Returns: Json
+          }
       user_can_see_produto: {
         Args: { _produto_id: string; _user_id: string }
         Returns: boolean
