@@ -308,6 +308,29 @@ export default function Movimentacoes() {
                 </div>
               )}
 
+              {controlaTamanho && (
+                <div className="space-y-2">
+                  <Label>Tamanho</Label>
+                  <Select value={tamanhoId} onValueChange={setTamanhoId}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione o tamanho" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {tamanhos
+                        .filter(t => tamanhoStock.some(s => s.tamanho_id === t.id))
+                        .map(t => {
+                          const stock = tamanhoStock.find(s => s.tamanho_id === t.id)?.quantidade ?? 0;
+                          return (
+                            <SelectItem key={t.id} value={t.id}>
+                              {t.nome} — estoque: {stock}
+                            </SelectItem>
+                          );
+                        })}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+
               <div className="space-y-2">
                 <Label>Quantidade</Label>
                 <Input
@@ -341,7 +364,7 @@ export default function Movimentacoes() {
               <Button
                 type="submit"
                 className="w-full gradient-primary"
-                disabled={!selectedProduto || quantidade <= 0 || submitting}
+                disabled={!selectedProduto || quantidade <= 0 || submitting || (controlaTamanho && !tamanhoId)}
               >
                 {submitting && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
                 Registrar {tipo === 'entrada' ? 'Entrada' : 'Saída'}
@@ -424,6 +447,7 @@ export default function Movimentacoes() {
                     <TableHead>Data</TableHead>
                     <TableHead>Tipo</TableHead>
                     <TableHead>Produto</TableHead>
+                    <TableHead>Tamanho</TableHead>
                     <TableHead>Setor</TableHead>
                     <TableHead>Qtd</TableHead>
                     <TableHead>Valor Unit.</TableHead>
@@ -454,6 +478,13 @@ export default function Movimentacoes() {
                           </div>
                         </TableCell>
                         <TableCell className="text-sm">
+                          {mov.tamanhos?.nome ? (
+                            <Badge variant="outline">{mov.tamanhos.nome}</Badge>
+                          ) : (
+                            <span className="text-muted-foreground">-</span>
+                          )}
+                        </TableCell>
+                        <TableCell className="text-sm">
                           {mov.setor || <span className="text-muted-foreground">-</span>}
                         </TableCell>
                         <TableCell className="font-medium">
@@ -470,7 +501,7 @@ export default function Movimentacoes() {
                   })}
                   {movimentacoesFiltradas.length === 0 && (
                     <TableRow>
-                      <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                      <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
                         Nenhuma movimentação encontrada no período
                       </TableCell>
                     </TableRow>
