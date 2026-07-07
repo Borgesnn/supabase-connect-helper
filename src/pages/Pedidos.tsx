@@ -17,6 +17,8 @@ import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { useUserAreas } from '@/hooks/useAreas';
 import { ProdutoAutocomplete } from '@/components/ProdutoAutocomplete';
+import { useTamanhos, fetchProdutoTamanhos, type ProdutoTamanhoRow } from '@/hooks/useTamanhos';
+import { Plus, X } from 'lucide-react';
 
 interface Pedido {
   id: string;
@@ -32,16 +34,19 @@ interface Pedido {
     nome: string;
     codigo: string;
     quantidade: number;
+    controla_tamanho?: boolean;
   };
   profiles?: {
     nome: string;
   };
+  pedido_itens?: { id: string; tamanho_id: string | null; quantidade: number; tamanhos?: { nome: string } | null }[];
 }
 
 export default function Pedidos() {
   const { user } = useAuth();
   const { canManage } = useUserRole();
   const { isDiretoria } = useUserAreas();
+  const { tamanhos } = useTamanhos();
   const [pedidos, setPedidos] = useState<Pedido[]>([]);
   const [produtos, setProdutos] = useState<Produto[]>([]);
   const [loading, setLoading] = useState(true);
@@ -57,6 +62,8 @@ export default function Pedidos() {
     quantidade: 0,
     motivo: '',
   });
+  const [requestItens, setRequestItens] = useState<{ tamanho_id: string; quantidade: number }[]>([]);
+  const [produtoTamanhoStock, setProdutoTamanhoStock] = useState<ProdutoTamanhoRow[]>([]);
 
   const { toast } = useToast();
 
@@ -69,7 +76,7 @@ export default function Pedidos() {
       const [pedidosRes, produtosRes] = await Promise.all([
         supabase
           .from('pedidos')
-          .select('*, produtos(nome, codigo, quantidade)')
+          .select('*, produtos(nome, codigo, quantidade, controla_tamanho), pedido_itens(id, tamanho_id, quantidade, tamanhos(nome))')
           .order('prioridade', { ascending: false }) // diretoria > normal
           .order('created_at', { ascending: false }),
         supabase.from('produtos').select('*').order('nome'),
@@ -95,17 +102,48 @@ export default function Pedidos() {
     filterStatus === 'all' || p.status === filterStatus
   );
 
+  const selectedProdutoObj = produtos.find(p => p.id === formData.produto_id);
+  const selectedControla = (selectedProdutoObj as any)?.controla_tamanho === true;
+
+  useEffect(() => {
+    if (selectedControla && formData.produto_id) {
+      fetchProdutoTamanhos(formData.produto_id).then((rows) => {
+        setProdutoTamanhoStock(rows);
+        setRequestItens([{ tamanho_id: '', quantidade: 0 }]);
+      }).catch(() => setProdutoTamanhoStock([]));
+    } else {
+      setProdutoTamanhoStock([]);
+      setRequestItens([]);
+    }
+  }, [formData.produto_id, selectedControla]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return;
 
-    if (formData.quantidade <= 0) {
+    if (!selectedControla && formData.quantidade <= 0) {
       toast({
         title: 'Quantidade obrigatória',
         description: 'Informe uma quantidade maior que zero.',
         variant: 'destructive',
       });
       return;
+    }
+
+    if (selectedControla) {
+      const validItens = requestItens.filter(i => i.tamanho_id && i.quantidade > 0);
+      if (validItens.length === 0) {
+        toast({ title: 'Informe pelo menos um tamanho com quantidade > 0', variant: 'destructive' });
+        return;
+      }
+      for (const it of validItens) {
+        const disp = produtoTamanhoStock.find(s => s.tamanho_id === it.tamanho_id)?.quantidade ?? 0;
+        if (it.quantidade > disp) {
+          const nome = tamanhos.find(t => t.id === it.tamanho_id)?.nome || '';
+          toast({ title: `Quantidade indisponível no tamanho ${nome}`, description: `Disponível: ${disp}`, variant: 'destructive' });
+          return;
+        }
+      }
     }
 
     if (formData.motivo.trim().length < 50) {
@@ -120,19 +158,33 @@ export default function Pedidos() {
     setSubmitting(true);
 
     try {
-      const { error } = await supabase.from('pedidos').insert([{
-        produto_id: formData.produto_id,
-        quantidade: formData.quantidade,
-        solicitante_id: user.id,
-        motivo: formData.motivo || null,
-        prioridade: isDiretoria ? 'diretoria' : 'normal',
-      }]);
-
-      if (error) throw error;
+      if (selectedControla) {
+        const itens = requestItens
+          .filter(i => i.tamanho_id && i.quantidade > 0)
+          .map(i => ({ tamanho_id: i.tamanho_id, quantidade: i.quantidade }));
+        const { error } = await supabase.rpc('create_pedido_com_itens', {
+          p_solicitante_id: user.id,
+          p_produto_id: formData.produto_id,
+          p_motivo: formData.motivo || null,
+          p_prioridade: isDiretoria ? 'diretoria' : 'normal',
+          p_itens: itens as any,
+        });
+        if (error) throw error;
+      } else {
+        const { error } = await supabase.from('pedidos').insert([{
+          produto_id: formData.produto_id,
+          quantidade: formData.quantidade,
+          solicitante_id: user.id,
+          motivo: formData.motivo || null,
+          prioridade: isDiretoria ? 'diretoria' : 'normal',
+        }]);
+        if (error) throw error;
+      }
 
       toast({ title: 'Pedido criado com sucesso!' });
       setIsDialogOpen(false);
       setFormData({ produto_id: '', quantidade: 0, motivo: '' });
+      setRequestItens([]);
       fetchData();
     } catch (error: any) {
       toast({
