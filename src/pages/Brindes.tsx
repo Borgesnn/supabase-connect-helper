@@ -23,6 +23,9 @@ import { ProdutoAutocomplete } from '@/components/ProdutoAutocomplete';
 import { FornecedorAutocomplete, type FornecedorOption } from '@/components/FornecedorAutocomplete';
 
 interface Marca { id: string; nome: string }
+import { useTamanhos, fetchProdutoTamanhos, type ProdutoTamanhoRow } from '@/hooks/useTamanhos';
+
+interface RequestItem { tamanho_id: string; quantidade: number; }
 
 export default function Brindes() {
   const { user } = useAuth();
@@ -88,6 +91,15 @@ export default function Brindes() {
   });
 
   const { toast } = useToast();
+  const { tamanhos } = useTamanhos();
+
+  // Controle por tamanho — cadastro
+  const [controlaTamanho, setControlaTamanho] = useState(false);
+  const [tamanhoRows, setTamanhoRows] = useState<ProdutoTamanhoRow[]>([]);
+
+  // Solicitação por tamanho
+  const [requestItens, setRequestItens] = useState<RequestItem[]>([]);
+  const [produtoTamanhoStock, setProdutoTamanhoStock] = useState<ProdutoTamanhoRow[]>([]);
 
   useEffect(() => {
     fetchProdutos();
@@ -318,6 +330,18 @@ export default function Brindes() {
   const handleOpenDialog = async (produto?: Produto) => {
     if (produto) {
       setEditingProduto(produto);
+      const controla = (produto as any).controla_tamanho === true;
+      setControlaTamanho(controla);
+      if (controla) {
+        try {
+          const rows = await fetchProdutoTamanhos(produto.id);
+          setTamanhoRows(rows);
+        } catch {
+          setTamanhoRows([]);
+        }
+      } else {
+        setTamanhoRows([]);
+      }
       setFormData({
         codigo: produto.codigo,
         nome: produto.nome,
@@ -357,6 +381,8 @@ export default function Brindes() {
       }
     } else {
       setEditingProduto(null);
+      setControlaTamanho(false);
+      setTamanhoRows([]);
       setFormData({
         codigo: '',
         nome: '',
@@ -433,6 +459,15 @@ export default function Brindes() {
     setFormLoading(true);
 
     try {
+      // Validação de tamanhos
+      if (controlaTamanho) {
+        const validRows = tamanhoRows.filter(r => r.tamanho_id);
+        if (validRows.length === 0) {
+          toast({ title: 'Adicione ao menos um tamanho', variant: 'destructive' });
+          setFormLoading(false);
+          return;
+        }
+      }
       // Salvar alterações pendentes em categorias antes de criar o brinde
       if (!editingProduto && (pendingCategoriaAdds.length > 0 || pendingCategoriaDeletes.length > 0)) {
         await handleSaveCategorias();
@@ -454,13 +489,16 @@ export default function Brindes() {
         marca_id: formData.marca_id || null,
         imagem_url: imagemUrl,
         valor_compra: formData.valor_compra === '' ? null : parseFloat(formData.valor_compra),
+        controla_tamanho: controlaTamanho,
+        // Quando controla por tamanho, o total é recalculado pelo trigger
+        quantidade: controlaTamanho ? 0 : formData.quantidade,
       };
 
       let produtoId = editingProduto?.id;
       if (editingProduto) {
         const { error } = await supabase
           .from('produtos')
-          .update(submitData)
+          .update(submitData as any)
           .eq('id', editingProduto.id);
 
         if (error) throw error;
@@ -468,13 +506,35 @@ export default function Brindes() {
       } else {
         const { data: created, error } = await supabase
           .from('produtos')
-          .insert([submitData])
+          .insert([submitData as any])
           .select('id')
           .single();
 
         if (error) throw error;
         produtoId = created?.id;
         toast({ title: 'Brinde adicionado com sucesso!' });
+      }
+
+      // Sincronizar tamanhos do produto
+      if (produtoId) {
+        if (controlaTamanho) {
+          await supabase.from('produto_tamanhos').delete().eq('produto_id', produtoId);
+          const rowsToSave = tamanhoRows
+            .filter(r => r.tamanho_id)
+            .map(r => ({
+              produto_id: produtoId!,
+              tamanho_id: r.tamanho_id,
+              quantidade: Math.max(0, Number(r.quantidade) || 0),
+              estoque_minimo: Math.max(0, Number(r.estoque_minimo) || 0),
+            }));
+          if (rowsToSave.length > 0) {
+            const { error: ptErr } = await supabase.from('produto_tamanhos').insert(rowsToSave);
+            if (ptErr) throw ptErr;
+          }
+        } else {
+          // Se desabilitou tamanho, limpa registros
+          await supabase.from('produto_tamanhos').delete().eq('produto_id', produtoId);
+        }
       }
 
       // Sincronizar áreas vinculadas ao produto
@@ -528,6 +588,14 @@ export default function Brindes() {
     setSelectedProduto(produto);
     setRequestQuantidade(0);
     setRequestMotivo('');
+    setRequestItens([]);
+    setProdutoTamanhoStock([]);
+    if ((produto as any).controla_tamanho) {
+      fetchProdutoTamanhos(produto.id).then((rows) => {
+        setProdutoTamanhoStock(rows);
+        setRequestItens([{ tamanho_id: '', quantidade: 0 }]);
+      }).catch(() => setProdutoTamanhoStock([]));
+    }
     // Auto-preenche com nome do perfil
     const parts = userProfileName.split(' ');
     setRequestNome(parts[0] || '');
@@ -543,14 +611,33 @@ export default function Brindes() {
     e.preventDefault();
     if (!selectedProduto || !user) return;
 
+    const controla = (selectedProduto as any).controla_tamanho === true;
+
     if (!requestNome.trim() || !requestSobrenome.trim() || !requestFilial || !requestMotivo.trim()) {
       toast({ title: 'Preencha todos os campos obrigatórios', variant: 'destructive' });
       return;
     }
 
-    if (requestQuantidade <= 0) {
-      toast({ title: 'Quantidade obrigatória', description: 'Informe uma quantidade maior que zero.', variant: 'destructive' });
-      return;
+    if (controla) {
+      const validItens = requestItens.filter(i => i.tamanho_id && i.quantidade > 0);
+      if (validItens.length === 0) {
+        toast({ title: 'Informe pelo menos um tamanho com quantidade > 0', variant: 'destructive' });
+        return;
+      }
+      // Verificar estoque por tamanho
+      for (const it of validItens) {
+        const disp = produtoTamanhoStock.find(s => s.tamanho_id === it.tamanho_id)?.quantidade ?? 0;
+        if (it.quantidade > disp) {
+          const nome = tamanhos.find(t => t.id === it.tamanho_id)?.nome || '';
+          toast({ title: `Quantidade indisponível no tamanho ${nome}`, description: `Disponível: ${disp}`, variant: 'destructive' });
+          return;
+        }
+      }
+    } else {
+      if (requestQuantidade <= 0) {
+        toast({ title: 'Quantidade obrigatória', description: 'Informe uma quantidade maior que zero.', variant: 'destructive' });
+        return;
+      }
     }
 
     if (requestMotivo.trim().length < 50) {
@@ -574,19 +661,32 @@ export default function Brindes() {
         motivoCompleto += ` | Entregar a: ${outraPessoaNome} ${outraPessoaSobrenome}`;
       }
       motivoCompleto += requestMotivo ? ` | Motivo: ${requestMotivo}` : '';
-      
-      const { error } = await supabase
-        .from('pedidos')
-        .insert([{
-          produto_id: selectedProduto.id,
-          quantidade: requestQuantidade,
-          solicitante_id: user.id,
-          motivo: motivoCompleto,
-          status: 'pendente',
-          prioridade: isDiretoria ? 'diretoria' : 'normal',
-        }]);
 
-      if (error) throw error;
+      if (controla) {
+        const itens = requestItens
+          .filter(i => i.tamanho_id && i.quantidade > 0)
+          .map(i => ({ tamanho_id: i.tamanho_id, quantidade: i.quantidade }));
+        const { error } = await supabase.rpc('create_pedido_com_itens', {
+          p_solicitante_id: user.id,
+          p_produto_id: selectedProduto.id,
+          p_motivo: motivoCompleto,
+          p_prioridade: isDiretoria ? 'diretoria' : 'normal',
+          p_itens: itens as any,
+        });
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from('pedidos')
+          .insert([{
+            produto_id: selectedProduto.id,
+            quantidade: requestQuantidade,
+            solicitante_id: user.id,
+            motivo: motivoCompleto,
+            status: 'pendente',
+            prioridade: isDiretoria ? 'diretoria' : 'normal',
+          }]);
+        if (error) throw error;
+      }
       
       toast({ title: 'Solicitação enviada com sucesso!' });
       setIsRequestDialogOpen(false);
