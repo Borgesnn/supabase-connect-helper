@@ -16,6 +16,7 @@ import { format, startOfMonth, endOfMonth } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import * as XLSX from 'xlsx';
 import { ProdutoAutocomplete } from '@/components/ProdutoAutocomplete';
+import { useTamanhos, fetchProdutoTamanhos, type ProdutoTamanhoRow } from '@/hooks/useTamanhos';
 
 interface Movimentacao {
   id: string;
@@ -26,11 +27,14 @@ interface Movimentacao {
   setor: string | null;
   usuario_id: string;
   created_at: string;
+  tamanho_id: string | null;
   produtos?: {
     nome: string;
     codigo: string;
     valor_compra: number | null;
+    controla_tamanho?: boolean;
   };
+  tamanhos?: { nome: string } | null;
   profiles?: {
     nome: string;
   };
@@ -38,6 +42,7 @@ interface Movimentacao {
 
 export default function Movimentacoes() {
   const { user } = useAuth();
+  const { tamanhos } = useTamanhos();
   const [produtos, setProdutos] = useState<Produto[]>([]);
   const [movimentacoes, setMovimentacoes] = useState<Movimentacao[]>([]);
   const [loading, setLoading] = useState(true);
@@ -47,6 +52,8 @@ export default function Movimentacoes() {
   const [quantidade, setQuantidade] = useState<number>(0);
   const [observacao, setObservacao] = useState('');
   const [setor, setSetor] = useState('');
+  const [tamanhoId, setTamanhoId] = useState<string>('');
+  const [tamanhoStock, setTamanhoStock] = useState<ProdutoTamanhoRow[]>([]);
   const { toast } = useToast();
 
   // Filters
@@ -68,7 +75,7 @@ export default function Movimentacoes() {
         supabase.from('produtos').select('*').order('nome'),
         supabase
           .from('movimentacoes')
-          .select('*, produtos(nome, codigo, valor_compra)')
+          .select('*, produtos(nome, codigo, valor_compra, controla_tamanho), tamanhos(nome)')
           .order('created_at', { ascending: false })
           .limit(1000),
       ]);
@@ -90,6 +97,16 @@ export default function Movimentacoes() {
   }
 
   const selectedProdutoData = produtos.find(p => p.id === selectedProduto);
+  const controlaTamanho = (selectedProdutoData as any)?.controla_tamanho === true;
+
+  useEffect(() => {
+    if (selectedProduto && controlaTamanho) {
+      fetchProdutoTamanhos(selectedProduto).then(setTamanhoStock).catch(() => setTamanhoStock([]));
+    } else {
+      setTamanhoStock([]);
+    }
+    setTamanhoId('');
+  }, [selectedProduto, controlaTamanho]);
 
   // Unique setores for filter dropdown
   const setoresUnicos = useMemo(() => {
@@ -125,7 +142,18 @@ export default function Movimentacoes() {
     e.preventDefault();
     if (!selectedProduto || !user || quantidade <= 0) return;
 
-    if (tipo === 'saida' && selectedProdutoData && quantidade > selectedProdutoData.quantidade) {
+    if (controlaTamanho && !tamanhoId) {
+      toast({ title: 'Selecione o tamanho', variant: 'destructive' });
+      return;
+    }
+
+    if (tipo === 'saida' && controlaTamanho) {
+      const disp = tamanhoStock.find(t => t.tamanho_id === tamanhoId)?.quantidade ?? 0;
+      if (quantidade > disp) {
+        toast({ title: 'Quantidade insuficiente', description: `Estoque no tamanho: ${disp}`, variant: 'destructive' });
+        return;
+      }
+    } else if (tipo === 'saida' && selectedProdutoData && quantidade > selectedProdutoData.quantidade) {
       toast({
         title: 'Quantidade insuficiente',
         description: `Estoque disponível: ${selectedProdutoData.quantidade}`,
@@ -144,6 +172,7 @@ export default function Movimentacoes() {
         p_observacao: observacao || null,
         p_setor: setor || null,
         p_usuario_id: user.id,
+        p_tamanho_id: controlaTamanho ? tamanhoId : null,
       });
       if (rpcError) throw rpcError;
 
@@ -155,6 +184,7 @@ export default function Movimentacoes() {
       setQuantidade(0);
       setObservacao('');
       setSetor('');
+      setTamanhoId('');
       fetchData();
     } catch (error: any) {
       toast({
@@ -171,6 +201,7 @@ export default function Movimentacoes() {
     const data = movimentacoesFiltradas.map(m => ({
       'Data': format(new Date(m.created_at), 'dd/MM/yyyy HH:mm', { locale: ptBR }),
       'Brinde': m.produtos?.nome || '-',
+      'Tamanho': m.tamanhos?.nome || '-',
       'Setor': m.setor || '-',
       'Tipo': m.tipo === 'entrada' ? 'Entrada' : 'Saída',
       'Quantidade': m.quantidade,
@@ -183,7 +214,7 @@ export default function Movimentacoes() {
     XLSX.utils.book_append_sheet(wb, ws, 'Movimentações');
 
     const colWidths = [
-      { wch: 18 }, { wch: 25 }, { wch: 20 }, { wch: 10 },
+      { wch: 18 }, { wch: 25 }, { wch: 10 }, { wch: 20 }, { wch: 10 },
       { wch: 12 }, { wch: 18 }, { wch: 18 },
     ];
     ws['!cols'] = colWidths;
