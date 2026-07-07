@@ -908,30 +908,121 @@ export default function Brindes() {
                 )}
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="quantidade">Quantidade</Label>
-                  <Input
-                    id="quantidade"
-                    type="number"
-                    min="0"
-                    value={formData.quantidade}
-                    onChange={(e) => setFormData({ ...formData, quantidade: parseInt(e.target.value) || 0 })}
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="estoque_minimo">Estoque Mínimo</Label>
-                  <Input
-                    id="estoque_minimo"
-                    type="number"
-                    min="0"
-                    value={formData.estoque_minimo}
-                    onChange={(e) => setFormData({ ...formData, estoque_minimo: parseInt(e.target.value) || 0 })}
-                    required
-                  />
-                </div>
+              <div className="flex items-center space-x-2 rounded-md border p-3 bg-muted/30">
+                <Checkbox
+                  id="controla-tamanho"
+                  checked={controlaTamanho}
+                  onCheckedChange={(v) => setControlaTamanho(v === true)}
+                />
+                <Label htmlFor="controla-tamanho" className="cursor-pointer text-sm font-normal">
+                  Controlar estoque por tamanho (camisetas, polos, etc.)
+                </Label>
               </div>
+
+              {!controlaTamanho ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="quantidade">Quantidade</Label>
+                    <Input
+                      id="quantidade"
+                      type="number"
+                      min="0"
+                      value={formData.quantidade}
+                      onChange={(e) => setFormData({ ...formData, quantidade: parseInt(e.target.value) || 0 })}
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="estoque_minimo">Estoque Mínimo</Label>
+                    <Input
+                      id="estoque_minimo"
+                      type="number"
+                      min="0"
+                      value={formData.estoque_minimo}
+                      onChange={(e) => setFormData({ ...formData, estoque_minimo: parseInt(e.target.value) || 0 })}
+                      required
+                    />
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-2 rounded-md border p-3">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-sm">Estoque por tamanho</Label>
+                    <span className="text-xs text-muted-foreground">
+                      Total: {tamanhoRows.reduce((acc, r) => acc + (Number(r.quantidade) || 0), 0)}
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-[1fr_1fr_1fr_auto] gap-2 items-center text-xs text-muted-foreground">
+                    <span>Tamanho</span>
+                    <span>Quantidade</span>
+                    <span>Estoque mín.</span>
+                    <span></span>
+                  </div>
+                  {tamanhoRows.map((row, idx) => (
+                    <div key={idx} className="grid grid-cols-[1fr_1fr_1fr_auto] gap-2 items-center">
+                      <Select
+                        value={row.tamanho_id}
+                        onValueChange={(v) => {
+                          const copy = [...tamanhoRows];
+                          copy[idx] = { ...copy[idx], tamanho_id: v };
+                          setTamanhoRows(copy);
+                        }}
+                      >
+                        <SelectTrigger className="h-9">
+                          <SelectValue placeholder="Tamanho" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {tamanhos
+                            .filter(t => t.id === row.tamanho_id || !tamanhoRows.some(r => r.tamanho_id === t.id))
+                            .map(t => (
+                              <SelectItem key={t.id} value={t.id}>{t.nome}</SelectItem>
+                            ))}
+                        </SelectContent>
+                      </Select>
+                      <Input
+                        type="number"
+                        min="0"
+                        value={row.quantidade}
+                        onChange={(e) => {
+                          const copy = [...tamanhoRows];
+                          copy[idx] = { ...copy[idx], quantidade: parseInt(e.target.value) || 0 };
+                          setTamanhoRows(copy);
+                        }}
+                        className="h-9"
+                      />
+                      <Input
+                        type="number"
+                        min="0"
+                        value={row.estoque_minimo}
+                        onChange={(e) => {
+                          const copy = [...tamanhoRows];
+                          copy[idx] = { ...copy[idx], estoque_minimo: parseInt(e.target.value) || 0 };
+                          setTamanhoRows(copy);
+                        }}
+                        className="h-9"
+                      />
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="h-9 w-9"
+                        onClick={() => setTamanhoRows(tamanhoRows.filter((_, i) => i !== idx))}
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ))}
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setTamanhoRows([...tamanhoRows, { tamanho_id: '', quantidade: 0, estoque_minimo: 0 }])}
+                    disabled={tamanhoRows.length >= tamanhos.length}
+                  >
+                    <Plus className="h-4 w-4 mr-1" /> Adicionar tamanho
+                  </Button>
+                </div>
+              )}
 
               <div className="space-y-2">
                 <Label htmlFor="fornecedor">Fornecedor</Label>
