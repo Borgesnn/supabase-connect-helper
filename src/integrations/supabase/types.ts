@@ -350,7 +350,7 @@ export type Database = {
           setor: string | null
           tamanho_id: string | null
           tipo: string
-          usuario_id: string
+          usuario_id: string | null
         }
         Insert: {
           created_at?: string
@@ -361,7 +361,7 @@ export type Database = {
           setor?: string | null
           tamanho_id?: string | null
           tipo: string
-          usuario_id: string
+          usuario_id?: string | null
         }
         Update: {
           created_at?: string
@@ -372,7 +372,7 @@ export type Database = {
           setor?: string | null
           tamanho_id?: string | null
           tipo?: string
-          usuario_id?: string
+          usuario_id?: string | null
         }
         Relationships: [
           {
@@ -450,7 +450,7 @@ export type Database = {
           prioridade: string
           produto_id: string
           quantidade: number
-          solicitante_id: string
+          solicitante_id: string | null
           status: string
         }
         Insert: {
@@ -462,7 +462,7 @@ export type Database = {
           prioridade?: string
           produto_id: string
           quantidade: number
-          solicitante_id: string
+          solicitante_id?: string | null
           status?: string
         }
         Update: {
@@ -474,7 +474,7 @@ export type Database = {
           prioridade?: string
           produto_id?: string
           quantidade?: number
-          solicitante_id?: string
+          solicitante_id?: string | null
           status?: string
         }
         Relationships: [
