@@ -20,7 +20,11 @@ import {
   FileSpreadsheet,
   Menu,
   X,
-  ChevronDown
+  ChevronDown,
+  Palette,
+  Image as ImageIcon,
+  Handshake,
+  History
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
@@ -56,6 +60,17 @@ const navItems: NavEntry[] = [
       { path: '/movimentacoes', label: 'Movimentações', icon: ArrowLeftRight, requiredRoles: ['admin', 'operario'] },
       { path: '/pedidos', label: 'Pedidos', icon: ShoppingCart },
       { path: '/sugestoes', label: 'Sugestões', icon: Lightbulb },
+    ],
+  },
+  {
+    key: 'materiais-visuais',
+    label: 'Materiais Visuais',
+    icon: Palette,
+    children: [
+      { path: '/materiais-visuais/catalogo', label: 'Catálogo de Materiais', icon: ImageIcon },
+      { path: '/materiais-visuais/artes', label: 'Solicitações de Artes', icon: Palette },
+      { path: '/materiais-visuais/emprestimos', label: 'Empréstimos', icon: Handshake },
+      { path: '/materiais-visuais/historico', label: 'Histórico', icon: History },
     ],
   },
   { path: '/usuarios', label: 'Usuários', icon: Users, requiredRoles: ['admin', 'operario'] },
