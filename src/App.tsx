@@ -17,6 +17,10 @@ import Sugestoes from "./pages/Sugestoes";
 import Fornecedores from "./pages/Fornecedores";
 import Cotacoes from "./pages/Cotacoes";
 import ImportarExportar from "./pages/ImportarExportar";
+import CatalogoMateriais from "./pages/materiais/CatalogoMateriais";
+import SolicitacoesArtes from "./pages/materiais/SolicitacoesArtes";
+import EmprestimosMateriais from "./pages/materiais/EmprestimosMateriais";
+import HistoricoMateriais from "./pages/materiais/HistoricoMateriais";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -91,6 +95,28 @@ const App = () => (
             <Route path="/importar-exportar" element={
               <ProtectedRoute requiredRoles={['admin', 'operario']}>
                 <MainLayout><ImportarExportar /></MainLayout>
+              </ProtectedRoute>
+            } />
+
+            {/* Materiais Visuais */}
+            <Route path="/materiais-visuais/catalogo" element={
+              <ProtectedRoute>
+                <MainLayout><CatalogoMateriais /></MainLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/materiais-visuais/artes" element={
+              <ProtectedRoute>
+                <MainLayout><SolicitacoesArtes /></MainLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/materiais-visuais/emprestimos" element={
+              <ProtectedRoute>
+                <MainLayout><EmprestimosMateriais /></MainLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/materiais-visuais/historico" element={
+              <ProtectedRoute>
+                <MainLayout><HistoricoMateriais /></MainLayout>
               </ProtectedRoute>
             } />
             
