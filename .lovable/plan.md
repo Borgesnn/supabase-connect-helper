@@ -1,55 +1,67 @@
-## Objetivo
-Adicionar controle de estoque opcional por tamanho (PP…XGG) para brindes como camisetas, sem afetar brindes com quantidade única.
 
-## Banco de Dados (migração única)
+# Módulo Materiais Visuais
 
-**Novas tabelas**
-- `tamanhos` — catálogo global editável: `nome` (único), `ordem` (int), `ativo` (bool). Seed com PP, P, M, G, GG, XG, XGG.
-- `produto_tamanhos` — estoque por tamanho: `produto_id`, `tamanho_id`, `quantidade`, `estoque_minimo`. Único por (produto, tamanho).
-- `pedido_itens` — para permitir vários tamanhos no mesmo pedido: `pedido_id`, `produto_id`, `tamanho_id` (nullable), `quantidade`.
+Novo módulo espelhando o padrão do módulo de Brindes (visual, permissões por setor, RLS, exportação, badges de status). Adiciona-se um item expansível no menu lateral com 4 submenus.
 
-**Alterações**
-- `produtos.controla_tamanho` (bool, default false).
-- `movimentacoes.tamanho_id` (nullable) — preenchido quando o brinde controla por tamanho.
+## Menu lateral (Sidebar.tsx)
+Grupo dropdown "Materiais Visuais" (ícone Palette) com:
+- Catálogo de Materiais → `/materiais-visuais/catalogo`
+- Solicitações de Artes → `/materiais-visuais/artes`
+- Empréstimos → `/materiais-visuais/emprestimos`
+- Histórico → `/materiais-visuais/historico`
 
-**Sincronização do total**
-- Trigger em `produto_tamanhos` que recalcula `produtos.quantidade = SUM(produto_tamanhos.quantidade)` sempre que houver mudança. Assim o Dashboard, Catálogo e listagens continuam usando `produtos.quantidade` sem mudança.
+Mesma lógica de expansão automática quando a rota estiver ativa (igual ao grupo de Brindes).
 
-**RPCs atualizadas**
-- `register_movement_atomic`: novo parâmetro `p_tamanho_id`. Se o produto controla tamanho, exige `tamanho_id`, atualiza `produto_tamanhos.quantidade` (trigger recalcula total); senão, comportamento atual.
-- `approve_pedido_atomic`: itera `pedido_itens`, valida estoque por tamanho, dá baixa em `produto_tamanhos` (ou em `produtos` para itens sem tamanho), gera uma movimentação por item.
-- Nova RPC `create_pedido_com_itens(itens jsonb, motivo, prioridade)` para criar pedido + itens atomicamente.
+## Páginas
+- `src/pages/materiais/CatalogoMateriais.tsx` — grid de cards com foto, badge de status, filtro por marca/categoria/setor. CRUD (admin), visualização por setor (usuário). Estrutura reaproveita `Brindes.tsx` (autocomplete de fornecedor, upload de imagem via bucket assinado, seletor de áreas).
+- `src/pages/materiais/SolicitacoesArtes.tsx` — lista de solicitações + botão "Nova solicitação" que abre dialog com briefing estruturado (conteúdo, formato, identidade visual, referências, prazo). Filtros por status/prioridade.
+- `src/pages/materiais/EmprestimosMateriais.tsx` — registrar empréstimo/devolução; ao aprovar altera o status do material. Reaproveita padrão do fluxo de Pedidos.
+- `src/pages/materiais/HistoricoMateriais.tsx` — timeline por material + exportação Excel (usando `xlsx` já presente na página de Movimentações), filtros por período, marca, setor, categoria, status, responsável.
 
-**RLS/GRANTs** iguais ao padrão do projeto (authenticated CRUD; service_role ALL).
+Todas herdam MainLayout e os componentes shadcn/tokens já usados.
 
-## Frontend
+## Banco de dados (migração única)
 
-**Brindes.tsx (cadastro/edição)**
-- Checkbox "Controlar estoque por tamanho".
-- Quando ativo: some o campo "Quantidade" único; aparece grid de tamanhos (checkbox para ativar cada tamanho + input de quantidade + estoque mínimo).
-- Total exibido = soma automática.
-- Catálogo continua mostrando só `quantidade` total (badge).
-- Detalhes/edição: mostra breakdown por tamanho.
-- Solicitação (dialog "Solicitar"):
-  - Se controla tamanho: lista de itens (tamanho + quantidade, iniciando em 0, limitada pelo estoque daquele tamanho). Botão "Adicionar tamanho" para mais linhas.
-  - Se não: fluxo atual (quantidade única).
-  - Motivo continua obrigatório ≥ 50 chars.
+Tabelas novas (todas em `public`, com GRANT + RLS + policies via `has_role`/`user_can_see_produto`-equivalente):
 
-**Movimentacoes.tsx**
-- Após escolher o produto, se controla tamanho, exibir Select "Tamanho" obrigatório (mostrando estoque disponível por tamanho). Quantidade opera sobre aquele tamanho.
-- Histórico e export Excel: nova coluna "Tamanho".
+- `materiais_categorias` (nome, ordem, ativo) — seed: Wind Banner, Bandeira, Roll Up, Banner, Inflável, Guarda-sol, Guarda-chuva, Totem, Backdrop, Roleta Promocional, Tenda, Faixa, Adesivos, Cavalete, Outros.
+- `materiais_formatos` (nome, dimensoes, ativo) — seed: Feed 1080x1080, Story 1080x1920, Banner Site, WhatsApp, E-mail Marketing, Folder, Cartaz, Outdoor, Outro.
+- `materiais_visuais` (nome, categoria_id, marca_id, codigo, quantidade, local_armazenamento, foto_path, estado_conservacao, observacoes, status enum, created_at, updated_at).
+  Status enum: `em_estoque | emprestado | reservado | manutencao | baixado`.
+- `material_areas` (material_id, area_id) — mesmo modelo de `produto_areas`.
+- `material_emprestimos` (material_id, quantidade, responsavel_id, setor, data_retirada, data_prevista_devolucao, data_devolucao, condicao_devolucao, observacoes, status).
+- `arte_solicitacoes` (numero serial, solicitante_id, setor, titulo, subtitulo, texto_principal, cta, rodape, objetivo, publico_alvo, marca_id, cores, elementos, estilo, data_desejada, prioridade enum, status enum, created_at).
+- `arte_solicitacao_formatos` (solicitacao_id, formato_id).
+- `arte_solicitacao_anexos` (solicitacao_id, tipo `imagem|pdf|arquivo|link`, path_or_url, nome).
 
-**Pedidos.tsx (+ Novo Pedido)**
-- Mesmo fluxo do dialog de Brindes: itens com tamanho + quantidade quando aplicável. Listagem de pedidos exibe tamanho quando existir.
+Prioridade enum: `baixa | media | alta | urgente`. Status arte: `aguardando | em_andamento | em_aprovacao | concluido | cancelado`.
 
-**ImportarExportar.tsx**
-- Exportação de brindes: coluna por tamanho quando `controla_tamanho`.
-- Exportação de movimentações: incluir coluna Tamanho.
+Função `register_emprestimo_atomic` (SECURITY DEFINER) — decrementa/atualiza status do material e cria registro, mesmo padrão de `register_movement_atomic`.
 
-## Escalabilidade
-- Novos tamanhos: inserir linha em `tamanhos` (via SQL ou tela futura de Configurações). Nada no código muda.
-- Toda UI lê a lista de tamanhos ativos ordenada por `ordem`.
+## Storage
+- Bucket privado `materiais-visuais` (fotos dos itens).
+- Bucket privado `artes-referencias` (anexos das solicitações).
+Componente `SignedImage` existente é reaproveitado.
+
+## Permissões (RLS)
+- SELECT em `materiais_visuais`: admin + diretoria + itens sem área + área "Geral" + áreas do usuário (mesma lógica de `user_can_see_produto`, criando função `user_can_see_material`).
+- INSERT/UPDATE/DELETE materiais e categorias: apenas `admin`.
+- Empréstimos: admin/operário criam e finalizam; usuário comum lê seus próprios.
+- Solicitações de arte: qualquer usuário autenticado cria; admin altera status; solicitante lê as próprias; admin lê todas.
+
+## Rotas
+Adicionar em `src/App.tsx` dentro de `ProtectedRoute`:
+```
+/materiais-visuais/catalogo
+/materiais-visuais/artes
+/materiais-visuais/emprestimos
+/materiais-visuais/historico
+```
+
+## Exportação
+Utilitário compartilhado (já usado em Movimentações) para gerar `.xlsx` com filtros de histórico e catálogo.
 
 ## Fora de escopo
-- Tela de gerenciamento de tamanhos em Configurações (fica para depois; por ora edita-se via banco).
-- Migrar histórico antigo de pedidos para `pedido_itens` — pedidos antigos continuam usando `pedidos.quantidade`; novos usam itens.
+- Aprovação em múltiplos níveis para artes (apenas mudança de status).
+- Modelos de briefing pré-preenchidos (podem ser adicionados depois via nova tabela `arte_modelos`).
+- Notificações por e-mail.

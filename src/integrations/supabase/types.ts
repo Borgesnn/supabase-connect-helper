@@ -52,6 +52,160 @@ export type Database = {
           },
         ]
       }
+      arte_solicitacao_anexos: {
+        Row: {
+          created_at: string
+          id: string
+          nome: string | null
+          observacoes: string | null
+          path_or_url: string
+          solicitacao_id: string
+          tipo: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          nome?: string | null
+          observacoes?: string | null
+          path_or_url: string
+          solicitacao_id: string
+          tipo: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          nome?: string | null
+          observacoes?: string | null
+          path_or_url?: string
+          solicitacao_id?: string
+          tipo?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "arte_solicitacao_anexos_solicitacao_id_fkey"
+            columns: ["solicitacao_id"]
+            isOneToOne: false
+            referencedRelation: "arte_solicitacoes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      arte_solicitacao_formatos: {
+        Row: {
+          formato_id: string
+          id: string
+          solicitacao_id: string
+        }
+        Insert: {
+          formato_id: string
+          id?: string
+          solicitacao_id: string
+        }
+        Update: {
+          formato_id?: string
+          id?: string
+          solicitacao_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "arte_solicitacao_formatos_formato_id_fkey"
+            columns: ["formato_id"]
+            isOneToOne: false
+            referencedRelation: "materiais_formatos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "arte_solicitacao_formatos_solicitacao_id_fkey"
+            columns: ["solicitacao_id"]
+            isOneToOne: false
+            referencedRelation: "arte_solicitacoes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      arte_solicitacoes: {
+        Row: {
+          cores: string | null
+          created_at: string
+          cta: string | null
+          data_desejada: string | null
+          elementos: string | null
+          estilo: string | null
+          id: string
+          marca_id: string | null
+          numero: number
+          objetivo: string | null
+          observacoes_internas: string | null
+          prioridade: Database["public"]["Enums"]["arte_prioridade"]
+          publico_alvo: string | null
+          responsavel_id: string | null
+          rodape: string | null
+          setor: string | null
+          solicitante_id: string | null
+          status: Database["public"]["Enums"]["arte_status"]
+          subtitulo: string | null
+          texto_principal: string | null
+          titulo: string
+          updated_at: string
+        }
+        Insert: {
+          cores?: string | null
+          created_at?: string
+          cta?: string | null
+          data_desejada?: string | null
+          elementos?: string | null
+          estilo?: string | null
+          id?: string
+          marca_id?: string | null
+          numero?: number
+          objetivo?: string | null
+          observacoes_internas?: string | null
+          prioridade?: Database["public"]["Enums"]["arte_prioridade"]
+          publico_alvo?: string | null
+          responsavel_id?: string | null
+          rodape?: string | null
+          setor?: string | null
+          solicitante_id?: string | null
+          status?: Database["public"]["Enums"]["arte_status"]
+          subtitulo?: string | null
+          texto_principal?: string | null
+          titulo: string
+          updated_at?: string
+        }
+        Update: {
+          cores?: string | null
+          created_at?: string
+          cta?: string | null
+          data_desejada?: string | null
+          elementos?: string | null
+          estilo?: string | null
+          id?: string
+          marca_id?: string | null
+          numero?: number
+          objetivo?: string | null
+          observacoes_internas?: string | null
+          prioridade?: Database["public"]["Enums"]["arte_prioridade"]
+          publico_alvo?: string | null
+          responsavel_id?: string | null
+          rodape?: string | null
+          setor?: string | null
+          solicitante_id?: string | null
+          status?: Database["public"]["Enums"]["arte_status"]
+          subtitulo?: string | null
+          texto_principal?: string | null
+          titulo?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "arte_solicitacoes_marca_id_fkey"
+            columns: ["marca_id"]
+            isOneToOne: false
+            referencedRelation: "marcas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       categorias: {
         Row: {
           created_at: string
@@ -339,6 +493,221 @@ export type Database = {
           nome?: string
         }
         Relationships: []
+      }
+      materiais_categorias: {
+        Row: {
+          ativo: boolean
+          created_at: string
+          id: string
+          nome: string
+          ordem: number
+        }
+        Insert: {
+          ativo?: boolean
+          created_at?: string
+          id?: string
+          nome: string
+          ordem?: number
+        }
+        Update: {
+          ativo?: boolean
+          created_at?: string
+          id?: string
+          nome?: string
+          ordem?: number
+        }
+        Relationships: []
+      }
+      materiais_formatos: {
+        Row: {
+          ativo: boolean
+          created_at: string
+          dimensoes: string | null
+          id: string
+          nome: string
+          ordem: number
+        }
+        Insert: {
+          ativo?: boolean
+          created_at?: string
+          dimensoes?: string | null
+          id?: string
+          nome: string
+          ordem?: number
+        }
+        Update: {
+          ativo?: boolean
+          created_at?: string
+          dimensoes?: string | null
+          id?: string
+          nome?: string
+          ordem?: number
+        }
+        Relationships: []
+      }
+      materiais_visuais: {
+        Row: {
+          categoria_id: string | null
+          codigo: string | null
+          created_at: string
+          estado_conservacao: string | null
+          foto_path: string | null
+          id: string
+          local_armazenamento: string | null
+          marca_id: string | null
+          nome: string
+          observacoes: string | null
+          quantidade: number
+          status: Database["public"]["Enums"]["material_status"]
+          updated_at: string
+        }
+        Insert: {
+          categoria_id?: string | null
+          codigo?: string | null
+          created_at?: string
+          estado_conservacao?: string | null
+          foto_path?: string | null
+          id?: string
+          local_armazenamento?: string | null
+          marca_id?: string | null
+          nome: string
+          observacoes?: string | null
+          quantidade?: number
+          status?: Database["public"]["Enums"]["material_status"]
+          updated_at?: string
+        }
+        Update: {
+          categoria_id?: string | null
+          codigo?: string | null
+          created_at?: string
+          estado_conservacao?: string | null
+          foto_path?: string | null
+          id?: string
+          local_armazenamento?: string | null
+          marca_id?: string | null
+          nome?: string
+          observacoes?: string | null
+          quantidade?: number
+          status?: Database["public"]["Enums"]["material_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "materiais_visuais_categoria_id_fkey"
+            columns: ["categoria_id"]
+            isOneToOne: false
+            referencedRelation: "materiais_categorias"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "materiais_visuais_marca_id_fkey"
+            columns: ["marca_id"]
+            isOneToOne: false
+            referencedRelation: "marcas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      material_areas: {
+        Row: {
+          area_id: string
+          created_at: string
+          id: string
+          material_id: string
+        }
+        Insert: {
+          area_id: string
+          created_at?: string
+          id?: string
+          material_id: string
+        }
+        Update: {
+          area_id?: string
+          created_at?: string
+          id?: string
+          material_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "material_areas_area_id_fkey"
+            columns: ["area_id"]
+            isOneToOne: false
+            referencedRelation: "areas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "material_areas_material_id_fkey"
+            columns: ["material_id"]
+            isOneToOne: false
+            referencedRelation: "materiais_visuais"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      material_emprestimos: {
+        Row: {
+          condicao_devolucao: string | null
+          created_at: string
+          criado_por: string | null
+          data_devolucao: string | null
+          data_prevista_devolucao: string | null
+          data_retirada: string
+          id: string
+          material_id: string
+          numero: number
+          observacoes: string | null
+          quantidade: number
+          responsavel_id: string | null
+          responsavel_nome: string | null
+          setor: string | null
+          status: Database["public"]["Enums"]["emprestimo_status"]
+          updated_at: string
+        }
+        Insert: {
+          condicao_devolucao?: string | null
+          created_at?: string
+          criado_por?: string | null
+          data_devolucao?: string | null
+          data_prevista_devolucao?: string | null
+          data_retirada?: string
+          id?: string
+          material_id: string
+          numero?: number
+          observacoes?: string | null
+          quantidade?: number
+          responsavel_id?: string | null
+          responsavel_nome?: string | null
+          setor?: string | null
+          status?: Database["public"]["Enums"]["emprestimo_status"]
+          updated_at?: string
+        }
+        Update: {
+          condicao_devolucao?: string | null
+          created_at?: string
+          criado_por?: string | null
+          data_devolucao?: string | null
+          data_prevista_devolucao?: string | null
+          data_retirada?: string
+          id?: string
+          material_id?: string
+          numero?: number
+          observacoes?: string | null
+          quantidade?: number
+          responsavel_id?: string | null
+          responsavel_nome?: string | null
+          setor?: string | null
+          status?: Database["public"]["Enums"]["emprestimo_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "material_emprestimos_material_id_fkey"
+            columns: ["material_id"]
+            isOneToOne: false
+            referencedRelation: "materiais_visuais"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       movimentacoes: {
         Row: {
@@ -786,6 +1155,14 @@ export type Database = {
         }
         Returns: string
       }
+      devolver_emprestimo_material: {
+        Args: {
+          p_condicao: string
+          p_emprestimo_id: string
+          p_observacoes: string
+        }
+        Returns: undefined
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -818,6 +1195,22 @@ export type Database = {
             }
             Returns: Json
           }
+      registrar_emprestimo_material: {
+        Args: {
+          p_data_prevista: string
+          p_material_id: string
+          p_observacoes: string
+          p_quantidade: number
+          p_responsavel_id: string
+          p_responsavel_nome: string
+          p_setor: string
+        }
+        Returns: string
+      }
+      user_can_see_material: {
+        Args: { _material_id: string; _user_id: string }
+        Returns: boolean
+      }
       user_can_see_produto: {
         Args: { _produto_id: string; _user_id: string }
         Returns: boolean
@@ -825,6 +1218,20 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "operario" | "usuario"
+      arte_prioridade: "baixa" | "media" | "alta" | "urgente"
+      arte_status:
+        | "aguardando"
+        | "em_andamento"
+        | "em_aprovacao"
+        | "concluido"
+        | "cancelado"
+      emprestimo_status: "ativo" | "devolvido" | "cancelado"
+      material_status:
+        | "em_estoque"
+        | "emprestado"
+        | "reservado"
+        | "manutencao"
+        | "baixado"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -953,6 +1360,22 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "operario", "usuario"],
+      arte_prioridade: ["baixa", "media", "alta", "urgente"],
+      arte_status: [
+        "aguardando",
+        "em_andamento",
+        "em_aprovacao",
+        "concluido",
+        "cancelado",
+      ],
+      emprestimo_status: ["ativo", "devolvido", "cancelado"],
+      material_status: [
+        "em_estoque",
+        "emprestado",
+        "reservado",
+        "manutencao",
+        "baixado",
+      ],
     },
   },
 } as const
