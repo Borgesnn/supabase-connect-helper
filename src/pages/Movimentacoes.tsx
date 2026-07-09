@@ -336,7 +336,8 @@ export default function Movimentacoes() {
                 <Input
                   type="number"
                   min="0"
-                  value={quantidade}
+                  value={quantidade || ''}
+                  placeholder="0"
                   onChange={(e) => setQuantidade(parseInt(e.target.value) || 0)}
                   required
                 />
