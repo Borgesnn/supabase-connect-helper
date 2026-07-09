@@ -342,6 +342,14 @@ export default function SolicitacoesArtes() {
                 {detailOpen.elementos && <p><strong>Elementos:</strong> {detailOpen.elementos}</p>}
                 {detailOpen.estilo && <p><strong>Estilo:</strong> {detailOpen.estilo}</p>}
                 {detailOpen.setor && <p><strong>Setor:</strong> {detailOpen.setor}</p>}
+                {(() => {
+                  const ids = detailOpen.marca_ids && detailOpen.marca_ids.length > 0
+                    ? detailOpen.marca_ids
+                    : (detailOpen.marca_id ? [detailOpen.marca_id] : []);
+                  if (ids.length === 0) return null;
+                  const nomes = ids.map((id) => marcas.find((m) => m.id === id)?.nome).filter(Boolean).join(', ');
+                  return <p><strong>Marca(s):</strong> {nomes}</p>;
+                })()}
                 {detailFormatos.length > 0 && (
                   <div><strong>Formatos:</strong> {detailFormatos.map((id) => formatos.find((f) => f.id === id)?.nome).filter(Boolean).join(', ')}</div>
                 )}
