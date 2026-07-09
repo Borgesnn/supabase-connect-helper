@@ -927,7 +927,8 @@ export default function Brindes() {
                       id="quantidade"
                       type="number"
                       min="0"
-                      value={formData.quantidade}
+                      value={formData.quantidade || ''}
+                      placeholder="0"
                       onChange={(e) => setFormData({ ...formData, quantidade: parseInt(e.target.value) || 0 })}
                       required
                     />
@@ -938,7 +939,8 @@ export default function Brindes() {
                       id="estoque_minimo"
                       type="number"
                       min="0"
-                      value={formData.estoque_minimo}
+                      value={formData.estoque_minimo || ''}
+                      placeholder="0"
                       onChange={(e) => setFormData({ ...formData, estoque_minimo: parseInt(e.target.value) || 0 })}
                       required
                     />
@@ -982,7 +984,8 @@ export default function Brindes() {
                       <Input
                         type="number"
                         min="0"
-                        value={row.quantidade}
+                        value={row.quantidade || ''}
+                        placeholder="0"
                         onChange={(e) => {
                           const copy = [...tamanhoRows];
                           copy[idx] = { ...copy[idx], quantidade: parseInt(e.target.value) || 0 };
@@ -993,7 +996,8 @@ export default function Brindes() {
                       <Input
                         type="number"
                         min="0"
-                        value={row.estoque_minimo}
+                        value={row.estoque_minimo || ''}
+                        placeholder="0"
                         onChange={(e) => {
                           const copy = [...tamanhoRows];
                           copy[idx] = { ...copy[idx], estoque_minimo: parseInt(e.target.value) || 0 };
@@ -1563,13 +1567,13 @@ export default function Brindes() {
                           type="number"
                           min="0"
                           max={disp}
-                          value={it.quantidade}
+                          value={it.quantidade || ''}
                           onChange={(e) => {
                             const copy = [...requestItens];
                             copy[idx] = { ...copy[idx], quantidade: Math.min(disp, parseInt(e.target.value) || 0) };
                             setRequestItens(copy);
                           }}
-                          placeholder="Qtd"
+                          placeholder="0"
                           className="h-9"
                         />
                         <Button
@@ -1602,7 +1606,8 @@ export default function Brindes() {
                     type="number"
                     min="0"
                     max={selectedProduto.quantidade}
-                    value={requestQuantidade}
+                    value={requestQuantidade || ''}
+                    placeholder="0"
                     onChange={(e) => setRequestQuantidade(parseInt(e.target.value) || 0)}
                     required
                   />
