@@ -316,7 +316,7 @@ export default function Pedidos() {
                               })}
                           </SelectContent>
                         </Select>
-                        <Input type="number" min="0" max={disp} value={it.quantidade} placeholder="Qtd"
+                        <Input type="number" min="0" max={disp} value={it.quantidade || ''} placeholder="0"
                           onChange={(e) => { const c = [...requestItens]; c[idx] = { ...c[idx], quantidade: Math.min(disp, parseInt(e.target.value) || 0) }; setRequestItens(c); }}
                           className="h-9" />
                         <Button type="button" variant="ghost" size="icon" className="h-9 w-9"
@@ -338,7 +338,8 @@ export default function Pedidos() {
                   <Input
                     type="number"
                     min="0"
-                    value={formData.quantidade}
+                    value={formData.quantidade || ''}
+                    placeholder="0"
                     onChange={(e) => setFormData({ ...formData, quantidade: parseInt(e.target.value) || 0 })}
                     required
                   />
