@@ -248,7 +248,7 @@ export default function CatalogoMateriais() {
             </div>
             <div>
               <Label>Quantidade</Label>
-              <Input type="number" min={0} value={form.quantidade ?? 0} onChange={(e) => setForm({ ...form, quantidade: parseInt(e.target.value || '0') })} />
+              <Input type="number" min={0} value={form.quantidade || ''} placeholder="0" onChange={(e) => setForm({ ...form, quantidade: parseInt(e.target.value || '0') })} />
             </div>
             <div>
               <Label>Local de armazenamento</Label>

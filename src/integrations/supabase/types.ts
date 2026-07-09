@@ -133,6 +133,7 @@ export type Database = {
           estilo: string | null
           id: string
           marca_id: string | null
+          marca_ids: string[]
           numero: number
           objetivo: string | null
           observacoes_internas: string | null
@@ -157,6 +158,7 @@ export type Database = {
           estilo?: string | null
           id?: string
           marca_id?: string | null
+          marca_ids?: string[]
           numero?: number
           objetivo?: string | null
           observacoes_internas?: string | null
@@ -181,6 +183,7 @@ export type Database = {
           estilo?: string | null
           id?: string
           marca_id?: string | null
+          marca_ids?: string[]
           numero?: number
           objetivo?: string | null
           observacoes_internas?: string | null

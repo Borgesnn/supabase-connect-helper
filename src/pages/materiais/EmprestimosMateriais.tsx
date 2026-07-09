@@ -166,7 +166,7 @@ export default function EmprestimosMateriais() {
               </Select>
             </div>
             <div className="grid grid-cols-2 gap-3">
-              <div><Label>Quantidade *</Label><Input type="number" min={1} value={form.quantidade} onChange={(e) => setForm({ ...form, quantidade: parseInt(e.target.value || '1') })} /></div>
+              <div><Label>Quantidade *</Label><Input type="number" min={1} value={form.quantidade || ''} placeholder="0" onChange={(e) => setForm({ ...form, quantidade: parseInt(e.target.value || '1') })} /></div>
               <div><Label>Prev. devolução</Label><Input type="date" value={form.data_prevista_devolucao ?? ''} onChange={(e) => setForm({ ...form, data_prevista_devolucao: e.target.value })} /></div>
             </div>
             <div><Label>Responsável pela retirada *</Label><Input value={form.responsavel_nome ?? ''} onChange={(e) => setForm({ ...form, responsavel_nome: e.target.value })} /></div>

@@ -13,7 +13,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { toast } from 'sonner';
-import { Plus, Palette, Paperclip, LinkIcon, X, Trash2 } from 'lucide-react';
+import { Plus, Palette, Paperclip, LinkIcon, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 
@@ -21,7 +21,8 @@ interface Solicitacao {
   id: string; numero: number; titulo: string; subtitulo: string | null;
   texto_principal: string | null; cta: string | null; rodape: string | null;
   objetivo: string | null; publico_alvo: string | null;
-  marca_id: string | null; cores: string | null; elementos: string | null; estilo: string | null;
+  marca_id: string | null; marca_ids: string[] | null;
+  cores: string | null; elementos: string | null; estilo: string | null;
   data_desejada: string | null; prioridade: string; status: string;
   solicitante_id: string | null; setor: string | null; created_at: string;
   observacoes_internas: string | null;
@@ -61,7 +62,7 @@ export default function SolicitacoesArtes() {
   useEffect(() => { load(); }, []);
 
   const openNew = () => {
-    setForm({ prioridade: 'media', setor: '', titulo: '' });
+    setForm({ prioridade: 'media', setor: '', titulo: '', marca_ids: [] });
     setSelectedFormatos([]); setLinkAnexo(''); setObsAnexo(''); setFiles([]);
     setDialogOpen(true);
   };
@@ -86,7 +87,8 @@ export default function SolicitacoesArtes() {
         rodape: form.rodape || null,
         objetivo: form.objetivo,
         publico_alvo: form.publico_alvo || null,
-        marca_id: form.marca_id || null,
+        marca_id: (form.marca_ids && form.marca_ids[0]) || null,
+        marca_ids: form.marca_ids || [],
         cores: form.cores || null,
         elementos: form.elementos || null,
         estilo: form.estilo || null,
@@ -238,10 +240,43 @@ export default function SolicitacoesArtes() {
             <div className="grid md:grid-cols-2 gap-3">
               <div>
                 <Label>Marca</Label>
-                <Select value={form.marca_id ?? ''} onValueChange={(v) => setForm({ ...form, marca_id: v })}>
-                  <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
-                  <SelectContent>{marcas.map((m) => <SelectItem key={m.id} value={m.id}>{m.nome}</SelectItem>)}</SelectContent>
-                </Select>
+                <div className="space-y-2">
+                  <div className="flex flex-wrap gap-1 min-h-[2rem]">
+                    {(form.marca_ids ?? []).length === 0 && (
+                      <span className="text-xs text-muted-foreground">Nenhuma marca selecionada</span>
+                    )}
+                    {(form.marca_ids ?? []).map((id: string) => {
+                      const m = marcas.find((x) => x.id === id);
+                      if (!m) return null;
+                      return (
+                        <Badge key={id} variant="secondary" className="gap-1">
+                          {m.nome}
+                          <button
+                            type="button"
+                            className="ml-1 hover:text-destructive"
+                            onClick={() => setForm({ ...form, marca_ids: (form.marca_ids ?? []).filter((x: string) => x !== id) })}
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                        </Badge>
+                      );
+                    })}
+                  </div>
+                  <Select
+                    value=""
+                    onValueChange={(v) => {
+                      const cur: string[] = form.marca_ids ?? [];
+                      if (!cur.includes(v)) setForm({ ...form, marca_ids: [...cur, v] });
+                    }}
+                  >
+                    <SelectTrigger><SelectValue placeholder="Adicionar marca…" /></SelectTrigger>
+                    <SelectContent>
+                      {marcas.filter((m) => !(form.marca_ids ?? []).includes(m.id)).map((m) => (
+                        <SelectItem key={m.id} value={m.id}>{m.nome}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
               <div><Label>Estilo</Label><Input placeholder="Moderno, Minimalista…" value={form.estilo ?? ''} onChange={(e) => setForm({ ...form, estilo: e.target.value })} /></div>
               <div className="md:col-span-2"><Label>Cores sugeridas</Label><Input placeholder="Ex.: Azul, Branco, Vermelho" value={form.cores ?? ''} onChange={(e) => setForm({ ...form, cores: e.target.value })} /></div>
@@ -307,6 +342,14 @@ export default function SolicitacoesArtes() {
                 {detailOpen.elementos && <p><strong>Elementos:</strong> {detailOpen.elementos}</p>}
                 {detailOpen.estilo && <p><strong>Estilo:</strong> {detailOpen.estilo}</p>}
                 {detailOpen.setor && <p><strong>Setor:</strong> {detailOpen.setor}</p>}
+                {(() => {
+                  const ids = detailOpen.marca_ids && detailOpen.marca_ids.length > 0
+                    ? detailOpen.marca_ids
+                    : (detailOpen.marca_id ? [detailOpen.marca_id] : []);
+                  if (ids.length === 0) return null;
+                  const nomes = ids.map((id) => marcas.find((m) => m.id === id)?.nome).filter(Boolean).join(', ');
+                  return <p><strong>Marca(s):</strong> {nomes}</p>;
+                })()}
                 {detailFormatos.length > 0 && (
                   <div><strong>Formatos:</strong> {detailFormatos.map((id) => formatos.find((f) => f.id === id)?.nome).filter(Boolean).join(', ')}</div>
                 )}
