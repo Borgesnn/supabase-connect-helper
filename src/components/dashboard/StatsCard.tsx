@@ -24,10 +24,10 @@ export default function StatsCard({ title, value, icon, trend, variant = 'defaul
   return (
     <Card className="hover:shadow-lg transition-shadow duration-200">
       <CardContent className="p-6">
-        <div className="flex items-center justify-between">
-          <div className="space-y-2">
-            <p className="text-sm font-medium text-muted-foreground">{title}</p>
-            <p className="text-3xl font-bold text-foreground">{value}</p>
+        <div className="flex items-center justify-between gap-4">
+          <div className="space-y-2 min-w-0 flex-1">
+            <p className="text-sm font-medium text-muted-foreground truncate">{title}</p>
+            <p className="text-2xl xl:text-3xl font-bold text-foreground truncate tracking-tight">{value}</p>
             {trend && (
               <p className={cn(
                 "text-sm font-medium",
@@ -38,7 +38,7 @@ export default function StatsCard({ title, value, icon, trend, variant = 'defaul
             )}
           </div>
           <div className={cn(
-            "w-12 h-12 rounded-xl flex items-center justify-center",
+            "w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0",
             variantStyles[variant]
           )}>
             {icon}
