@@ -384,23 +384,12 @@ export default function Usuarios() {
               </div>
               <div className="space-y-2">
                 <Label>Senha</Label>
-                <div className="relative">
-                  <Input
-                    type={showNewUserPassword ? 'text' : 'password'}
-                    value={newUserPassword}
-                    onChange={(e) => setNewUserPassword(e.target.value)}
-                    placeholder="Senha"
-                  />
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    className="absolute right-0 top-0 h-full px-3"
-                    onClick={() => setShowNewUserPassword(!showNewUserPassword)}
-                  >
-                    {showNewUserPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                  </Button>
-                </div>
+                <Label>Cargo</Label>
+                <Input
+                  value={newUserCargo}
+                  onChange={(e) => setNewUserCargo(e.target.value)}
+                  placeholder="Cargo (opcional)"
+                />
               </div>
               <div className="space-y-2">
                 <Label>Papel</Label>
