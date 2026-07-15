@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -107,6 +107,12 @@ export default function Auth() {
               Entrar no Sistema
             </Button>
           </form>
+          <div className="mt-4 text-center text-sm text-muted-foreground">
+            Primeiro acesso?{' '}
+            <Link to="/cadastre-se" className="text-primary font-medium hover:underline">
+              Cadastre-se
+            </Link>
+          </div>
         </CardContent>
       </Card>
     </div>
