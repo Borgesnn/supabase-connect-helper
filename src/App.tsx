@@ -7,6 +7,7 @@ import { AuthProvider } from "@/hooks/useAuth";
 import MainLayout from "@/components/layout/MainLayout";
 import ProtectedRoute from "@/components/layout/ProtectedRoute";
 import Auth from "./pages/Auth";
+import CadastreSe from "./pages/CadastreSe";
 import Dashboard from "./pages/Dashboard";
 import Brindes from "./pages/Brindes";
 import Movimentacoes from "./pages/Movimentacoes";
@@ -34,6 +35,7 @@ const App = () => (
         <BrowserRouter>
           <Routes>
             <Route path="/auth" element={<Auth />} />
+            <Route path="/cadastre-se" element={<CadastreSe />} />
             
             {/* Dashboard - apenas admin e operário */}
             <Route path="/" element={
