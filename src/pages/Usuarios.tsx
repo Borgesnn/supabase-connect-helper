@@ -475,6 +475,27 @@ export default function Usuarios() {
 
               <CardContent className="flex-1 flex flex-col gap-3 pt-0">
                 <div className="flex items-center justify-between">
+                  <span className="text-xs text-muted-foreground">Status</span>
+                  <Badge className={`${statusStyles[u.status || 'ativo']} text-[10px]`}>
+                    {statusLabels[u.status || 'ativo']}
+                  </Badge>
+                </div>
+                {isAdmin && u.id !== user?.id && (
+                  <div className="flex flex-wrap gap-1">
+                    {u.status === 'aguardando_ativacao' && (
+                      <Button size="sm" variant="outline" className="h-7 text-[11px]" onClick={() => resendActivation((u as any).email || '')}>Reenviar código</Button>
+                    )}
+                    {u.status !== 'bloqueado' ? (
+                      <Button size="sm" variant="outline" className="h-7 text-[11px]" onClick={() => callAdminAction(u.id, 'block')}>Bloquear</Button>
+                    ) : (
+                      <Button size="sm" variant="outline" className="h-7 text-[11px]" onClick={() => callAdminAction(u.id, 'unblock')}>Desbloquear</Button>
+                    )}
+                    {u.status === 'ativo' && (
+                      <Button size="sm" variant="outline" className="h-7 text-[11px]" onClick={() => callAdminAction(u.id, 'deactivate')}>Desativar</Button>
+                    )}
+                  </div>
+                )}
+                <div className="flex items-center justify-between">
                   <span className="text-xs text-muted-foreground">Papel</span>
                   <Badge className={`${roleBadgeStyles[u.role || 'usuario']} text-xs`}>
                     {roleLabels[u.role || 'usuario']}
