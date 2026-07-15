@@ -383,7 +383,6 @@ export default function Usuarios() {
                 />
               </div>
               <div className="space-y-2">
-                <Label>Senha</Label>
                 <Label>Cargo</Label>
                 <Input
                   value={newUserCargo}
