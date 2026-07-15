@@ -21,6 +21,7 @@ interface UserProfile {
   cargo: string | null;
   created_at: string;
   role?: string;
+  status?: string;
 }
 
 const roleLabels: Record<string, string> = {
@@ -35,6 +36,17 @@ const roleBadgeStyles: Record<string, string> = {
   usuario: 'bg-muted text-muted-foreground',
 };
 
+const statusLabels: Record<string, string> = {
+  ativo: 'Ativo',
+  aguardando_ativacao: 'Aguardando Ativação',
+  bloqueado: 'Bloqueado',
+};
+const statusStyles: Record<string, string> = {
+  ativo: 'bg-green-500/15 text-green-700 border border-green-500/30',
+  aguardando_ativacao: 'bg-amber-500/15 text-amber-700 border border-amber-500/30',
+  bloqueado: 'bg-destructive/15 text-destructive border border-destructive/30',
+};
+
 export default function Usuarios() {
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [loading, setLoading] = useState(true);
@@ -47,9 +59,8 @@ export default function Usuarios() {
   const [newUserName, setNewUserName] = useState('');
   const [newUserSobrenome, setNewUserSobrenome] = useState('');
   const [newUserEmail, setNewUserEmail] = useState('');
-  const [newUserPassword, setNewUserPassword] = useState('');
+  const [newUserCargo, setNewUserCargo] = useState('');
   const [newUserRole, setNewUserRole] = useState<'usuario' | 'operario' | 'admin'>('usuario');
-  const [showNewUserPassword, setShowNewUserPassword] = useState(false);
   const [creatingUser, setCreatingUser] = useState(false);
   const [deleteUserId, setDeleteUserId] = useState<string | null>(null);
   const [deletingUser, setDeletingUser] = useState(false);
@@ -87,6 +98,7 @@ export default function Usuarios() {
       const usersWithRoles = profiles?.map(profile => ({
         ...profile,
         role: roles?.find(r => r.user_id === profile.id)?.role || 'usuario',
+        status: (profile as any).status || 'ativo',
       })) || [];
 
       setUsers(usersWithRoles);
@@ -144,12 +156,8 @@ export default function Usuarios() {
   }
 
   async function handleCreateUser() {
-    if (!newUserName || !newUserSobrenome || !newUserEmail || !newUserPassword) {
+    if (!newUserName || !newUserSobrenome || !newUserEmail) {
       toast({ title: 'Preencha todos os campos', variant: 'destructive' });
-      return;
-    }
-    if (newUserPassword.length < 6) {
-      toast({ title: 'A senha deve ter pelo menos 6 caracteres', variant: 'destructive' });
       return;
     }
 
@@ -164,9 +172,9 @@ export default function Usuarios() {
         },
         body: JSON.stringify({
           email: newUserEmail,
-          password: newUserPassword,
           nome: newUserName,
           sobrenome: newUserSobrenome,
+          cargo: newUserCargo || null,
           role: newUserRole,
         }),
       });
@@ -175,13 +183,13 @@ export default function Usuarios() {
 
       toast({
         title: 'Usuário criado com sucesso!',
-        description: `${newUserName} ${newUserSobrenome} foi cadastrado como ${roleLabels[newUserRole]}`,
+        description: `${newUserName} foi cadastrado como ${roleLabels[newUserRole]}. Aguardando ativação pelo usuário.`,
       });
 
       setNewUserName('');
       setNewUserSobrenome('');
       setNewUserEmail('');
-      setNewUserPassword('');
+      setNewUserCargo('');
       setNewUserRole('usuario');
       fetchUsers();
     } catch (error: any) {
@@ -193,6 +201,37 @@ export default function Usuarios() {
       });
     } finally {
       setCreatingUser(false);
+    }
+  }
+
+  async function callAdminAction(user_id: string, action: 'block' | 'unblock' | 'deactivate' | 'reactivate') {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/admin-user-action`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session?.access_token}` },
+        body: JSON.stringify({ user_id, action }),
+      });
+      const result = await res.json();
+      if (!res.ok) throw new Error(result.error);
+      toast({ title: 'Status atualizado' });
+      fetchUsers();
+    } catch (e: any) {
+      toast({ title: 'Erro', description: e.message, variant: 'destructive' });
+    }
+  }
+
+  async function resendActivation(email: string) {
+    try {
+      const { data, error } = await supabase.functions.invoke('request-activation-code', { body: { email } });
+      if (error) throw error;
+      if (data?.dev_code) {
+        toast({ title: 'Código gerado (modo dev)', description: `Domínio de e-mail não configurado. Código: ${data.dev_code}`, duration: 15000 });
+      } else {
+        toast({ title: 'E-mail de ativação reenviado', description: email });
+      }
+    } catch (e: any) {
+      toast({ title: 'Erro ao reenviar', description: e.message, variant: 'destructive' });
     }
   }
 
