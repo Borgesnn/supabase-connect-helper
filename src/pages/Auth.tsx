@@ -6,7 +6,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-import { Package, Loader2 } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
+import cdmLogo from '@/assets/cdm-logo.png';
 import { z } from 'zod';
 
 const loginSchema = z.object({
@@ -61,13 +62,13 @@ export default function Auth() {
     <div className="min-h-screen flex items-center justify-center gradient-primary p-4">
       <Card className="w-full max-w-md animate-fade-in shadow-2xl">
         <CardHeader className="text-center space-y-4">
-          <div className="mx-auto w-20 h-20 gradient-primary rounded-2xl flex items-center justify-center shadow-lg">
-            <Package className="w-10 h-10 text-primary-foreground" />
+          <div className="mx-auto w-20 h-20 gradient-primary rounded-2xl flex items-center justify-center shadow-lg overflow-hidden p-3">
+            <img src={cdmLogo} alt="CDM" className="w-full h-full object-contain" />
           </div>
           <div>
-            <CardTitle className="text-2xl font-bold">Gotemburgo</CardTitle>
+            <CardTitle className="text-2xl font-bold">CDM</CardTitle>
             <CardDescription className="text-muted-foreground">
-              Sistema de Controle de Estoque
+              Central de Demandas do Marketing
             </CardDescription>
           </div>
         </CardHeader>

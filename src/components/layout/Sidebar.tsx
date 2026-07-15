@@ -1,6 +1,6 @@
 import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { useEffect, useState } from 'react';
-import gotLogo from '@/assets/got.png';
+import cdmLogo from '@/assets/cdm-logo.png';
 import { useAuth } from '@/hooks/useAuth';
 import { useUserRole } from '@/hooks/useUserRole';
 import { cn } from '@/lib/utils';
@@ -329,10 +329,10 @@ export default function Sidebar({ collapsed, onToggle, mobileOpen, onMobileToggl
           <Menu className="w-5 h-5" />
         </Button>
         <div className="flex items-center gap-2 ml-2">
-          <div className="w-8 h-8 rounded-lg overflow-hidden">
-            <img src={gotLogo} alt="GOT Logo" className="w-full h-full object-contain" />
+          <div className="w-8 h-8 rounded-lg overflow-hidden bg-sidebar-accent/40 flex items-center justify-center">
+            <img src={cdmLogo} alt="CDM" className="w-full h-full object-contain" />
           </div>
-          <span className="text-base font-semibold text-sidebar-foreground">Gotemburgo</span>
+          <span className="text-base font-semibold text-sidebar-foreground">CDM</span>
         </div>
       </div>
 
@@ -354,11 +354,14 @@ export default function Sidebar({ collapsed, onToggle, mobileOpen, onMobileToggl
         )}
       >
         <div className="p-4 flex items-center gap-3 border-b border-sidebar-border">
-          <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 overflow-hidden">
-            <img src={gotLogo} alt="GOT Logo" className="w-full h-full object-contain" />
+          <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 overflow-hidden bg-sidebar-accent/40">
+            <img src={cdmLogo} alt="CDM" className="w-full h-full object-contain" />
           </div>
           {!collapsed && (
-            <span className="text-lg font-semibold text-sidebar-foreground">Gotemburgo</span>
+            <div className="flex flex-col leading-tight">
+              <span className="text-lg font-semibold text-sidebar-foreground">CDM</span>
+              <span className="text-[10px] text-sidebar-foreground/60">Central de Demandas do Marketing</span>
+            </div>
           )}
         </div>
 
@@ -400,10 +403,13 @@ export default function Sidebar({ collapsed, onToggle, mobileOpen, onMobileToggl
       >
         <div className="p-4 flex items-center justify-between border-b border-sidebar-border">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl overflow-hidden">
-              <img src={gotLogo} alt="GOT Logo" className="w-full h-full object-contain" />
+            <div className="w-10 h-10 rounded-xl overflow-hidden bg-sidebar-accent/40 flex items-center justify-center">
+              <img src={cdmLogo} alt="CDM" className="w-full h-full object-contain" />
             </div>
-            <span className="text-lg font-semibold text-sidebar-foreground">Gotemburgo</span>
+            <div className="flex flex-col leading-tight">
+              <span className="text-lg font-semibold text-sidebar-foreground">CDM</span>
+              <span className="text-[10px] text-sidebar-foreground/60">Central de Demandas do Marketing</span>
+            </div>
           </div>
           <Button variant="ghost" size="icon" onClick={onMobileToggle} className="text-sidebar-foreground">
             <X className="w-5 h-5" />
