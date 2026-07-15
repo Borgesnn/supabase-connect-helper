@@ -1,1 +1,10 @@
 project_id = "mowkmgscnqildqixktlm"
+
+[functions.request-activation-code]
+verify_jwt = false
+
+[functions.verify-activation-code]
+verify_jwt = false
+
+[functions.complete-activation]
+verify_jwt = false

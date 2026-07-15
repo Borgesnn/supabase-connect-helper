@@ -14,6 +14,33 @@ export type Database = {
   }
   public: {
     Tables: {
+      activation_codes: {
+        Row: {
+          code: string
+          created_at: string
+          email: string
+          expires_at: string
+          id: string
+          used_at: string | null
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          email: string
+          expires_at: string
+          id?: string
+          used_at?: string | null
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          email?: string
+          expires_at?: string
+          id?: string
+          used_at?: string | null
+        }
+        Relationships: []
+      }
       areas: {
         Row: {
           created_at: string
@@ -1011,27 +1038,33 @@ export type Database = {
       }
       profiles: {
         Row: {
+          activated_at: string | null
           cargo: string | null
           created_at: string
           id: string
           nome: string
           sobrenome: string | null
+          status: string
           updated_at: string
         }
         Insert: {
+          activated_at?: string | null
           cargo?: string | null
           created_at?: string
           id: string
           nome: string
           sobrenome?: string | null
+          status?: string
           updated_at?: string
         }
         Update: {
+          activated_at?: string | null
           cargo?: string | null
           created_at?: string
           id?: string
           nome?: string
           sobrenome?: string | null
+          status?: string
           updated_at?: string
         }
         Relationships: []
