@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Lightbulb, Plus, ExternalLink, Trash2, Loader2 } from 'lucide-react';
+import { SignedImage } from '@/components/SignedImage';
 import {
   Dialog,
   DialogContent,
@@ -110,10 +111,8 @@ export default function Sugestoes() {
           .upload(filePath, imagemFile);
         if (uploadError) throw uploadError;
 
-        const { data: urlData } = supabase.storage
-          .from('sugestoes')
-          .getPublicUrl(filePath);
-        imageUrl = urlData.publicUrl;
+        // Bucket privado: guardamos apenas o caminho e geramos URLs assinadas na leitura
+        imageUrl = filePath;
       }
 
       const { error } = await supabase.from('sugestoes').insert({
@@ -251,13 +250,11 @@ export default function Sugestoes() {
 
               {sug.imagem_url && (
                 <div className="h-40 bg-muted overflow-hidden">
-                  <img
-                    src={sug.imagem_url}
+                  <SignedImage
+                    bucket="sugestoes"
+                    source={sug.imagem_url}
                     alt={sug.nome}
                     className="w-full h-full object-cover"
-                    onError={(e) => {
-                      (e.target as HTMLImageElement).style.display = 'none';
-                    }}
                   />
                 </div>
               )}
