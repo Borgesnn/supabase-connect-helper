@@ -1243,6 +1243,10 @@ export type Database = {
         }
         Returns: string
       }
+      storage_folder_uuid: {
+        Args: { _idx?: number; _name: string }
+        Returns: string
+      }
       user_can_see_material: {
         Args: { _material_id: string; _user_id: string }
         Returns: boolean
