@@ -34,6 +34,7 @@ Deno.serve(async (req) => {
     const { data: row } = await supabaseAdmin.from("activation_codes")
       .select("id, expires_at, used_at")
       .eq("email", normalizedEmail)
+      .eq("purpose", "activation")
       .ilike("code", normalizedCode)
       .is("used_at", null)
       .order("created_at", { ascending: false })

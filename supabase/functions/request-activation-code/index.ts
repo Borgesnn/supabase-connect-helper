@@ -59,11 +59,11 @@ Deno.serve(async (req) => {
     }
 
     // Invalidate previous unused codes for this email
-    await supabaseAdmin.from("activation_codes").update({ used_at: new Date().toISOString() }).eq("email", normalizedEmail).is("used_at", null);
+    await supabaseAdmin.from("activation_codes").update({ used_at: new Date().toISOString() }).eq("email", normalizedEmail).eq("purpose", "activation").is("used_at", null);
 
     const code = generateCode().toUpperCase();
     const expiresAt = new Date(Date.now() + 10 * 60 * 1000).toISOString();
-    const { error: insertError } = await supabaseAdmin.from("activation_codes").insert({ email: normalizedEmail, code, expires_at: expiresAt });
+    const { error: insertError } = await supabaseAdmin.from("activation_codes").insert({ email: normalizedEmail, code, expires_at: expiresAt, purpose: "activation" });
     if (insertError) {
       return new Response(JSON.stringify({ error: insertError.message }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }

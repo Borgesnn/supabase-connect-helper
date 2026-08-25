@@ -8,6 +8,8 @@ import MainLayout from "@/components/layout/MainLayout";
 import ProtectedRoute from "@/components/layout/ProtectedRoute";
 import Auth from "./pages/Auth";
 import CadastreSe from "./pages/CadastreSe";
+import RecuperarSenha from "./pages/RecuperarSenha";
+
 import Dashboard from "./pages/Dashboard";
 import Brindes from "./pages/Brindes";
 import Movimentacoes from "./pages/Movimentacoes";
@@ -36,6 +38,8 @@ const App = () => (
           <Routes>
             <Route path="/auth" element={<Auth />} />
             <Route path="/cadastre-se" element={<CadastreSe />} />
+            <Route path="/recuperar-senha" element={<RecuperarSenha />} />
+
             
             {/* Dashboard - apenas admin e operário */}
             <Route path="/" element={

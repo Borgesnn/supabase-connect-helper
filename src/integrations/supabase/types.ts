@@ -16,27 +16,33 @@ export type Database = {
     Tables: {
       activation_codes: {
         Row: {
+          attempts: number
           code: string
           created_at: string
           email: string
           expires_at: string
           id: string
+          purpose: string
           used_at: string | null
         }
         Insert: {
+          attempts?: number
           code: string
           created_at?: string
           email: string
           expires_at: string
           id?: string
+          purpose?: string
           used_at?: string | null
         }
         Update: {
+          attempts?: number
           code?: string
           created_at?: string
           email?: string
           expires_at?: string
           id?: string
+          purpose?: string
           used_at?: string | null
         }
         Relationships: []

@@ -95,7 +95,13 @@ export default function Auth() {
                 onChange={(e) => setLoginPassword(e.target.value)}
                 required
               />
+              <div className="text-right">
+                <Link to="/recuperar-senha" className="text-sm text-primary hover:underline">
+                  Esqueci minha senha
+                </Link>
+              </div>
             </div>
+
             <Button 
               type="submit" 
               className="w-full gradient-primary hover:opacity-90 transition-opacity"
