@@ -38,6 +38,8 @@ const App = () => (
           <Routes>
             <Route path="/auth" element={<Auth />} />
             <Route path="/cadastre-se" element={<CadastreSe />} />
+            <Route path="/recuperar-senha" element={<RecuperarSenha />} />
+
             
             {/* Dashboard - apenas admin e operário */}
             <Route path="/" element={
