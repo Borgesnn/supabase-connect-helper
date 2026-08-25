@@ -21,6 +21,11 @@ Deno.serve(async (req) => {
     const { email, code, password } = await req.json();
     if (!email || !code || !password) return new Response(JSON.stringify({ error: "Dados incompletos" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     const normalizedEmail = String(email).trim().toLowerCase();
+    const normalizedCode = String(code).trim().toUpperCase();
+
+    if (!/^[A-Z0-9]{7,10}$/.test(normalizedCode)) {
+      return new Response(JSON.stringify({ error: "Código inválido." }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
 
     const pwError = validatePassword(password);
     if (pwError) return new Response(JSON.stringify({ error: pwError }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
@@ -29,7 +34,7 @@ Deno.serve(async (req) => {
     const { data: row } = await supabaseAdmin.from("activation_codes")
       .select("id, expires_at, used_at")
       .eq("email", normalizedEmail)
-      .eq("code", String(code).trim())
+      .ilike("code", normalizedCode)
       .is("used_at", null)
       .order("created_at", { ascending: false })
       .limit(1)

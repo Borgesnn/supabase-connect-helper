@@ -6,17 +6,17 @@ const corsHeaders = {
 };
 
 const ALPHA = "ABCDEFGHJKLMNPQRSTUVWXYZ";
-const alpha = "abcdefghijkmnpqrstuvwxyz";
 const NUM = "23456789";
-const ALL = ALPHA + alpha + NUM;
+const ALL = ALPHA + NUM;
 
 function generateCode(): string {
   const bytes = new Uint8Array(7);
   crypto.getRandomValues(bytes);
   // Ensure at least 1 upper, 1 lower, 1 digit
+  // Keep activation codes uppercase-only to avoid case-sensitive typing errors.
   const chars = [
     ALPHA[bytes[0] % ALPHA.length],
-    alpha[bytes[1] % alpha.length],
+    ALPHA[bytes[1] % ALPHA.length],
     NUM[bytes[2] % NUM.length],
   ];
   for (let i = 3; i < 7; i++) chars.push(ALL[bytes[i] % ALL.length]);
@@ -61,7 +61,7 @@ Deno.serve(async (req) => {
     // Invalidate previous unused codes for this email
     await supabaseAdmin.from("activation_codes").update({ used_at: new Date().toISOString() }).eq("email", normalizedEmail).is("used_at", null);
 
-    const code = generateCode();
+    const code = generateCode().toUpperCase();
     const expiresAt = new Date(Date.now() + 10 * 60 * 1000).toISOString();
     const { error: insertError } = await supabaseAdmin.from("activation_codes").insert({ email: normalizedEmail, code, expires_at: expiresAt });
     if (insertError) {
