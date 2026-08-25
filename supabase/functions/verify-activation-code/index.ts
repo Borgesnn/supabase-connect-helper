@@ -12,11 +12,16 @@ Deno.serve(async (req) => {
     const { email, code } = await req.json();
     if (!email || !code) return new Response(JSON.stringify({ error: "E-mail e código são obrigatórios" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     const normalizedEmail = String(email).trim().toLowerCase();
+    const normalizedCode = String(code).trim().toUpperCase();
+
+    if (!/^[A-Z0-9]{7,10}$/.test(normalizedCode)) {
+      return new Response(JSON.stringify({ error: "invalid", message: "Código inválido." }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
 
     const { data: row } = await supabaseAdmin.from("activation_codes")
       .select("id, expires_at, used_at")
       .eq("email", normalizedEmail)
-      .eq("code", String(code).trim())
+      .ilike("code", normalizedCode)
       .is("used_at", null)
       .order("created_at", { ascending: false })
       .limit(1)
