@@ -77,6 +77,8 @@ export default function Brindes() {
   const [outraPessoaNome, setOutraPessoaNome] = useState('');
   const [outraPessoaSobrenome, setOutraPessoaSobrenome] = useState('');
   const [userProfileName, setUserProfileName] = useState('');
+  const [userProfileSobrenome, setUserProfileSobrenome] = useState('');
+
   const [formData, setFormData] = useState({
     codigo: '',
     nome: '',
