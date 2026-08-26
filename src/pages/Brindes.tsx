@@ -602,10 +602,11 @@ export default function Brindes() {
         setRequestItens([{ tamanho_id: '', quantidade: 0 }]);
       }).catch(() => setProdutoTamanhoStock([]));
     }
-    // Auto-preenche com nome do perfil
-    const parts = userProfileName.split(' ');
+    // Auto-preenche com nome e sobrenome do usuário logado (editável)
+    const parts = (userProfileName || '').trim().split(' ').filter(Boolean);
     setRequestNome(parts[0] || '');
-    setRequestSobrenome(parts.slice(1).join(' ') || '');
+    setRequestSobrenome(userProfileSobrenome || parts.slice(1).join(' ') || '');
+
     setRequestFilial('');
     setEntregarOutraPessoa(false);
     setOutraPessoaNome('');
