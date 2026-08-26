@@ -345,12 +345,9 @@ export default function Movimentacoes() {
 
               <div className="space-y-2">
                 <Label>Setor</Label>
-                <Input
-                  value={setor}
-                  onChange={(e) => setSetor(e.target.value)}
-                  placeholder="Ex: Marketing, RH, Vendas..."
-                />
+                <SetorSelect value={setor} onChange={setSetor} />
               </div>
+
 
               <div className="space-y-2">
                 <Label>Observação (opcional)</Label>
