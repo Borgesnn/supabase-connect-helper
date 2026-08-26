@@ -17,6 +17,8 @@ import { ptBR } from 'date-fns/locale';
 import * as XLSX from 'xlsx';
 import { ProdutoAutocomplete } from '@/components/ProdutoAutocomplete';
 import { useTamanhos, fetchProdutoTamanhos, type ProdutoTamanhoRow } from '@/hooks/useTamanhos';
+import { SetorSelect } from '@/components/SetorSelect';
+
 
 interface Movimentacao {
   id: string;
@@ -345,12 +347,9 @@ export default function Movimentacoes() {
 
               <div className="space-y-2">
                 <Label>Setor</Label>
-                <Input
-                  value={setor}
-                  onChange={(e) => setSetor(e.target.value)}
-                  placeholder="Ex: Marketing, RH, Vendas..."
-                />
+                <SetorSelect value={setor} onChange={setSetor} />
               </div>
+
 
               <div className="space-y-2">
                 <Label>Observação (opcional)</Label>
@@ -412,17 +411,14 @@ export default function Movimentacoes() {
               </div>
               <div className="space-y-1">
                 <Label className="text-xs">Setor</Label>
-                <Select value={filterSetor} onValueChange={setFilterSetor}>
-                  <SelectTrigger className="h-9 w-44">
-                    <SelectValue placeholder="Todos" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="todos">Todos</SelectItem>
-                    {setoresUnicos.map((s) => (
-                      <SelectItem key={s} value={s}>{s}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <SetorSelect
+                  value={filterSetor}
+                  onChange={setFilterSetor}
+                  includeAll
+                  className="h-9 w-44"
+                  legacyValues={setoresUnicos}
+                />
+
               </div>
             </div>
 

@@ -77,6 +77,8 @@ export default function Brindes() {
   const [outraPessoaNome, setOutraPessoaNome] = useState('');
   const [outraPessoaSobrenome, setOutraPessoaSobrenome] = useState('');
   const [userProfileName, setUserProfileName] = useState('');
+  const [userProfileSobrenome, setUserProfileSobrenome] = useState('');
+
   const [formData, setFormData] = useState({
     codigo: '',
     nome: '',
@@ -117,14 +119,18 @@ export default function Brindes() {
     try {
       const { data } = await supabase
         .from('profiles')
-        .select('nome')
+        .select('nome, sobrenome')
         .eq('id', user.id)
         .single();
-      if (data) setUserProfileName(data.nome);
+      if (data) {
+        setUserProfileName(data.nome || '');
+        setUserProfileSobrenome(data.sobrenome || '');
+      }
     } catch (error) {
       console.error('Error fetching profile:', error);
     }
   }
+
 
   async function fetchProdutos() {
     try {
@@ -596,10 +602,11 @@ export default function Brindes() {
         setRequestItens([{ tamanho_id: '', quantidade: 0 }]);
       }).catch(() => setProdutoTamanhoStock([]));
     }
-    // Auto-preenche com nome do perfil
-    const parts = userProfileName.split(' ');
+    // Auto-preenche com nome e sobrenome do usuário logado (editável)
+    const parts = (userProfileName || '').trim().split(' ').filter(Boolean);
     setRequestNome(parts[0] || '');
-    setRequestSobrenome(parts.slice(1).join(' ') || '');
+    setRequestSobrenome(userProfileSobrenome || parts.slice(1).join(' ') || '');
+
     setRequestFilial('');
     setEntregarOutraPessoa(false);
     setOutraPessoaNome('');
@@ -1459,8 +1466,7 @@ export default function Brindes() {
                     id="request-nome"
                     value={requestNome}
                     onChange={(e) => setRequestNome(e.target.value)}
-                    readOnly={!!userProfileName}
-                    className={userProfileName ? 'bg-muted' : ''}
+                    placeholder="Nome"
                     required
                   />
                 </div>
@@ -1470,10 +1476,10 @@ export default function Brindes() {
                     id="request-sobrenome"
                     value={requestSobrenome}
                     onChange={(e) => setRequestSobrenome(e.target.value)}
-                    readOnly={!!userProfileName}
-                    className={userProfileName ? 'bg-muted' : ''}
+                    placeholder="Sobrenome"
                     required
                   />
+
                 </div>
               </div>
 

@@ -10,6 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { Download, History } from 'lucide-react';
 import { format } from 'date-fns';
 import * as XLSX from 'xlsx';
+import { SetorSelect } from '@/components/SetorSelect';
 
 export default function HistoricoMateriais() {
   const marcas = useMarcas();
@@ -20,7 +21,7 @@ export default function HistoricoMateriais() {
   const [de, setDe] = useState(''); const [ate, setAte] = useState('');
   const [marca, setMarca] = useState('all');
   const [categoria, setCategoria] = useState('all');
-  const [setor, setSetor] = useState('');
+  const [setor, setSetor] = useState('todos');
   const [status, setStatus] = useState('all');
   const [responsavel, setResponsavel] = useState('');
 
@@ -57,7 +58,7 @@ export default function HistoricoMateriais() {
     if (ate && new Date(r.retirada) > new Date(ate + 'T23:59:59')) return false;
     if (marca !== 'all' && r.marca_id !== marca) return false;
     if (categoria !== 'all' && r.categoria_id !== categoria) return false;
-    if (setor && !(r.setor || '').toLowerCase().includes(setor.toLowerCase())) return false;
+    if (setor && setor !== 'todos' && (r.setor || '') !== setor) return false;
     if (status !== 'all' && r.mat_status !== status) return false;
     if (responsavel && !r.responsavel.toLowerCase().includes(responsavel.toLowerCase())) return false;
     return true;
@@ -120,7 +121,7 @@ export default function HistoricoMateriais() {
               <SelectContent><SelectItem value="all">Todos</SelectItem>{Object.entries(MATERIAL_STATUS_LABEL).map(([k, v]) => <SelectItem key={k} value={k}>{v}</SelectItem>)}</SelectContent>
             </Select>
           </div>
-          <div><Label>Setor</Label><Input value={setor} onChange={(e) => setSetor(e.target.value)} /></div>
+          <div><Label>Setor</Label><SetorSelect value={setor} onChange={setSetor} includeAll legacyValues={emps.map((e:any)=>e.setor)} /></div>
           <div><Label>Responsável</Label><Input value={responsavel} onChange={(e) => setResponsavel(e.target.value)} /></div>
         </CardContent>
       </Card>
