@@ -411,17 +411,14 @@ export default function Movimentacoes() {
               </div>
               <div className="space-y-1">
                 <Label className="text-xs">Setor</Label>
-                <Select value={filterSetor} onValueChange={setFilterSetor}>
-                  <SelectTrigger className="h-9 w-44">
-                    <SelectValue placeholder="Todos" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="todos">Todos</SelectItem>
-                    {setoresUnicos.map((s) => (
-                      <SelectItem key={s} value={s}>{s}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <SetorSelect
+                  value={filterSetor}
+                  onChange={setFilterSetor}
+                  includeAll
+                  className="h-9 w-44"
+                  legacyValues={setoresUnicos}
+                />
+
               </div>
             </div>
 
