@@ -1466,8 +1466,7 @@ export default function Brindes() {
                     id="request-nome"
                     value={requestNome}
                     onChange={(e) => setRequestNome(e.target.value)}
-                    readOnly={!!userProfileName}
-                    className={userProfileName ? 'bg-muted' : ''}
+                    placeholder="Nome"
                     required
                   />
                 </div>
@@ -1477,10 +1476,10 @@ export default function Brindes() {
                     id="request-sobrenome"
                     value={requestSobrenome}
                     onChange={(e) => setRequestSobrenome(e.target.value)}
-                    readOnly={!!userProfileName}
-                    className={userProfileName ? 'bg-muted' : ''}
+                    placeholder="Sobrenome"
                     required
                   />
+
                 </div>
               </div>
 
