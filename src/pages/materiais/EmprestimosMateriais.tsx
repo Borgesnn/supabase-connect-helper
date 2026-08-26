@@ -12,6 +12,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { toast } from 'sonner';
 import { Plus, Handshake, ArrowRightLeft } from 'lucide-react';
 import { format } from 'date-fns';
+import { SetorSelect } from '@/components/SetorSelect';
 
 interface Emprestimo {
   id: string; numero: number; material_id: string; quantidade: number;
@@ -170,7 +171,7 @@ export default function EmprestimosMateriais() {
               <div><Label>Prev. devolução</Label><Input type="date" value={form.data_prevista_devolucao ?? ''} onChange={(e) => setForm({ ...form, data_prevista_devolucao: e.target.value })} /></div>
             </div>
             <div><Label>Responsável pela retirada *</Label><Input value={form.responsavel_nome ?? ''} onChange={(e) => setForm({ ...form, responsavel_nome: e.target.value })} /></div>
-            <div><Label>Setor</Label><Input value={form.setor ?? ''} onChange={(e) => setForm({ ...form, setor: e.target.value })} /></div>
+            <div><Label>Setor</Label><SetorSelect value={form.setor ?? ''} onChange={(v) => setForm({ ...form, setor: v })} /></div>
             <div><Label>Observações</Label><Textarea value={form.observacoes ?? ''} onChange={(e) => setForm({ ...form, observacoes: e.target.value })} /></div>
           </div>
           <DialogFooter>

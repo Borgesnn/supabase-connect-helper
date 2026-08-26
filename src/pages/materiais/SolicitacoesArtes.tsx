@@ -16,6 +16,7 @@ import { toast } from 'sonner';
 import { Plus, Palette, Paperclip, LinkIcon, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
+import { SetorSelect } from '@/components/SetorSelect';
 
 interface Solicitacao {
   id: string; numero: number; titulo: string; subtitulo: string | null;
@@ -219,7 +220,7 @@ export default function SolicitacoesArtes() {
               <div><Label>Rodapé</Label><Input value={form.rodape ?? ''} onChange={(e) => setForm({ ...form, rodape: e.target.value })} /></div>
               <div className="md:col-span-2"><Label>Objetivo da campanha *</Label><Textarea placeholder="Ex.: Divulgação, Promoção, Lançamento…" value={form.objetivo ?? ''} onChange={(e) => setForm({ ...form, objetivo: e.target.value })} /></div>
               <div className="md:col-span-2"><Label>Público-alvo</Label><Input placeholder="Clientes, Consultores, Vendas…" value={form.publico_alvo ?? ''} onChange={(e) => setForm({ ...form, publico_alvo: e.target.value })} /></div>
-              <div className="md:col-span-2"><Label>Setor solicitante</Label><Input value={form.setor ?? ''} onChange={(e) => setForm({ ...form, setor: e.target.value })} /></div>
+              <div className="md:col-span-2"><Label>Setor solicitante</Label><SetorSelect value={form.setor ?? ''} onChange={(v) => setForm({ ...form, setor: v })} /></div>
             </div>
           </section>
 
