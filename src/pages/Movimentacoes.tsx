@@ -17,6 +17,8 @@ import { ptBR } from 'date-fns/locale';
 import * as XLSX from 'xlsx';
 import { ProdutoAutocomplete } from '@/components/ProdutoAutocomplete';
 import { useTamanhos, fetchProdutoTamanhos, type ProdutoTamanhoRow } from '@/hooks/useTamanhos';
+import { SetorSelect } from '@/components/SetorSelect';
+
 
 interface Movimentacao {
   id: string;
