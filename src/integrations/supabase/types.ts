@@ -855,6 +855,7 @@ export type Database = {
           prioridade: string
           produto_id: string
           quantidade: number
+          setor: string | null
           solicitante_id: string | null
           status: string
         }
@@ -867,6 +868,7 @@ export type Database = {
           prioridade?: string
           produto_id: string
           quantidade: number
+          setor?: string | null
           solicitante_id?: string | null
           status?: string
         }
@@ -879,6 +881,7 @@ export type Database = {
           prioridade?: string
           produto_id?: string
           quantidade?: number
+          setor?: string | null
           solicitante_id?: string | null
           status?: string
         }
@@ -1187,16 +1190,28 @@ export type Database = {
         }
         Returns: Json
       }
-      create_pedido_com_itens: {
-        Args: {
-          p_itens: Json
-          p_motivo: string
-          p_prioridade: string
-          p_produto_id: string
-          p_solicitante_id: string
-        }
-        Returns: string
-      }
+      create_pedido_com_itens:
+        | {
+            Args: {
+              p_itens: Json
+              p_motivo: string
+              p_prioridade: string
+              p_produto_id: string
+              p_solicitante_id: string
+            }
+            Returns: string
+          }
+        | {
+            Args: {
+              p_itens: Json
+              p_motivo: string
+              p_prioridade: string
+              p_produto_id: string
+              p_setor?: string
+              p_solicitante_id: string
+            }
+            Returns: string
+          }
       devolver_emprestimo_material: {
         Args: {
           p_condicao: string
