@@ -18,6 +18,7 @@ import { ptBR } from 'date-fns/locale';
 import { useUserAreas } from '@/hooks/useAreas';
 import { ProdutoAutocomplete } from '@/components/ProdutoAutocomplete';
 import { useTamanhos, fetchProdutoTamanhos, type ProdutoTamanhoRow } from '@/hooks/useTamanhos';
+import { SetorSelect } from '@/components/SetorSelect';
 
 interface Pedido {
   id: string;
@@ -25,6 +26,7 @@ interface Pedido {
   quantidade: number;
   solicitante_id: string;
   motivo: string | null;
+  setor?: string | null;
   status: string;
   prioridade?: string;
   data_aprovacao: string | null;
@@ -60,6 +62,7 @@ export default function Pedidos() {
     produto_id: '',
     quantidade: 0,
     motivo: '',
+    setor: '',
   });
   const [requestItens, setRequestItens] = useState<{ tamanho_id: string; quantidade: number }[]>([]);
   const [produtoTamanhoStock, setProdutoTamanhoStock] = useState<ProdutoTamanhoRow[]>([]);
@@ -167,7 +170,8 @@ export default function Pedidos() {
           p_motivo: formData.motivo || null,
           p_prioridade: isDiretoria ? 'diretoria' : 'normal',
           p_itens: itens as any,
-        });
+          p_setor: formData.setor || null,
+        } as any);
         if (error) throw error;
       } else {
         const { error } = await supabase.from('pedidos').insert([{
@@ -176,13 +180,14 @@ export default function Pedidos() {
           solicitante_id: user.id,
           motivo: formData.motivo || null,
           prioridade: isDiretoria ? 'diretoria' : 'normal',
-        }]);
+          setor: formData.setor || null,
+        } as any]);
         if (error) throw error;
       }
 
       toast({ title: 'Pedido criado com sucesso!' });
       setIsDialogOpen(false);
-      setFormData({ produto_id: '', quantidade: 0, motivo: '' });
+      setFormData({ produto_id: '', quantidade: 0, motivo: '', setor: '' });
       setRequestItens([]);
       fetchData();
     } catch (error: any) {
@@ -347,6 +352,15 @@ export default function Pedidos() {
               )}
 
               <div className="space-y-2">
+                <Label>Setor</Label>
+                <SetorSelect
+                  value={formData.setor}
+                  onChange={(v) => setFormData({ ...formData, setor: v })}
+                  placeholder="Selecione o setor"
+                />
+              </div>
+
+              <div className="space-y-2">
                 <Label>Motivo <span className="text-destructive">*</span></Label>
                 <Textarea
                   value={formData.motivo}
@@ -449,8 +463,8 @@ export default function Pedidos() {
                   <span>{pedido.profiles?.nome || '-'}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Filial</span>
-                  <span>{pedido.motivo?.includes('Filial:') ? pedido.motivo.match(/Filial:\s*([^|]*)/)?.[1]?.trim() || '-' : '-'}</span>
+                  <span className="text-muted-foreground">Setor</span>
+                  <span>{pedido.setor || (pedido.motivo?.includes('Filial:') ? pedido.motivo.match(/Filial:\s*([^|]*)/)?.[1]?.trim() : null) || '-'}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Data</span>
