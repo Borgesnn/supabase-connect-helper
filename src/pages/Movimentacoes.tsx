@@ -144,6 +144,16 @@ export default function Movimentacoes() {
     e.preventDefault();
     if (!selectedProduto || !user || quantidade <= 0) return;
 
+    if (!setor) {
+      toast({ title: 'Selecione o setor', variant: 'destructive' });
+      return;
+    }
+
+    if (!observacao.trim()) {
+      toast({ title: 'Informe a observação', variant: 'destructive' });
+      return;
+    }
+
     if (controlaTamanho && !tamanhoId) {
       toast({ title: 'Selecione o tamanho', variant: 'destructive' });
       return;
