@@ -144,6 +144,16 @@ export default function Movimentacoes() {
     e.preventDefault();
     if (!selectedProduto || !user || quantidade <= 0) return;
 
+    if (!setor) {
+      toast({ title: 'Selecione o setor', variant: 'destructive' });
+      return;
+    }
+
+    if (!observacao.trim()) {
+      toast({ title: 'Informe a observação', variant: 'destructive' });
+      return;
+    }
+
     if (controlaTamanho && !tamanhoId) {
       toast({ title: 'Selecione o tamanho', variant: 'destructive' });
       return;
@@ -346,25 +356,26 @@ export default function Movimentacoes() {
               </div>
 
               <div className="space-y-2">
-                <Label>Setor</Label>
+                <Label>Setor *</Label>
                 <SetorSelect value={setor} onChange={setSetor} />
               </div>
 
 
               <div className="space-y-2">
-                <Label>Observação (opcional)</Label>
+                <Label>Observação *</Label>
                 <Textarea
                   value={observacao}
                   onChange={(e) => setObservacao(e.target.value)}
                   rows={3}
                   placeholder="Motivo da movimentação..."
+                  required
                 />
               </div>
 
               <Button
                 type="submit"
                 className="w-full gradient-primary"
-                disabled={!selectedProduto || quantidade <= 0 || submitting || (controlaTamanho && !tamanhoId)}
+                disabled={!selectedProduto || quantidade <= 0 || submitting || (controlaTamanho && !tamanhoId) || !setor || !observacao.trim()}
               >
                 {submitting && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
                 Registrar {tipo === 'entrada' ? 'Entrada' : 'Saída'}
