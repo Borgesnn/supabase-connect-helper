@@ -1246,7 +1246,7 @@ export type Database = {
               p_produto_id: string
               p_quantidade: number
               p_setor: string
-              p_tamanho_id?: string
+              p_tamanho_id: string
               p_tipo: string
               p_usuario_id: string
             }
