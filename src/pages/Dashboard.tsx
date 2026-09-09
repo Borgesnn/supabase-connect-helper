@@ -351,6 +351,7 @@ export default function Dashboard() {
             value={stats.estoqueNormal}
             icon={<TrendingUp className="w-6 h-6" />}
             variant="success"
+            onClick={() => { setStockSelecionado('normal'); setStockBusca(''); }}
           />
         )}
         {stats.estoqueBaixo > 0 && (
@@ -359,6 +360,7 @@ export default function Dashboard() {
             value={stats.estoqueBaixo}
             icon={<AlertTriangle className="w-6 h-6" />}
             variant="warning"
+            onClick={() => { setStockSelecionado('baixo'); setStockBusca(''); }}
           />
         )}
         {stats.semEstoque > 0 && (
@@ -367,6 +369,7 @@ export default function Dashboard() {
             value={stats.semEstoque}
             icon={<AlertTriangle className="w-6 h-6" />}
             variant="destructive"
+            onClick={() => { setStockSelecionado('zero'); setStockBusca(''); }}
           />
         )}
         {stats.valorTotal > 0 && (
@@ -447,6 +450,89 @@ export default function Dashboard() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Painel de detalhes dos indicadores de estoque */}
+      <Dialog open={!!stockSelecionado} onOpenChange={(o) => !o && setStockSelecionado(null)}>
+        <DialogContent className="max-w-4xl">
+          <DialogHeader>
+            <DialogTitle>{stockConfig.titulo}</DialogTitle>
+            <DialogDescription>{stockConfig.desc} Conforme os filtros aplicados na Dashboard.</DialogDescription>
+          </DialogHeader>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 items-end">
+            <div className="rounded-lg border border-border p-3">
+              <p className="text-xs text-muted-foreground">Quantidade de brindes</p>
+              <p className="text-xl font-bold">{stockItensBase.length}</p>
+            </div>
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+              <Input
+                value={stockBusca}
+                onChange={(e) => setStockBusca(e.target.value)}
+                placeholder="Pesquisar por nome ou código..."
+                className="pl-10"
+              />
+            </div>
+          </div>
+
+          {stockConfig.alerta && (
+            <div className={cn(
+              'flex items-center gap-2 rounded-lg border p-3 text-sm',
+              stockSelecionado === 'baixo'
+                ? 'border-warning/40 bg-warning/10 text-warning'
+                : 'border-destructive/40 bg-destructive/10 text-destructive'
+            )}>
+              <AlertTriangle className="w-4 h-4 flex-shrink-0" />
+              <span>{stockConfig.alerta}</span>
+            </div>
+          )}
+
+          <div className="max-h-[50vh] overflow-y-auto rounded-lg border border-border">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Brinde</TableHead>
+                  <TableHead>Código</TableHead>
+                  <TableHead>Marca</TableHead>
+                  <TableHead>Categoria</TableHead>
+                  <TableHead className="text-right">Qtd. atual</TableHead>
+                  <TableHead className="text-right">Estoque mín.</TableHead>
+                  <TableHead className="text-right">Valor de compra</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {stockItens.map((p) => (
+                  <TableRow
+                    key={p.id}
+                    className="cursor-pointer"
+                    onClick={() => navigate('/brindes')}
+                    title="Ver no Catálogo de Brindes"
+                  >
+                    <TableCell className="font-medium">{p.nome}</TableCell>
+                    <TableCell className="text-muted-foreground">{p.codigo}</TableCell>
+                    <TableCell className="text-muted-foreground">{p.marca_id ? marcaNome(p.marca_id) : '—'}</TableCell>
+                    <TableCell className="text-muted-foreground">{p.categorias?.nome || '—'}</TableCell>
+                    <TableCell className={cn('text-right font-medium', stockSelecionado === 'zero' && 'text-destructive', stockSelecionado === 'baixo' && 'text-warning')}>
+                      {p.quantidade}
+                    </TableCell>
+                    <TableCell className="text-right text-muted-foreground">{p.estoque_minimo}</TableCell>
+                    <TableCell className="text-right">{p.valor_compra != null ? formatBRL(Number(p.valor_compra)) : '—'}</TableCell>
+                  </TableRow>
+                ))}
+                {stockItens.length === 0 && (
+                  <TableRow>
+                    <TableCell colSpan={7} className="text-center text-muted-foreground py-6">Nenhum brinde encontrado</TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </div>
+
+          <div className="flex justify-end">
+            <Button variant="outline" onClick={() => setStockSelecionado(null)}>Fechar</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={!!catSelecionada} onOpenChange={(o) => !o && setCatSelecionada(null)}>
         <DialogContent className="max-w-3xl">
