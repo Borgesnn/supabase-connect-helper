@@ -427,6 +427,68 @@ export default function Dashboard() {
           </CardContent>
         </Card>
       </div>
+
+      <Dialog open={!!catSelecionada} onOpenChange={(o) => !o && setCatSelecionada(null)}>
+        <DialogContent className="max-w-3xl">
+          <DialogHeader>
+            <DialogTitle>Categoria: {catSelecionada}</DialogTitle>
+            <DialogDescription>Brindes que compõem este resultado, conforme os filtros aplicados.</DialogDescription>
+          </DialogHeader>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div className="rounded-lg border border-border p-3">
+              <p className="text-xs text-muted-foreground">Itens diferentes</p>
+              <p className="text-xl font-bold">{detalheItens.length}</p>
+            </div>
+            <div className="rounded-lg border border-border p-3">
+              <p className="text-xs text-muted-foreground">Quantidade em estoque</p>
+              <p className="text-xl font-bold">{detalheTotalQtd} un.</p>
+            </div>
+            <div className="rounded-lg border border-border p-3">
+              <p className="text-xs text-muted-foreground">Valor total em estoque</p>
+              <p className="text-xl font-bold">{formatBRL(detalheTotalValor)}</p>
+            </div>
+          </div>
+
+          <div className="max-h-[50vh] overflow-y-auto rounded-lg border border-border">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Brinde</TableHead>
+                  <TableHead>Código</TableHead>
+                  <TableHead>Marca</TableHead>
+                  <TableHead className="text-right">Qtd.</TableHead>
+                  <TableHead className="text-right">Valor de compra</TableHead>
+                  <TableHead className="text-right">Valor total</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {detalheItens.map((p) => (
+                  <TableRow key={p.id}>
+                    <TableCell className="font-medium">{p.nome}</TableCell>
+                    <TableCell className="text-muted-foreground">{p.codigo}</TableCell>
+                    <TableCell className="text-muted-foreground">{p.marca_id ? marcaNome(p.marca_id) : '—'}</TableCell>
+                    <TableCell className="text-right">{p.quantidade}</TableCell>
+                    <TableCell className="text-right">{p.valor_compra != null ? formatBRL(Number(p.valor_compra)) : '—'}</TableCell>
+                    <TableCell className="text-right font-medium">
+                      {p.valor_compra != null ? formatBRL(Number(p.valor_compra) * (p.quantidade || 0)) : '—'}
+                    </TableCell>
+                  </TableRow>
+                ))}
+                {detalheItens.length === 0 && (
+                  <TableRow>
+                    <TableCell colSpan={6} className="text-center text-muted-foreground py-6">Nenhum brinde nesta categoria</TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </div>
+
+          <div className="flex justify-end">
+            <Button variant="outline" onClick={() => setCatSelecionada(null)}>Fechar</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
