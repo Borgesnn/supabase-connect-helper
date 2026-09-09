@@ -224,8 +224,8 @@ export default function Dashboard() {
 
   const catMap: Record<string, number> = {};
   filtrados.forEach((p) => {
-    const n = p.categorias?.nome || 'Sem categoria';
-    catMap[n] = (catMap[n] || 0) + p.quantidade;
+    if (!p.categorias?.nome) return;
+    catMap[p.categorias.nome] = (catMap[p.categorias.nome] || 0) + p.quantidade;
   });
   const categoriaData: CategoriaData[] = Object.entries(catMap).map(([nome, quantidade]) => ({ nome, quantidade }));
 
