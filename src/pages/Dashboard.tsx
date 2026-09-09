@@ -364,6 +364,7 @@ export default function Dashboard() {
         <Card>
           <CardHeader>
             <CardTitle className="text-lg">Estoque por Categoria</CardTitle>
+            <p className="text-xs text-muted-foreground">Clique em uma barra para ver os brindes</p>
           </CardHeader>
           <CardContent>
             <div className="h-60 md:h-80">
@@ -379,7 +380,8 @@ export default function Dashboard() {
                       borderRadius: '8px'
                     }} 
                   />
-                  <Bar dataKey="quantidade" fill="hsl(187, 80%, 42%)" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="quantidade" fill="hsl(187, 80%, 42%)" radius={[4, 4, 0, 0]} className="cursor-pointer"
+                    onClick={(d: any) => d?.nome && setCatSelecionada(d.nome)} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -389,6 +391,7 @@ export default function Dashboard() {
         <Card>
           <CardHeader>
             <CardTitle className="text-lg">Distribuição por Categoria</CardTitle>
+            <p className="text-xs text-muted-foreground">Clique em uma fatia para ver os brindes</p>
           </CardHeader>
           <CardContent>
             <div className="h-60 md:h-80">
