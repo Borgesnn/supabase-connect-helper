@@ -11,6 +11,8 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { cn } from '@/lib/utils';
 import { useMemo, useRef } from 'react';
 
@@ -172,6 +174,7 @@ export default function Dashboard() {
   const [marcas, setMarcas] = useState<{ id: string; nome: string }[]>([]);
   const [categorias, setCategorias] = useState<{ id: string; nome: string }[]>([]);
   const [loading, setLoading] = useState(true);
+  const [catSelecionada, setCatSelecionada] = useState<string | null>(null);
 
   const [filtroMarcas, setFiltroMarcas] = useState<string[]>(() => {
     try { return JSON.parse(sessionStorage.getItem('dash.marcas') || '[]'); } catch { return []; }
@@ -238,6 +241,14 @@ export default function Dashboard() {
     const p = produtos.find((x) => x.id === id);
     return p ? `${p.codigo} - ${p.nome}` : '';
   };
+
+  const detalheItens = catSelecionada
+    ? filtrados
+        .filter((p) => p.categorias?.nome === catSelecionada)
+        .sort((a, b) => (b.quantidade || 0) - (a.quantidade || 0))
+    : [];
+  const detalheTotalQtd = detalheItens.reduce((a, p) => a + (p.quantidade || 0), 0);
+  const detalheTotalValor = detalheItens.reduce((a, p) => a + (Number(p.valor_compra) || 0) * (p.quantidade || 0), 0);
 
   if (loading) {
     return (
@@ -353,6 +364,7 @@ export default function Dashboard() {
         <Card>
           <CardHeader>
             <CardTitle className="text-lg">Estoque por Categoria</CardTitle>
+            <p className="text-xs text-muted-foreground">Clique em uma barra para ver os brindes</p>
           </CardHeader>
           <CardContent>
             <div className="h-60 md:h-80">
@@ -368,7 +380,8 @@ export default function Dashboard() {
                       borderRadius: '8px'
                     }} 
                   />
-                  <Bar dataKey="quantidade" fill="hsl(187, 80%, 42%)" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="quantidade" fill="hsl(187, 80%, 42%)" radius={[4, 4, 0, 0]} className="cursor-pointer"
+                    onClick={(d: any) => d?.nome && setCatSelecionada(d.nome)} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -378,6 +391,7 @@ export default function Dashboard() {
         <Card>
           <CardHeader>
             <CardTitle className="text-lg">Distribuição por Categoria</CardTitle>
+            <p className="text-xs text-muted-foreground">Clique em uma fatia para ver os brindes</p>
           </CardHeader>
           <CardContent>
             <div className="h-60 md:h-80">
@@ -393,9 +407,11 @@ export default function Dashboard() {
                     dataKey="quantidade"
                     nameKey="nome"
                     label={({ nome, percent }) => `${nome} ${(percent * 100).toFixed(0)}%`}
+                    onClick={(d: any) => { const n = d?.nome ?? d?.payload?.nome; if (n) setCatSelecionada(n); }}
+                    className="cursor-pointer"
                   >
                     {categoriaData.map((_, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} className="cursor-pointer" />
                     ))}
                   </Pie>
                   <Tooltip 
@@ -411,6 +427,68 @@ export default function Dashboard() {
           </CardContent>
         </Card>
       </div>
+
+      <Dialog open={!!catSelecionada} onOpenChange={(o) => !o && setCatSelecionada(null)}>
+        <DialogContent className="max-w-3xl">
+          <DialogHeader>
+            <DialogTitle>Categoria: {catSelecionada}</DialogTitle>
+            <DialogDescription>Brindes que compõem este resultado, conforme os filtros aplicados.</DialogDescription>
+          </DialogHeader>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div className="rounded-lg border border-border p-3">
+              <p className="text-xs text-muted-foreground">Itens diferentes</p>
+              <p className="text-xl font-bold">{detalheItens.length}</p>
+            </div>
+            <div className="rounded-lg border border-border p-3">
+              <p className="text-xs text-muted-foreground">Quantidade em estoque</p>
+              <p className="text-xl font-bold">{detalheTotalQtd} un.</p>
+            </div>
+            <div className="rounded-lg border border-border p-3">
+              <p className="text-xs text-muted-foreground">Valor total em estoque</p>
+              <p className="text-xl font-bold">{formatBRL(detalheTotalValor)}</p>
+            </div>
+          </div>
+
+          <div className="max-h-[50vh] overflow-y-auto rounded-lg border border-border">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Brinde</TableHead>
+                  <TableHead>Código</TableHead>
+                  <TableHead>Marca</TableHead>
+                  <TableHead className="text-right">Qtd.</TableHead>
+                  <TableHead className="text-right">Valor de compra</TableHead>
+                  <TableHead className="text-right">Valor total</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {detalheItens.map((p) => (
+                  <TableRow key={p.id}>
+                    <TableCell className="font-medium">{p.nome}</TableCell>
+                    <TableCell className="text-muted-foreground">{p.codigo}</TableCell>
+                    <TableCell className="text-muted-foreground">{p.marca_id ? marcaNome(p.marca_id) : '—'}</TableCell>
+                    <TableCell className="text-right">{p.quantidade}</TableCell>
+                    <TableCell className="text-right">{p.valor_compra != null ? formatBRL(Number(p.valor_compra)) : '—'}</TableCell>
+                    <TableCell className="text-right font-medium">
+                      {p.valor_compra != null ? formatBRL(Number(p.valor_compra) * (p.quantidade || 0)) : '—'}
+                    </TableCell>
+                  </TableRow>
+                ))}
+                {detalheItens.length === 0 && (
+                  <TableRow>
+                    <TableCell colSpan={6} className="text-center text-muted-foreground py-6">Nenhum brinde nesta categoria</TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </div>
+
+          <div className="flex justify-end">
+            <Button variant="outline" onClick={() => setCatSelecionada(null)}>Fechar</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
