@@ -11,6 +11,8 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { cn } from '@/lib/utils';
 import { useMemo, useRef } from 'react';
 
@@ -172,6 +174,7 @@ export default function Dashboard() {
   const [marcas, setMarcas] = useState<{ id: string; nome: string }[]>([]);
   const [categorias, setCategorias] = useState<{ id: string; nome: string }[]>([]);
   const [loading, setLoading] = useState(true);
+  const [catSelecionada, setCatSelecionada] = useState<string | null>(null);
 
   const [filtroMarcas, setFiltroMarcas] = useState<string[]>(() => {
     try { return JSON.parse(sessionStorage.getItem('dash.marcas') || '[]'); } catch { return []; }
@@ -238,6 +241,14 @@ export default function Dashboard() {
     const p = produtos.find((x) => x.id === id);
     return p ? `${p.codigo} - ${p.nome}` : '';
   };
+
+  const detalheItens = catSelecionada
+    ? filtrados
+        .filter((p) => p.categorias?.nome === catSelecionada)
+        .sort((a, b) => (b.quantidade || 0) - (a.quantidade || 0))
+    : [];
+  const detalheTotalQtd = detalheItens.reduce((a, p) => a + (p.quantidade || 0), 0);
+  const detalheTotalValor = detalheItens.reduce((a, p) => a + (Number(p.valor_compra) || 0) * (p.quantidade || 0), 0);
 
   if (loading) {
     return (
