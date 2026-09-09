@@ -314,30 +314,38 @@ export default function Dashboard() {
           icon={<Gift className="w-6 h-6" />}
           variant="default"
         />
-        <StatsCard
-          title="Estoque Normal"
-          value={stats.estoqueNormal}
-          icon={<TrendingUp className="w-6 h-6" />}
-          variant="success"
-        />
-        <StatsCard
-          title="Estoque Baixo"
-          value={stats.estoqueBaixo}
-          icon={<AlertTriangle className="w-6 h-6" />}
-          variant="warning"
-        />
-        <StatsCard
-          title="Sem Estoque"
-          value={stats.semEstoque}
-          icon={<AlertTriangle className="w-6 h-6" />}
-          variant="destructive"
-        />
-        <StatsCard
-          title="Valor Total do Estoque"
-          value={formatBRL(stats.valorTotal)}
-          icon={<DollarSign className="w-6 h-6" />}
-          variant="success"
-        />
+        {stats.estoqueNormal > 0 && (
+          <StatsCard
+            title="Estoque Normal"
+            value={stats.estoqueNormal}
+            icon={<TrendingUp className="w-6 h-6" />}
+            variant="success"
+          />
+        )}
+        {stats.estoqueBaixo > 0 && (
+          <StatsCard
+            title="Estoque Baixo"
+            value={stats.estoqueBaixo}
+            icon={<AlertTriangle className="w-6 h-6" />}
+            variant="warning"
+          />
+        )}
+        {stats.semEstoque > 0 && (
+          <StatsCard
+            title="Sem Estoque"
+            value={stats.semEstoque}
+            icon={<AlertTriangle className="w-6 h-6" />}
+            variant="destructive"
+          />
+        )}
+        {stats.valorTotal > 0 && (
+          <StatsCard
+            title="Valor Total do Estoque"
+            value={formatBRL(stats.valorTotal)}
+            icon={<DollarSign className="w-6 h-6" />}
+            variant="success"
+          />
+        )}
       </div>
 
       {/* Charts */}
