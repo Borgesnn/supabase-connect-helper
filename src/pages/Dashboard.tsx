@@ -175,6 +175,8 @@ export default function Dashboard() {
   const [categorias, setCategorias] = useState<{ id: string; nome: string }[]>([]);
   const [loading, setLoading] = useState(true);
   const [catSelecionada, setCatSelecionada] = useState<string | null>(null);
+  const [stockSelecionado, setStockSelecionado] = useState<'normal' | 'baixo' | 'zero' | null>(null);
+  const [stockBusca, setStockBusca] = useState('');
 
   const [filtroMarcas, setFiltroMarcas] = useState<string[]>(() => {
     try { return JSON.parse(sessionStorage.getItem('dash.marcas') || '[]'); } catch { return []; }
@@ -249,6 +251,24 @@ export default function Dashboard() {
     : [];
   const detalheTotalQtd = detalheItens.reduce((a, p) => a + (p.quantidade || 0), 0);
   const detalheTotalValor = detalheItens.reduce((a, p) => a + (Number(p.valor_compra) || 0) * (p.quantidade || 0), 0);
+
+  const stockItensBase = stockSelecionado === 'normal'
+    ? filtrados.filter((p) => p.quantidade > p.estoque_minimo)
+    : stockSelecionado === 'baixo'
+      ? filtrados.filter((p) => p.quantidade > 0 && p.quantidade <= p.estoque_minimo)
+      : stockSelecionado === 'zero'
+        ? filtrados.filter((p) => p.quantidade === 0)
+        : [];
+  const stockBuscaNorm = normalize(stockBusca);
+  const stockItens = (stockBuscaNorm
+    ? stockItensBase.filter((p) => normalize(p.nome).includes(stockBuscaNorm) || normalize(p.codigo).includes(stockBuscaNorm))
+    : stockItensBase
+  ).sort((a, b) => (a.quantidade || 0) - (b.quantidade || 0));
+  const stockConfig = stockSelecionado === 'normal'
+    ? { titulo: 'Estoque Normal', desc: 'Brindes com quantidade acima do estoque mínimo.', alerta: null as string | null }
+    : stockSelecionado === 'baixo'
+      ? { titulo: 'Estoque Baixo', desc: 'Brindes com quantidade no limite ou abaixo do estoque mínimo.', alerta: 'Estes itens precisam de atenção: considere reposição.' }
+      : { titulo: 'Sem Estoque', desc: 'Brindes com quantidade igual a zero.', alerta: 'Estes itens estão sem estoque disponível.' };
 
   if (loading) {
     return (
