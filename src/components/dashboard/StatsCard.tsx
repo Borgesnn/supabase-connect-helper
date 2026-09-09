@@ -11,9 +11,10 @@ interface StatsCardProps {
     isPositive: boolean;
   };
   variant?: 'default' | 'success' | 'warning' | 'destructive';
+  onClick?: () => void;
 }
 
-export default function StatsCard({ title, value, icon, trend, variant = 'default' }: StatsCardProps) {
+export default function StatsCard({ title, value, icon, trend, variant = 'default', onClick }: StatsCardProps) {
   const variantStyles = {
     default: 'bg-primary/10 text-primary',
     success: 'bg-success/10 text-success',
@@ -22,7 +23,13 @@ export default function StatsCard({ title, value, icon, trend, variant = 'defaul
   };
 
   return (
-    <Card className="hover:shadow-lg transition-shadow duration-200">
+    <Card
+      className={cn('hover:shadow-lg transition-shadow duration-200', onClick && 'cursor-pointer hover:ring-1 hover:ring-primary/40')}
+      onClick={onClick}
+      role={onClick ? 'button' : undefined}
+      tabIndex={onClick ? 0 : undefined}
+      onKeyDown={onClick ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onClick(); } } : undefined}
+    >
       <CardContent className="p-6">
         <div className="flex items-center justify-between gap-4">
           <div className="space-y-2 min-w-0 flex-1">
