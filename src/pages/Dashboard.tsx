@@ -407,9 +407,11 @@ export default function Dashboard() {
                     dataKey="quantidade"
                     nameKey="nome"
                     label={({ nome, percent }) => `${nome} ${(percent * 100).toFixed(0)}%`}
+                    onClick={(d: any) => { const n = d?.nome ?? d?.payload?.nome; if (n) setCatSelecionada(n); }}
+                    className="cursor-pointer"
                   >
                     {categoriaData.map((_, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} className="cursor-pointer" />
                     ))}
                   </Pie>
                   <Tooltip 
