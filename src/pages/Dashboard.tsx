@@ -15,6 +15,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { cn } from '@/lib/utils';
 import { useMemo, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 interface DashboardStats {
   totalBrindes: number;
