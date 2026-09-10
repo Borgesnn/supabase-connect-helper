@@ -171,6 +171,7 @@ function ItemAutocomplete({
 
 export default function Dashboard() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [produtos, setProdutos] = useState<ProdutoRow[]>([]);
   const [marcas, setMarcas] = useState<{ id: string; nome: string }[]>([]);
   const [categorias, setCategorias] = useState<{ id: string; nome: string }[]>([]);
