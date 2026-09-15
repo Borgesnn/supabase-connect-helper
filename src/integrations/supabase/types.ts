@@ -304,6 +304,69 @@ export type Database = {
           },
         ]
       }
+      cotacao_fornecedores: {
+        Row: {
+          cotacao_id: string
+          created_at: string
+          desconto: number
+          fornecedor_id: string | null
+          fornecedor_nome: string
+          frete: number
+          id: string
+          instalacao: number
+          observacoes: string | null
+          ordem: number
+          outros_custos: number
+          prazo_dias: number | null
+          updated_at: string
+        }
+        Insert: {
+          cotacao_id: string
+          created_at?: string
+          desconto?: number
+          fornecedor_id?: string | null
+          fornecedor_nome: string
+          frete?: number
+          id?: string
+          instalacao?: number
+          observacoes?: string | null
+          ordem?: number
+          outros_custos?: number
+          prazo_dias?: number | null
+          updated_at?: string
+        }
+        Update: {
+          cotacao_id?: string
+          created_at?: string
+          desconto?: number
+          fornecedor_id?: string | null
+          fornecedor_nome?: string
+          frete?: number
+          id?: string
+          instalacao?: number
+          observacoes?: string | null
+          ordem?: number
+          outros_custos?: number
+          prazo_dias?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cotacao_fornecedores_cotacao_id_fkey"
+            columns: ["cotacao_id"]
+            isOneToOne: false
+            referencedRelation: "cotacoes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cotacao_fornecedores_fornecedor_id_fkey"
+            columns: ["fornecedor_id"]
+            isOneToOne: false
+            referencedRelation: "fornecedores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       cotacao_historico: {
         Row: {
           cotacao_id: string
@@ -342,6 +405,98 @@ export type Database = {
           },
         ]
       }
+      cotacao_itens: {
+        Row: {
+          cotacao_id: string
+          created_at: string
+          descricao: string | null
+          id: string
+          nome: string
+          observacoes: string | null
+          ordem: number
+          quantidade: number
+          unidade: string
+          updated_at: string
+        }
+        Insert: {
+          cotacao_id: string
+          created_at?: string
+          descricao?: string | null
+          id?: string
+          nome: string
+          observacoes?: string | null
+          ordem?: number
+          quantidade?: number
+          unidade?: string
+          updated_at?: string
+        }
+        Update: {
+          cotacao_id?: string
+          created_at?: string
+          descricao?: string | null
+          id?: string
+          nome?: string
+          observacoes?: string | null
+          ordem?: number
+          quantidade?: number
+          unidade?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cotacao_itens_cotacao_id_fkey"
+            columns: ["cotacao_id"]
+            isOneToOne: false
+            referencedRelation: "cotacoes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cotacao_precos: {
+        Row: {
+          cotacao_fornecedor_id: string
+          created_at: string
+          id: string
+          item_id: string
+          observacoes: string | null
+          updated_at: string
+          valor_unitario: number
+        }
+        Insert: {
+          cotacao_fornecedor_id: string
+          created_at?: string
+          id?: string
+          item_id: string
+          observacoes?: string | null
+          updated_at?: string
+          valor_unitario?: number
+        }
+        Update: {
+          cotacao_fornecedor_id?: string
+          created_at?: string
+          id?: string
+          item_id?: string
+          observacoes?: string | null
+          updated_at?: string
+          valor_unitario?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cotacao_precos_cotacao_fornecedor_id_fkey"
+            columns: ["cotacao_fornecedor_id"]
+            isOneToOne: false
+            referencedRelation: "cotacao_fornecedores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cotacao_precos_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "cotacao_itens"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       cotacoes: {
         Row: {
           created_at: string
@@ -351,11 +506,14 @@ export type Database = {
           fornecedor_id: string | null
           id: string
           nome: string
+          objetivo: string | null
           observacoes: string | null
           prazo_dias: number | null
           produto_id: string | null
           quantidade: number | null
           responsavel: string | null
+          setor: string | null
+          solicitante: string | null
           status: string
           updated_at: string
           valor_estimado: number | null
@@ -369,11 +527,14 @@ export type Database = {
           fornecedor_id?: string | null
           id?: string
           nome: string
+          objetivo?: string | null
           observacoes?: string | null
           prazo_dias?: number | null
           produto_id?: string | null
           quantidade?: number | null
           responsavel?: string | null
+          setor?: string | null
+          solicitante?: string | null
           status?: string
           updated_at?: string
           valor_estimado?: number | null
@@ -387,11 +548,14 @@ export type Database = {
           fornecedor_id?: string | null
           id?: string
           nome?: string
+          objetivo?: string | null
           observacoes?: string | null
           prazo_dias?: number | null
           produto_id?: string | null
           quantidade?: number | null
           responsavel?: string | null
+          setor?: string | null
+          solicitante?: string | null
           status?: string
           updated_at?: string
           valor_estimado?: number | null
