@@ -256,6 +256,9 @@ export default function Cotacoes() {
         valor_final: form.valor_final ? parseFloat(form.valor_final) : null,
         responsavel: form.responsavel || null,
         observacoes: form.observacoes || null,
+        objetivo: form.objetivo || null,
+        setor: form.setor || null,
+        solicitante: form.solicitante || null,
       };
       if (editing) {
         const { error } = await supabase.from('cotacoes').update(payload).eq('id', editing.id);
