@@ -28,6 +28,8 @@ import {
 } from 'lucide-react';
 import { ProdutoAutocomplete } from '@/components/ProdutoAutocomplete';
 import { FornecedorAutocomplete } from '@/components/FornecedorAutocomplete';
+import { SetorSelect } from '@/components/SetorSelect';
+import { CotacaoComparativo } from '@/components/cotacoes/CotacaoComparativo';
 import type { Produto as ProdutoFull } from '@/types/database';
 
 type Status = 'em_negociacao' | 'cotacao_feita' | 'pedido_solicitado' | 'pedido_chegou';
@@ -57,6 +59,9 @@ interface Cotacao {
   valor_final: number | null;
   responsavel: string | null;
   observacoes: string | null;
+  objetivo: string | null;
+  setor: string | null;
+  solicitante: string | null;
   created_at: string;
   fornecedor?: Fornecedor | null;
   produto?: Produto | null;
@@ -75,6 +80,7 @@ const emptyForm = {
   nome: '', fornecedor_id: '', produto_id: '', status: 'em_negociacao' as Status,
   data_solicitacao: '', data_prevista: '', prazo_dias: '', quantidade: '',
   valor_estimado: '', valor_final: '', responsavel: '', observacoes: '',
+  objetivo: '', setor: '', solicitante: '',
 };
 
 const fmtMoney = (v: number | null) =>
@@ -225,6 +231,9 @@ export default function Cotacoes() {
       valor_final: c.valor_final?.toString() ?? '',
       responsavel: c.responsavel ?? '',
       observacoes: c.observacoes ?? '',
+      objetivo: c.objetivo ?? '',
+      setor: c.setor ?? '',
+      solicitante: c.solicitante ?? '',
     });
     setDialogOpen(true);
   };
@@ -247,6 +256,9 @@ export default function Cotacoes() {
         valor_final: form.valor_final ? parseFloat(form.valor_final) : null,
         responsavel: form.responsavel || null,
         observacoes: form.observacoes || null,
+        objetivo: form.objetivo || null,
+        setor: form.setor || null,
+        solicitante: form.solicitante || null,
       };
       if (editing) {
         const { error } = await supabase.from('cotacoes').update(payload).eq('id', editing.id);
@@ -272,9 +284,11 @@ export default function Cotacoes() {
             usuario_id: user.id,
           });
         }
-        toast.success('Cotação criada');
+        toast.success('Cotação criada — agora adicione itens e fornecedores');
+        // Mantém o diálogo aberto no modo edição para liberar o comparativo
+        if (data) setEditing(data as any);
       }
-      setDialogOpen(false);
+      if (editing) setDialogOpen(false);
       loadAll();
     } catch (e: any) {
       toast.error(e.message ?? 'Erro ao salvar');
@@ -476,7 +490,7 @@ export default function Cotacoes() {
 
       {/* Dialog Cadastro/Edição */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{editing ? 'Editar cotação' : 'Nova cotação'}</DialogTitle>
             <DialogDescription>Preencha os dados da cotação</DialogDescription>
@@ -549,6 +563,23 @@ export default function Cotacoes() {
               <Input value={form.responsavel} onChange={e => setForm({ ...form, responsavel: e.target.value })} />
             </div>
             <div className="space-y-2">
+              <Label>Solicitante</Label>
+              <Input value={form.solicitante} onChange={e => setForm({ ...form, solicitante: e.target.value })} placeholder="Quem solicitou" />
+            </div>
+            <div className="space-y-2">
+              <Label>Setor</Label>
+              <SetorSelect
+                value={form.setor}
+                onChange={v => setForm({ ...form, setor: v })}
+                legacyValues={cotacoes.map(c => c.setor)}
+              />
+            </div>
+            <div className="sm:col-span-2 space-y-2">
+              <Label>Objetivo / motivo</Label>
+              <Textarea rows={2} value={form.objetivo} onChange={e => setForm({ ...form, objetivo: e.target.value })}
+                placeholder="Para que serve esta cotação" />
+            </div>
+            <div className="space-y-2">
               <Label>Data solicitação</Label>
               <Input type="date" value={form.data_solicitacao} onChange={e => setForm({ ...form, data_solicitacao: e.target.value })} />
             </div>
@@ -578,8 +609,23 @@ export default function Cotacoes() {
             </div>
           </div>
 
+          {editing ? (
+            <div className="border-t border-border pt-4 mt-2">
+              <CotacaoComparativo
+                cotacaoId={editing.id}
+                canManage={canManage}
+                fornecedores={fornecedores}
+                onNovoFornecedor={() => { setNovoFornNome(''); setNovoFornOpen(true); }}
+              />
+            </div>
+          ) : (
+            <p className="text-xs text-muted-foreground border-t border-border pt-4 mt-2">
+              Salve a cotação para adicionar itens e comparar os preços dos fornecedores.
+            </p>
+          )}
+
           <DialogFooter className="flex-row gap-2 sm:justify-end">
-            <Button variant="destructive" onClick={() => setDialogOpen(false)}>Cancelar</Button>
+            <Button variant="destructive" onClick={() => setDialogOpen(false)}>{editing ? 'Fechar' : 'Cancelar'}</Button>
             <Button variant="outline" onClick={handleSave} disabled={saving}>
               {saving ? 'Salvando...' : 'Salvar'}
             </Button>
@@ -623,6 +669,9 @@ export default function Cotacoes() {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
                     <div><span className="text-muted-foreground">Brinde:</span> {selected.produto ? `${selected.produto.codigo} — ${selected.produto.nome}` : '—'}</div>
                     <div><span className="text-muted-foreground">Responsável:</span> {selected.responsavel ?? '—'}</div>
+                    <div><span className="text-muted-foreground">Solicitante:</span> {selected.solicitante ?? '—'}</div>
+                    <div><span className="text-muted-foreground">Setor:</span> {selected.setor ?? '—'}</div>
+                    <div className="sm:col-span-2"><span className="text-muted-foreground">Objetivo:</span> {selected.objetivo ?? '—'}</div>
                     <div><span className="text-muted-foreground">Solicitação:</span> {fmtDate(selected.data_solicitacao)}</div>
                     <div><span className="text-muted-foreground">Prevista:</span> {fmtDate(selected.data_prevista)}</div>
                     <div><span className="text-muted-foreground">Prazo:</span> {selected.prazo_dias ? `${selected.prazo_dias} dias` : '—'}</div>
@@ -638,6 +687,16 @@ export default function Cotacoes() {
                     <p className="text-sm whitespace-pre-wrap">{selected.observacoes}</p>
                   </section>
                 )}
+
+                {/* Comparativo (somente leitura) */}
+                <section>
+                  <CotacaoComparativo
+                    key={selected.id}
+                    cotacaoId={selected.id}
+                    canManage={false}
+                    fornecedores={fornecedores}
+                  />
+                </section>
 
                 {/* Anexos */}
                 <section>
