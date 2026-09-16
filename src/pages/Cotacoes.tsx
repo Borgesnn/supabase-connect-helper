@@ -80,6 +80,7 @@ const emptyForm = {
   nome: '', fornecedor_id: '', produto_id: '', status: 'em_negociacao' as Status,
   data_solicitacao: '', data_prevista: '', prazo_dias: '', quantidade: '',
   valor_estimado: '', valor_final: '', responsavel: '', observacoes: '',
+  objetivo: '', setor: '', solicitante: '',
 };
 
 const fmtMoney = (v: number | null) =>
