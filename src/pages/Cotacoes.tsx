@@ -490,7 +490,7 @@ export default function Cotacoes() {
 
       {/* Dialog Cadastro/Edição */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{editing ? 'Editar cotação' : 'Nova cotação'}</DialogTitle>
             <DialogDescription>Preencha os dados da cotação</DialogDescription>
