@@ -609,8 +609,23 @@ export default function Cotacoes() {
             </div>
           </div>
 
+          {editing ? (
+            <div className="border-t border-border pt-4 mt-2">
+              <CotacaoComparativo
+                cotacaoId={editing.id}
+                canManage={canManage}
+                fornecedores={fornecedores}
+                onNovoFornecedor={() => { setNovoFornNome(''); setNovoFornOpen(true); }}
+              />
+            </div>
+          ) : (
+            <p className="text-xs text-muted-foreground border-t border-border pt-4 mt-2">
+              Salve a cotação para adicionar itens e comparar os preços dos fornecedores.
+            </p>
+          )}
+
           <DialogFooter className="flex-row gap-2 sm:justify-end">
-            <Button variant="destructive" onClick={() => setDialogOpen(false)}>Cancelar</Button>
+            <Button variant="destructive" onClick={() => setDialogOpen(false)}>{editing ? 'Fechar' : 'Cancelar'}</Button>
             <Button variant="outline" onClick={handleSave} disabled={saving}>
               {saving ? 'Salvando...' : 'Salvar'}
             </Button>
