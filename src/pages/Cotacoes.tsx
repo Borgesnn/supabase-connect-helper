@@ -669,6 +669,9 @@ export default function Cotacoes() {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
                     <div><span className="text-muted-foreground">Brinde:</span> {selected.produto ? `${selected.produto.codigo} — ${selected.produto.nome}` : '—'}</div>
                     <div><span className="text-muted-foreground">Responsável:</span> {selected.responsavel ?? '—'}</div>
+                    <div><span className="text-muted-foreground">Solicitante:</span> {selected.solicitante ?? '—'}</div>
+                    <div><span className="text-muted-foreground">Setor:</span> {selected.setor ?? '—'}</div>
+                    <div className="sm:col-span-2"><span className="text-muted-foreground">Objetivo:</span> {selected.objetivo ?? '—'}</div>
                     <div><span className="text-muted-foreground">Solicitação:</span> {fmtDate(selected.data_solicitacao)}</div>
                     <div><span className="text-muted-foreground">Prevista:</span> {fmtDate(selected.data_prevista)}</div>
                     <div><span className="text-muted-foreground">Prazo:</span> {selected.prazo_dias ? `${selected.prazo_dias} dias` : '—'}</div>
