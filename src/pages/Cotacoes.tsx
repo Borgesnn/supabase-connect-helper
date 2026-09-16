@@ -284,9 +284,11 @@ export default function Cotacoes() {
             usuario_id: user.id,
           });
         }
-        toast.success('Cotação criada');
+        toast.success('Cotação criada — agora adicione itens e fornecedores');
+        // Mantém o diálogo aberto no modo edição para liberar o comparativo
+        if (data) setEditing(data as any);
       }
-      setDialogOpen(false);
+      if (editing) setDialogOpen(false);
       loadAll();
     } catch (e: any) {
       toast.error(e.message ?? 'Erro ao salvar');
