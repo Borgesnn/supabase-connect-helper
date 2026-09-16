@@ -231,6 +231,9 @@ export default function Cotacoes() {
       valor_final: c.valor_final?.toString() ?? '',
       responsavel: c.responsavel ?? '',
       observacoes: c.observacoes ?? '',
+      objetivo: c.objetivo ?? '',
+      setor: c.setor ?? '',
+      solicitante: c.solicitante ?? '',
     });
     setDialogOpen(true);
   };
