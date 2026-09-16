@@ -180,6 +180,11 @@ export function CotacaoComparativo({ cotacaoId, canManage, fornecedores, onNovoF
   const handleSave = async () => {
     if (itens.some((i) => !i.nome.trim())) { toast.error('Informe o nome de todos os itens'); return; }
     if (forns.some((f) => !f.fornecedor_nome.trim())) { toast.error('Selecione o fornecedor em todas as propostas'); return; }
+    const ids = forns.map((f) => f.fornecedor_id).filter(Boolean) as string[];
+    if (new Set(ids).size !== ids.length) {
+      toast.error('Cada proposta deve ser de um fornecedor diferente');
+      return;
+    }
     setSaving(true);
     try {
       if (removedItens.length) await supabase.from('cotacao_itens').delete().in('id', removedItens);
