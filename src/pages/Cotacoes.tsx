@@ -563,6 +563,23 @@ export default function Cotacoes() {
               <Input value={form.responsavel} onChange={e => setForm({ ...form, responsavel: e.target.value })} />
             </div>
             <div className="space-y-2">
+              <Label>Solicitante</Label>
+              <Input value={form.solicitante} onChange={e => setForm({ ...form, solicitante: e.target.value })} placeholder="Quem solicitou" />
+            </div>
+            <div className="space-y-2">
+              <Label>Setor</Label>
+              <SetorSelect
+                value={form.setor}
+                onChange={v => setForm({ ...form, setor: v })}
+                legacyValues={cotacoes.map(c => c.setor)}
+              />
+            </div>
+            <div className="sm:col-span-2 space-y-2">
+              <Label>Objetivo / motivo</Label>
+              <Textarea rows={2} value={form.objetivo} onChange={e => setForm({ ...form, objetivo: e.target.value })}
+                placeholder="Para que serve esta cotação" />
+            </div>
+            <div className="space-y-2">
               <Label>Data solicitação</Label>
               <Input type="date" value={form.data_solicitacao} onChange={e => setForm({ ...form, data_solicitacao: e.target.value })} />
             </div>
