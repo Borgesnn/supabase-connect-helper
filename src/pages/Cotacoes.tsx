@@ -59,6 +59,9 @@ interface Cotacao {
   valor_final: number | null;
   responsavel: string | null;
   observacoes: string | null;
+  objetivo: string | null;
+  setor: string | null;
+  solicitante: string | null;
   created_at: string;
   fornecedor?: Fornecedor | null;
   produto?: Produto | null;
