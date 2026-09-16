@@ -688,6 +688,16 @@ export default function Cotacoes() {
                   </section>
                 )}
 
+                {/* Comparativo (somente leitura) */}
+                <section>
+                  <CotacaoComparativo
+                    key={selected.id}
+                    cotacaoId={selected.id}
+                    canManage={false}
+                    fornecedores={fornecedores}
+                  />
+                </section>
+
                 {/* Anexos */}
                 <section>
                   <div className="flex items-center justify-between mb-2 gap-2 flex-wrap">
