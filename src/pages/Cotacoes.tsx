@@ -28,6 +28,8 @@ import {
 } from 'lucide-react';
 import { ProdutoAutocomplete } from '@/components/ProdutoAutocomplete';
 import { FornecedorAutocomplete } from '@/components/FornecedorAutocomplete';
+import { SetorSelect } from '@/components/SetorSelect';
+import { CotacaoComparativo } from '@/components/cotacoes/CotacaoComparativo';
 import type { Produto as ProdutoFull } from '@/types/database';
 
 type Status = 'em_negociacao' | 'cotacao_feita' | 'pedido_solicitado' | 'pedido_chegou';
