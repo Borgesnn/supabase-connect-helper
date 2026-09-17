@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
-import { Plus, Trash2, Package, Building2, Save } from 'lucide-react';
+import { Plus, Trash2, Package, Building2, Save, Trophy } from 'lucide-react';
 import { FornecedorAutocomplete, FornecedorOption } from '@/components/FornecedorAutocomplete';
 
 export interface ItemRow {
@@ -176,6 +176,28 @@ export function CotacaoComparativo({ cotacaoId, canManage, fornecedores, onNovoF
     });
     return res;
   }, [forns, itens, precos]);
+
+  /** Menor preço unitário por item (apenas valores > 0) */
+  const menorPorItem = useMemo(() => {
+    const res: Record<string, number> = {};
+    itens.forEach((i) => {
+      const vals = forns
+        .map((f) => precos[`${f.id}|${i.id}`] ?? 0)
+        .filter((v) => v > 0);
+      if (vals.length) res[i.id] = Math.min(...vals);
+    });
+    return res;
+  }, [itens, forns, precos]);
+
+  /** Ranking por VALOR TOTAL (menor primeiro), só propostas com algum valor */
+  const ranking = useMemo(() => {
+    return forns
+      .filter((f) => (totals[f.id]?.total ?? 0) > 0 && f.fornecedor_nome.trim())
+      .map((f) => ({ id: f.id, nome: f.fornecedor_nome, total: totals[f.id]!.total }))
+      .sort((a, b) => a.total - b.total);
+  }, [forns, totals]);
+
+  const economia = ranking.length >= 2 ? ranking[1].total - ranking[0].total : null;
 
   const handleSave = async () => {
     if (itens.some((i) => !i.nome.trim())) { toast.error('Informe o nome de todos os itens'); return; }
@@ -397,16 +419,22 @@ export function CotacaoComparativo({ cotacaoId, canManage, fornecedores, onNovoF
                         {itens.map((i) => {
                           const unit = precos[`${f.id}|${i.id}`] ?? 0;
                           const qtd = num(i.quantidade);
+                          const isMenor = unit > 0 && menorPorItem[i.id] === unit;
                           return (
-                            <div key={i.id} className="grid grid-cols-12 items-center gap-2">
-                              <div className="col-span-12 sm:col-span-5 text-sm truncate">
-                                {i.nome || <span className="text-muted-foreground">Item sem nome</span>}
-                                <span className="text-xs text-muted-foreground ml-2">{qtd} {i.unidade}</span>
+                            <div key={i.id} className={`grid grid-cols-12 items-center gap-2 rounded-md px-1 py-1 ${isMenor ? 'bg-emerald-500/10 ring-1 ring-emerald-500/30' : ''}`}>
+                              <div className="col-span-12 sm:col-span-5 text-sm truncate flex items-center gap-2">
+                                <span className="truncate">{i.nome || <span className="text-muted-foreground">Item sem nome</span>}</span>
+                                <span className="text-xs text-muted-foreground">{qtd} {i.unidade}</span>
+                                {isMenor && (
+                                  <Badge variant="outline" className="bg-emerald-500/10 text-emerald-600 border-emerald-500/20 text-[10px]">
+                                    menor preço
+                                  </Badge>
+                                )}
                               </div>
                               <div className="col-span-7 sm:col-span-4">
                                 <MoneyInput disabled={!canManage} value={unit} onChange={(v) => setPreco(f.id, i.id, v)} />
                               </div>
-                              <div className="col-span-5 sm:col-span-3 text-sm text-right font-medium">
+                              <div className={`col-span-5 sm:col-span-3 text-sm text-right font-medium ${isMenor ? 'text-emerald-600' : ''}`}>
                                 {fmtBRL(qtd * unit)}
                               </div>
                             </div>
@@ -461,6 +489,52 @@ export function CotacaoComparativo({ cotacaoId, canManage, fornecedores, onNovoF
           </div>
         )}
       </section>
+
+      {/* RANKING */}
+      {ranking.length >= 2 && (
+        <section className="space-y-3">
+          <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground flex items-center gap-2">
+            <Trophy className="w-4 h-4" /> Ranking de propostas
+          </h3>
+
+          <div className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-4">
+            <p className="text-xs font-semibold uppercase tracking-wide text-emerald-600">Melhor proposta</p>
+            <p className="text-lg font-bold mt-1">1º {ranking[0].nome}</p>
+            <p className="text-2xl font-bold text-emerald-600">{fmtBRL(ranking[0].total)}</p>
+            {economia != null && (
+              <p className="text-sm text-muted-foreground mt-2">
+                Economia em relação ao 2º colocado:{' '}
+                <span className="font-semibold text-emerald-600">{fmtBRL(economia)}</span>
+              </p>
+            )}
+          </div>
+
+          <div className="rounded-lg border border-border divide-y divide-border overflow-hidden">
+            {ranking.map((r, idx) => (
+              <div key={r.id} className={`flex items-center justify-between gap-3 p-3 ${idx === 0 ? 'bg-emerald-500/5' : ''}`}>
+                <div className="flex items-center gap-3 min-w-0">
+                  <Badge variant={idx === 0 ? 'default' : 'secondary'}>{idx + 1}º</Badge>
+                  <span className="text-sm font-medium truncate">{r.nome}</span>
+                </div>
+                <div className="text-right">
+                  <span className={`text-sm font-semibold ${idx === 0 ? 'text-emerald-600' : ''}`}>{fmtBRL(r.total)}</span>
+                  {idx > 0 && (
+                    <span className="block text-xs text-muted-foreground">
+                      + {fmtBRL(r.total - ranking[0].total)}
+                    </span>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {ranking.length < 3 && (
+            <p className="text-xs text-amber-600">
+              Ranking parcial: preencha os valores de pelo menos 3 fornecedores para a comparação completa.
+            </p>
+          )}
+        </section>
+      )}
 
       {canManage && (
         <div className="flex justify-end">
