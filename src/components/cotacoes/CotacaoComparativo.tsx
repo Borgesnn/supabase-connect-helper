@@ -490,6 +490,52 @@ export function CotacaoComparativo({ cotacaoId, canManage, fornecedores, onNovoF
         )}
       </section>
 
+      {/* RANKING */}
+      {ranking.length >= 2 && (
+        <section className="space-y-3">
+          <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground flex items-center gap-2">
+            <Trophy className="w-4 h-4" /> Ranking de propostas
+          </h3>
+
+          <div className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-4">
+            <p className="text-xs font-semibold uppercase tracking-wide text-emerald-600">Melhor proposta</p>
+            <p className="text-lg font-bold mt-1">1º {ranking[0].nome}</p>
+            <p className="text-2xl font-bold text-emerald-600">{fmtBRL(ranking[0].total)}</p>
+            {economia != null && (
+              <p className="text-sm text-muted-foreground mt-2">
+                Economia em relação ao 2º colocado:{' '}
+                <span className="font-semibold text-emerald-600">{fmtBRL(economia)}</span>
+              </p>
+            )}
+          </div>
+
+          <div className="rounded-lg border border-border divide-y divide-border overflow-hidden">
+            {ranking.map((r, idx) => (
+              <div key={r.id} className={`flex items-center justify-between gap-3 p-3 ${idx === 0 ? 'bg-emerald-500/5' : ''}`}>
+                <div className="flex items-center gap-3 min-w-0">
+                  <Badge variant={idx === 0 ? 'default' : 'secondary'}>{idx + 1}º</Badge>
+                  <span className="text-sm font-medium truncate">{r.nome}</span>
+                </div>
+                <div className="text-right">
+                  <span className={`text-sm font-semibold ${idx === 0 ? 'text-emerald-600' : ''}`}>{fmtBRL(r.total)}</span>
+                  {idx > 0 && (
+                    <span className="block text-xs text-muted-foreground">
+                      + {fmtBRL(r.total - ranking[0].total)}
+                    </span>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {ranking.length < 3 && (
+            <p className="text-xs text-amber-600">
+              Ranking parcial: preencha os valores de pelo menos 3 fornecedores para a comparação completa.
+            </p>
+          )}
+        </section>
+      )}
+
       {canManage && (
         <div className="flex justify-end">
           <Button onClick={handleSave} disabled={saving}>
