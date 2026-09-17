@@ -419,16 +419,22 @@ export function CotacaoComparativo({ cotacaoId, canManage, fornecedores, onNovoF
                         {itens.map((i) => {
                           const unit = precos[`${f.id}|${i.id}`] ?? 0;
                           const qtd = num(i.quantidade);
+                          const isMenor = unit > 0 && menorPorItem[i.id] === unit;
                           return (
-                            <div key={i.id} className="grid grid-cols-12 items-center gap-2">
-                              <div className="col-span-12 sm:col-span-5 text-sm truncate">
-                                {i.nome || <span className="text-muted-foreground">Item sem nome</span>}
-                                <span className="text-xs text-muted-foreground ml-2">{qtd} {i.unidade}</span>
+                            <div key={i.id} className={`grid grid-cols-12 items-center gap-2 rounded-md px-1 py-1 ${isMenor ? 'bg-emerald-500/10 ring-1 ring-emerald-500/30' : ''}`}>
+                              <div className="col-span-12 sm:col-span-5 text-sm truncate flex items-center gap-2">
+                                <span className="truncate">{i.nome || <span className="text-muted-foreground">Item sem nome</span>}</span>
+                                <span className="text-xs text-muted-foreground">{qtd} {i.unidade}</span>
+                                {isMenor && (
+                                  <Badge variant="outline" className="bg-emerald-500/10 text-emerald-600 border-emerald-500/20 text-[10px]">
+                                    menor preço
+                                  </Badge>
+                                )}
                               </div>
                               <div className="col-span-7 sm:col-span-4">
                                 <MoneyInput disabled={!canManage} value={unit} onChange={(v) => setPreco(f.id, i.id, v)} />
                               </div>
-                              <div className="col-span-5 sm:col-span-3 text-sm text-right font-medium">
+                              <div className={`col-span-5 sm:col-span-3 text-sm text-right font-medium ${isMenor ? 'text-emerald-600' : ''}`}>
                                 {fmtBRL(qtd * unit)}
                               </div>
                             </div>
