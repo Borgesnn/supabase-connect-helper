@@ -210,8 +210,18 @@ export default function Cotacoes() {
     const matchStatus = filterStatus === 'todos' || c.status === filterStatus;
     const matchForn = filterFornecedor === 'todos' || c.fornecedor_id === filterFornecedor;
     const matchDate = !filterDate || c.data_solicitacao === filterDate;
-    return matchSearch && matchStatus && matchForn && matchDate;
+    const matchResp = filterResponsaveis.length === 0 ||
+      filterResponsaveis.includes(c.responsavel?.trim() || '__sem__');
+    return matchSearch && matchStatus && matchForn && matchDate && matchResp;
   });
+
+  const responsaveisDisponiveis = Array.from(
+    new Set(cotacoes.map(c => c.responsavel?.trim()).filter((r): r is string => !!r))
+  ).sort((a, b) => a.localeCompare(b, 'pt-BR'));
+  const temSemResponsavel = cotacoes.some(c => !c.responsavel?.trim());
+
+  const toggleResponsavel = (r: string) =>
+    setFilterResponsaveis(prev => prev.includes(r) ? prev.filter(x => x !== r) : [...prev, r]);
 
   const openNew = () => {
     setEditing(null);
