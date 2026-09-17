@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
-import { Plus, Trash2, Package, Building2, Save } from 'lucide-react';
+import { Plus, Trash2, Package, Building2, Save, Trophy } from 'lucide-react';
 import { FornecedorAutocomplete, FornecedorOption } from '@/components/FornecedorAutocomplete';
 
 export interface ItemRow {
