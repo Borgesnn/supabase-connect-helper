@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
-import { Plus, Trash2, Package, Building2, Save, Trophy } from 'lucide-react';
+import { Plus, Trash2, Package, Building2, Save, Trophy, Table2 } from 'lucide-react';
 import { FornecedorAutocomplete, FornecedorOption } from '@/components/FornecedorAutocomplete';
 
 export interface ItemRow {
@@ -489,6 +489,128 @@ export function CotacaoComparativo({ cotacaoId, canManage, fornecedores, onNovoF
           </div>
         )}
       </section>
+
+      {/* TABELA COMPARATIVA */}
+      {itens.length > 0 && forns.length >= 2 && (
+        <section className="space-y-3">
+          <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground flex items-center gap-2">
+            <Table2 className="w-4 h-4" /> Tabela comparativa
+          </h3>
+          <div className="rounded-lg border border-border overflow-hidden bg-card">
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm min-w-[520px]">
+                <thead>
+                  <tr className="bg-muted/50 border-b border-border">
+                    <th className="text-left p-3 font-semibold sticky left-0 bg-muted/50 min-w-[160px]">Item</th>
+                    {forns.map((f) => {
+                      const pos = ranking.findIndex((r) => r.id === f.id);
+                      const first = pos === 0;
+                      return (
+                        <th key={f.id} className={`text-right p-3 font-semibold min-w-[130px] ${first ? 'bg-emerald-500/10 text-emerald-700' : ''}`}>
+                          <span className="block truncate">{f.fornecedor_nome || `Fornecedor ${f.ordem + 1}`}</span>
+                          {pos >= 0 && (
+                            <span className={`text-[10px] font-normal ${first ? 'text-emerald-600' : 'text-muted-foreground'}`}>
+                              {pos + 1}º colocado
+                            </span>
+                          )}
+                        </th>
+                      );
+                    })}
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border">
+                  {itens.map((i) => (
+                    <tr key={i.id}>
+                      <td className="p-3 sticky left-0 bg-card">
+                        <span className="font-medium">{i.nome || 'Item sem nome'}</span>
+                        <span className="block text-xs text-muted-foreground">{num(i.quantidade)} {i.unidade}</span>
+                      </td>
+                      {forns.map((f) => {
+                        const unit = precos[`${f.id}|${i.id}`] ?? 0;
+                        const isMenor = unit > 0 && menorPorItem[i.id] === unit;
+                        return (
+                          <td key={f.id} className={`p-3 text-right ${isMenor ? 'bg-emerald-500/10' : ''}`}>
+                            <span className={`font-medium ${isMenor ? 'text-emerald-600' : ''}`}>{fmtBRL(unit)}</span>
+                            {isMenor && <span className="block text-[10px] text-emerald-600 font-medium">menor preço</span>}
+                          </td>
+                        );
+                      })}
+                    </tr>
+                  ))}
+                  {(() => {
+                    const sumRow = (label: string, get: (f: FornRow) => number, opts?: { strong?: boolean; negate?: boolean; highlightMin?: boolean }) => {
+                      const vals = forns.map(get);
+                      const min = opts?.highlightMin ? Math.min(...vals.filter((v) => v > 0)) : null;
+                      return (
+                        <tr key={label} className="bg-muted/20">
+                          <td className="p-3 font-medium sticky left-0 bg-muted/20">{label}</td>
+                          {forns.map((f, idx) => {
+                            const v = vals[idx];
+                            const isMin = min != null && v === min && v > 0;
+                            return (
+                              <td key={f.id} className={`p-3 text-right ${opts?.strong ? 'font-semibold' : ''} ${isMin ? 'text-emerald-600' : ''}`}>
+                                {opts?.negate && v > 0 ? `- ${fmtBRL(v)}` : fmtBRL(v)}
+                              </td>
+                            );
+                          })}
+                        </tr>
+                      );
+                    };
+                    return (
+                      <>
+                        {sumRow('Produtos', (f) => totals[f.id]?.subtotal ?? 0, { strong: true, highlightMin: true })}
+                        {sumRow('Frete', (f) => f.frete)}
+                        {sumRow('Instalação', (f) => f.instalacao)}
+                        {sumRow('Outros custos', (f) => f.outros_custos)}
+                        {sumRow('Desconto', (f) => f.desconto, { negate: true })}
+                      </>
+                    );
+                  })()}
+                  <tr className="border-t-2 border-border">
+                    <td className="p-3 font-bold sticky left-0 bg-card">TOTAL</td>
+                    {forns.map((f) => {
+                      const t = totals[f.id]?.total ?? 0;
+                      const pos = ranking.findIndex((r) => r.id === f.id);
+                      const first = pos === 0;
+                      return (
+                        <td key={f.id} className={`p-3 text-right font-bold ${first ? 'bg-emerald-500/10 text-emerald-700' : ''}`}>
+                          {fmtBRL(t)}
+                          {!first && pos > 0 && ranking.length > 0 && t > 0 && (
+                            <span className="block text-[10px] font-normal text-muted-foreground">
+                              + {fmtBRL(t - ranking[0].total)}
+                            </span>
+                          )}
+                        </td>
+                      );
+                    })}
+                  </tr>
+                  {ranking.length >= 2 && (
+                    <tr className="bg-muted/30">
+                      <td className="p-3 font-semibold uppercase text-xs tracking-wide sticky left-0 bg-muted/30">Ranking</td>
+                      {forns.map((f) => {
+                        const pos = ranking.findIndex((r) => r.id === f.id);
+                        const first = pos === 0;
+                        return (
+                          <td key={f.id} className="p-3 text-right">
+                            {pos >= 0 ? (
+                              <Badge variant={first ? 'default' : 'secondary'} className={first ? '' : ''}>{pos + 1}º</Badge>
+                            ) : (
+                              <span className="text-xs text-muted-foreground">—</span>
+                            )}
+                          </td>
+                        );
+                      })}
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            O menor preço de cada item está em verde, mas o vencedor é definido pelo menor valor total da proposta.
+          </p>
+        </section>
+      )}
 
       {/* RANKING */}
       {ranking.length >= 2 && (
