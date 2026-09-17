@@ -103,6 +103,7 @@ export default function Cotacoes() {
   const [filterStatus, setFilterStatus] = useState<string>('todos');
   const [filterFornecedor, setFilterFornecedor] = useState<string>('todos');
   const [filterDate, setFilterDate] = useState('');
+  const [filterResponsaveis, setFilterResponsaveis] = useState<string[]>([]);
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<Cotacao | null>(null);
