@@ -177,6 +177,28 @@ export function CotacaoComparativo({ cotacaoId, canManage, fornecedores, onNovoF
     return res;
   }, [forns, itens, precos]);
 
+  /** Menor preço unitário por item (apenas valores > 0) */
+  const menorPorItem = useMemo(() => {
+    const res: Record<string, number> = {};
+    itens.forEach((i) => {
+      const vals = forns
+        .map((f) => precos[`${f.id}|${i.id}`] ?? 0)
+        .filter((v) => v > 0);
+      if (vals.length) res[i.id] = Math.min(...vals);
+    });
+    return res;
+  }, [itens, forns, precos]);
+
+  /** Ranking por VALOR TOTAL (menor primeiro), só propostas com algum valor */
+  const ranking = useMemo(() => {
+    return forns
+      .filter((f) => (totals[f.id]?.total ?? 0) > 0 && f.fornecedor_nome.trim())
+      .map((f) => ({ id: f.id, nome: f.fornecedor_nome, total: totals[f.id]!.total }))
+      .sort((a, b) => a.total - b.total);
+  }, [forns, totals]);
+
+  const economia = ranking.length >= 2 ? ranking[1].total - ranking[0].total : null;
+
   const handleSave = async () => {
     if (itens.some((i) => !i.nome.trim())) { toast.error('Informe o nome de todos os itens'); return; }
     if (forns.some((f) => !f.fornecedor_nome.trim())) { toast.error('Selecione o fornecedor em todas as propostas'); return; }
