@@ -18,6 +18,8 @@ import {
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
@@ -101,6 +103,7 @@ export default function Cotacoes() {
   const [filterStatus, setFilterStatus] = useState<string>('todos');
   const [filterFornecedor, setFilterFornecedor] = useState<string>('todos');
   const [filterDate, setFilterDate] = useState('');
+  const [filterResponsaveis, setFilterResponsaveis] = useState<string[]>([]);
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<Cotacao | null>(null);
@@ -207,8 +210,18 @@ export default function Cotacoes() {
     const matchStatus = filterStatus === 'todos' || c.status === filterStatus;
     const matchForn = filterFornecedor === 'todos' || c.fornecedor_id === filterFornecedor;
     const matchDate = !filterDate || c.data_solicitacao === filterDate;
-    return matchSearch && matchStatus && matchForn && matchDate;
+    const matchResp = filterResponsaveis.length === 0 ||
+      filterResponsaveis.includes(c.responsavel?.trim() || '__sem__');
+    return matchSearch && matchStatus && matchForn && matchDate && matchResp;
   });
+
+  const responsaveisDisponiveis = Array.from(
+    new Set(cotacoes.map(c => c.responsavel?.trim()).filter((r): r is string => !!r))
+  ).sort((a, b) => a.localeCompare(b, 'pt-BR'));
+  const temSemResponsavel = cotacoes.some(c => !c.responsavel?.trim());
+
+  const toggleResponsavel = (r: string) =>
+    setFilterResponsaveis(prev => prev.includes(r) ? prev.filter(x => x !== r) : [...prev, r]);
 
   const openNew = () => {
     setEditing(null);
@@ -415,7 +428,7 @@ export default function Cotacoes() {
       </div>
 
       {/* Filtros */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+      <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
         <div className="relative md:col-span-1">
           <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
           <Input placeholder="Buscar..." value={search} onChange={e => setSearch(e.target.value)} className="pl-9" />
@@ -434,6 +447,44 @@ export default function Cotacoes() {
             {fornecedores.map(f => <SelectItem key={f.id} value={f.id}>{f.nome}</SelectItem>)}
           </SelectContent>
         </Select>
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button variant="outline" className="justify-between font-normal">
+              <span className="truncate">
+                {filterResponsaveis.length === 0
+                  ? 'Todos os responsáveis'
+                  : filterResponsaveis.length === 1
+                    ? (filterResponsaveis[0] === '__sem__' ? 'Sem responsável' : filterResponsaveis[0])
+                    : `${filterResponsaveis.length} responsáveis`}
+              </span>
+              <Search className="w-4 h-4 ml-2 opacity-50 shrink-0" />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent align="start" className="w-64 p-2">
+            <div className="max-h-64 overflow-y-auto space-y-1">
+              {responsaveisDisponiveis.length === 0 && !temSemResponsavel && (
+                <p className="text-sm text-muted-foreground p-2">Nenhum responsável cadastrado.</p>
+              )}
+              {responsaveisDisponiveis.map(r => (
+                <label key={r} className="flex items-center gap-2 text-sm rounded px-2 py-1.5 hover:bg-muted cursor-pointer">
+                  <Checkbox checked={filterResponsaveis.includes(r)} onCheckedChange={() => toggleResponsavel(r)} />
+                  <span className="truncate">{r}</span>
+                </label>
+              ))}
+              {temSemResponsavel && (
+                <label className="flex items-center gap-2 text-sm rounded px-2 py-1.5 hover:bg-muted cursor-pointer">
+                  <Checkbox checked={filterResponsaveis.includes('__sem__')} onCheckedChange={() => toggleResponsavel('__sem__')} />
+                  <span className="text-muted-foreground">Sem responsável</span>
+                </label>
+              )}
+            </div>
+            {filterResponsaveis.length > 0 && (
+              <Button variant="ghost" size="sm" className="w-full mt-2" onClick={() => setFilterResponsaveis([])}>
+                Limpar seleção
+              </Button>
+            )}
+          </PopoverContent>
+        </Popover>
         <Input type="date" value={filterDate} onChange={e => setFilterDate(e.target.value)} />
       </div>
 
