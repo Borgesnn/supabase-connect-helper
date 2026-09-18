@@ -94,7 +94,7 @@ interface Historico {
 }
 
 const emptyForm = {
-  nome: '', fornecedor_id: '', produto_id: '', status: 'em_negociacao' as Status,
+  nome: '', fornecedor_id: '', produto_id: '', status: 'em_elaboracao' as Status,
   data_solicitacao: '', data_prevista: '', prazo_dias: '', quantidade: '',
   valor_estimado: '', valor_final: '', responsavel: '', observacoes: '',
   objetivo: '', setor: '', solicitante: '',
