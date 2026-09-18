@@ -682,6 +682,7 @@ export default function Cotacoes() {
                 canManage={canManage}
                 fornecedores={fornecedores}
                 onNovoFornecedor={() => { setNovoFornNome(''); setNovoFornOpen(true); }}
+                onAprovado={() => { fetchAll(); setForm(f => ({ ...f, status: 'aprovada' })); }}
               />
             </div>
           ) : (
