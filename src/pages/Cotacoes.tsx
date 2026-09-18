@@ -27,6 +27,7 @@ import {
 import {
   Plus, Search, Pencil, Trash2, FileText, Paperclip, Upload, Download, X,
   MessageSquare, CheckCircle2, ShoppingBag, PackageCheck, History,
+  ClipboardList, Send, Inbox, ScanSearch, ThumbsUp, ThumbsDown, Flag, Ban,
 } from 'lucide-react';
 import { ProdutoAutocomplete } from '@/components/ProdutoAutocomplete';
 import { FornecedorAutocomplete } from '@/components/FornecedorAutocomplete';
@@ -34,15 +35,29 @@ import { SetorSelect } from '@/components/SetorSelect';
 import { CotacaoComparativo } from '@/components/cotacoes/CotacaoComparativo';
 import type { Produto as ProdutoFull } from '@/types/database';
 
-type Status = 'em_negociacao' | 'cotacao_feita' | 'pedido_solicitado' | 'pedido_chegou';
+type Status = string;
 
-const STATUS_INFO: Record<Status, { label: string; icon: any; badge: string; card: string }> = {
-  em_negociacao:     { label: 'Em negociação',    icon: MessageSquare, badge: 'bg-amber-500/10 text-amber-600 border-amber-500/20',  card: 'border-l-amber-500' },
-  cotacao_feita:     { label: 'Cotação feita',    icon: CheckCircle2,  badge: 'bg-blue-500/10 text-blue-600 border-blue-500/20',     card: 'border-l-blue-500' },
-  pedido_solicitado: { label: 'Pedido solicitado',icon: ShoppingBag,   badge: 'bg-violet-500/10 text-violet-600 border-violet-500/20', card: 'border-l-violet-500' },
-  pedido_chegou:     { label: 'Pedido chegou',    icon: PackageCheck,  badge: 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20', card: 'border-l-emerald-500' },
+const STATUS_INFO: Record<string, { label: string; icon: any; badge: string; card: string }> = {
+  em_elaboracao:       { label: 'Em elaboração',      icon: ClipboardList, badge: 'bg-slate-500/10 text-slate-600 border-slate-500/20',    card: 'border-l-slate-400' },
+  aguardando_cotacoes: { label: 'Aguardando cotações',icon: Send,          badge: 'bg-amber-500/10 text-amber-600 border-amber-500/20',     card: 'border-l-amber-500' },
+  cotacoes_recebidas:  { label: 'Cotações recebidas', icon: Inbox,         badge: 'bg-blue-500/10 text-blue-600 border-blue-500/20',        card: 'border-l-blue-500' },
+  em_analise:          { label: 'Em análise',         icon: ScanSearch,    badge: 'bg-violet-500/10 text-violet-600 border-violet-500/20',  card: 'border-l-violet-500' },
+  aprovada:            { label: 'Aprovada',           icon: ThumbsUp,      badge: 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20', card: 'border-l-emerald-500' },
+  reprovada:           { label: 'Reprovada',          icon: ThumbsDown,    badge: 'bg-destructive/10 text-destructive border-destructive/20', card: 'border-l-destructive' },
+  finalizada:          { label: 'Finalizada',         icon: Flag,          badge: 'bg-teal-500/10 text-teal-600 border-teal-500/20',        card: 'border-l-teal-500' },
+  cancelada:           { label: 'Cancelada',          icon: Ban,           badge: 'bg-muted text-muted-foreground border-border',           card: 'border-l-muted-foreground' },
+  // Status antigos (registros históricos)
+  em_negociacao:     { label: 'Em negociação',     icon: MessageSquare, badge: 'bg-amber-500/10 text-amber-600 border-amber-500/20',  card: 'border-l-amber-500' },
+  cotacao_feita:     { label: 'Cotação feita',     icon: CheckCircle2,  badge: 'bg-blue-500/10 text-blue-600 border-blue-500/20',     card: 'border-l-blue-500' },
+  pedido_solicitado: { label: 'Pedido solicitado', icon: ShoppingBag,   badge: 'bg-violet-500/10 text-violet-600 border-violet-500/20', card: 'border-l-violet-500' },
+  pedido_chegou:     { label: 'Pedido chegou',     icon: PackageCheck,  badge: 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20', card: 'border-l-emerald-500' },
 };
-const STATUS_KEYS: Status[] = ['em_negociacao', 'cotacao_feita', 'pedido_solicitado', 'pedido_chegou'];
+const statusInfo = (s: string) =>
+  STATUS_INFO[s] ?? { label: s, icon: FileText, badge: 'bg-muted text-muted-foreground border-border', card: 'border-l-muted-foreground' };
+const STATUS_KEYS: Status[] = [
+  'em_elaboracao', 'aguardando_cotacoes', 'cotacoes_recebidas', 'em_analise',
+  'aprovada', 'reprovada', 'finalizada', 'cancelada',
+];
 
 interface Fornecedor { id: string; nome: string; }
 interface Produto { id: string; nome: string; codigo: string; }
@@ -79,7 +94,7 @@ interface Historico {
 }
 
 const emptyForm = {
-  nome: '', fornecedor_id: '', produto_id: '', status: 'em_negociacao' as Status,
+  nome: '', fornecedor_id: '', produto_id: '', status: 'em_elaboracao' as Status,
   data_solicitacao: '', data_prevista: '', prazo_dias: '', quantidade: '',
   valor_estimado: '', valor_final: '', responsavel: '', observacoes: '',
   objetivo: '', setor: '', solicitante: '',
@@ -408,7 +423,7 @@ export default function Cotacoes() {
       {/* Cards resumo */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         {STATUS_KEYS.map(s => {
-          const info = STATUS_INFO[s];
+          const info = statusInfo(s);
           const Icon = info.icon;
           const active = filterStatus === s;
           return (
@@ -437,7 +452,7 @@ export default function Cotacoes() {
           <SelectTrigger><SelectValue /></SelectTrigger>
           <SelectContent>
             <SelectItem value="todos">Todos os status</SelectItem>
-            {STATUS_KEYS.map(s => <SelectItem key={s} value={s}>{STATUS_INFO[s].label}</SelectItem>)}
+            {STATUS_KEYS.map(s => <SelectItem key={s} value={s}>{statusInfo(s).label}</SelectItem>)}
           </SelectContent>
         </Select>
         <Select value={filterFornecedor} onValueChange={setFilterFornecedor}>
@@ -509,7 +524,7 @@ export default function Cotacoes() {
             ) : filtered.length === 0 ? (
               <TableRow><TableCell colSpan={8} className="text-center py-8 text-muted-foreground">Nenhuma cotação encontrada</TableCell></TableRow>
             ) : filtered.map(c => {
-              const info = STATUS_INFO[c.status];
+              const info = statusInfo(c.status);
               return (
                 <TableRow key={c.id} className="cursor-pointer hover:bg-muted/50" onClick={() => openDetails(c)}>
                   <TableCell className="font-medium">{c.nome}</TableCell>
@@ -605,7 +620,7 @@ export default function Cotacoes() {
               <Select value={form.status} onValueChange={v => setForm({ ...form, status: v as Status })}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  {STATUS_KEYS.map(s => <SelectItem key={s} value={s}>{STATUS_INFO[s].label}</SelectItem>)}
+                  {STATUS_KEYS.map(s => <SelectItem key={s} value={s}>{statusInfo(s).label}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
@@ -667,6 +682,7 @@ export default function Cotacoes() {
                 canManage={canManage}
                 fornecedores={fornecedores}
                 onNovoFornecedor={() => { setNovoFornNome(''); setNovoFornOpen(true); }}
+                onAprovado={() => { fetchAll(); setForm(f => ({ ...f, status: 'aprovada' })); }}
               />
             </div>
           ) : (
@@ -692,8 +708,8 @@ export default function Cotacoes() {
               <DialogHeader>
                 <DialogTitle className="text-xl">{selected.nome}</DialogTitle>
                 <div className="flex items-center gap-2 flex-wrap mt-1">
-                  <Badge variant="outline" className={STATUS_INFO[selected.status].badge}>
-                    {STATUS_INFO[selected.status].label}
+                  <Badge variant="outline" className={statusInfo(selected.status).badge}>
+                    {statusInfo(selected.status).label}
                   </Badge>
                   {selected.fornecedor && <Badge variant="secondary">{selected.fornecedor.nome}</Badge>}
                 </div>
@@ -707,7 +723,7 @@ export default function Cotacoes() {
                     <div className="flex flex-wrap gap-2 mt-2">
                       {STATUS_KEYS.filter(s => s !== selected.status).map(s => (
                         <Button key={s} size="sm" variant="outline" onClick={() => setStatusChange(s)}>
-                          → {STATUS_INFO[s].label}
+                          → {statusInfo(s).label}
                         </Button>
                       ))}
                     </div>
@@ -826,8 +842,8 @@ export default function Cotacoes() {
                           <div className="absolute -left-[1.4rem] top-1.5 w-3 h-3 rounded-full bg-primary border-2 border-background" />
                           <div className="text-sm">
                             <span className="font-medium">
-                              {h.status_anterior ? `${STATUS_INFO[h.status_anterior as Status]?.label ?? h.status_anterior} → ` : ''}
-                              {STATUS_INFO[h.status_novo as Status]?.label ?? h.status_novo}
+                              {h.status_anterior ? `${statusInfo(h.status_anterior as Status)?.label ?? h.status_anterior} → ` : ''}
+                              {statusInfo(h.status_novo as Status)?.label ?? h.status_novo}
                             </span>
                             <span className="text-muted-foreground text-xs ml-2">
                               {new Date(h.created_at).toLocaleString('pt-BR')}
@@ -860,7 +876,7 @@ export default function Cotacoes() {
           <DialogHeader>
             <DialogTitle>Alterar status</DialogTitle>
             <DialogDescription>
-              {selected && statusChange && `${STATUS_INFO[selected.status].label} → ${STATUS_INFO[statusChange].label}`}
+              {selected && statusChange && `${statusInfo(selected.status).label} → ${statusInfo(statusChange).label}`}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-2">

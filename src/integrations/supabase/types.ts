@@ -501,67 +501,98 @@ export type Database = {
         Row: {
           created_at: string
           created_by: string
+          data_escolha: string | null
           data_prevista: string | null
           data_solicitacao: string | null
+          diferenca_primeiro: number | null
+          escolhido_por: string | null
+          fornecedor_escolhido_id: string | null
+          fornecedor_escolhido_nome: string | null
           fornecedor_id: string | null
           id: string
+          justificativa_escolha: string | null
           nome: string
           objetivo: string | null
           observacoes: string | null
           prazo_dias: number | null
           produto_id: string | null
           quantidade: number | null
+          ranking_escolhido: number | null
           responsavel: string | null
           setor: string | null
           solicitante: string | null
           status: string
           updated_at: string
+          valor_escolhido: number | null
           valor_estimado: number | null
           valor_final: number | null
         }
         Insert: {
           created_at?: string
           created_by: string
+          data_escolha?: string | null
           data_prevista?: string | null
           data_solicitacao?: string | null
+          diferenca_primeiro?: number | null
+          escolhido_por?: string | null
+          fornecedor_escolhido_id?: string | null
+          fornecedor_escolhido_nome?: string | null
           fornecedor_id?: string | null
           id?: string
+          justificativa_escolha?: string | null
           nome: string
           objetivo?: string | null
           observacoes?: string | null
           prazo_dias?: number | null
           produto_id?: string | null
           quantidade?: number | null
+          ranking_escolhido?: number | null
           responsavel?: string | null
           setor?: string | null
           solicitante?: string | null
           status?: string
           updated_at?: string
+          valor_escolhido?: number | null
           valor_estimado?: number | null
           valor_final?: number | null
         }
         Update: {
           created_at?: string
           created_by?: string
+          data_escolha?: string | null
           data_prevista?: string | null
           data_solicitacao?: string | null
+          diferenca_primeiro?: number | null
+          escolhido_por?: string | null
+          fornecedor_escolhido_id?: string | null
+          fornecedor_escolhido_nome?: string | null
           fornecedor_id?: string | null
           id?: string
+          justificativa_escolha?: string | null
           nome?: string
           objetivo?: string | null
           observacoes?: string | null
           prazo_dias?: number | null
           produto_id?: string | null
           quantidade?: number | null
+          ranking_escolhido?: number | null
           responsavel?: string | null
           setor?: string | null
           solicitante?: string | null
           status?: string
           updated_at?: string
+          valor_escolhido?: number | null
           valor_estimado?: number | null
           valor_final?: number | null
         }
         Relationships: [
+          {
+            foreignKeyName: "cotacoes_fornecedor_escolhido_id_fkey"
+            columns: ["fornecedor_escolhido_id"]
+            isOneToOne: false
+            referencedRelation: "fornecedores"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "cotacoes_fornecedor_id_fkey"
             columns: ["fornecedor_id"]
@@ -624,6 +655,9 @@ export type Database = {
           ativo: boolean
           avaliacao: number | null
           categoria: string | null
+          cidade: string | null
+          cnpj: string | null
+          contato_nome: string | null
           created_at: string
           email: string | null
           endereco: string | null
@@ -637,11 +671,15 @@ export type Database = {
           site: string | null
           telefone: string | null
           updated_at: string
+          whatsapp: string | null
         }
         Insert: {
           ativo?: boolean
           avaliacao?: number | null
           categoria?: string | null
+          cidade?: string | null
+          cnpj?: string | null
+          contato_nome?: string | null
           created_at?: string
           email?: string | null
           endereco?: string | null
@@ -655,11 +693,15 @@ export type Database = {
           site?: string | null
           telefone?: string | null
           updated_at?: string
+          whatsapp?: string | null
         }
         Update: {
           ativo?: boolean
           avaliacao?: number | null
           categoria?: string | null
+          cidade?: string | null
+          cnpj?: string | null
+          contato_nome?: string | null
           created_at?: string
           email?: string | null
           endereco?: string | null
@@ -673,6 +715,7 @@ export type Database = {
           site?: string | null
           telefone?: string | null
           updated_at?: string
+          whatsapp?: string | null
         }
         Relationships: []
       }

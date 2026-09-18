@@ -31,6 +31,10 @@ import { getSignedFileUrl } from '@/lib/storage';
 interface Fornecedor {
   id: string;
   nome: string;
+  cnpj: string | null;
+  contato_nome: string | null;
+  whatsapp: string | null;
+  cidade: string | null;
   logo_url: string | null;
   telefone: string | null;
   email: string | null;
@@ -57,7 +61,8 @@ interface Anexo {
 }
 
 const emptyForm = {
-  nome: '', telefone: '', email: '', site: '', endereco: '', responsavel: '',
+  nome: '', cnpj: '', contato_nome: '', whatsapp: '', cidade: '',
+  telefone: '', email: '', site: '', endereco: '', responsavel: '',
   categoria: '', prazo_entrega_dias: '', forma_pagamento: '', avaliacao: '0',
   observacoes: '', ativo: true, logo_url: '',
 };
@@ -104,7 +109,11 @@ export default function Fornecedores() {
       f.nome.toLowerCase().includes(q) ||
       (f.email ?? '').toLowerCase().includes(q) ||
       (f.responsavel ?? '').toLowerCase().includes(q) ||
-      (f.telefone ?? '').toLowerCase().includes(q);
+      (f.telefone ?? '').toLowerCase().includes(q) ||
+      (f.cnpj ?? '').toLowerCase().includes(q) ||
+      (f.contato_nome ?? '').toLowerCase().includes(q) ||
+      (f.whatsapp ?? '').toLowerCase().includes(q) ||
+      (f.cidade ?? '').toLowerCase().includes(q);
     const matchCat = filterCategoria === 'todas' || f.categoria === filterCategoria;
     return matchSearch && matchCat;
   });
@@ -120,6 +129,10 @@ export default function Fornecedores() {
     setEditing(f);
     setForm({
       nome: f.nome,
+      cnpj: f.cnpj ?? '',
+      contato_nome: f.contato_nome ?? '',
+      whatsapp: f.whatsapp ?? '',
+      cidade: f.cidade ?? '',
       telefone: f.telefone ?? '',
       email: f.email ?? '',
       site: f.site ?? '',
@@ -154,6 +167,10 @@ export default function Fornecedores() {
       const logo_url = await uploadLogo();
       const payload = {
         nome: form.nome.trim(),
+        cnpj: form.cnpj || null,
+        contato_nome: form.contato_nome || null,
+        whatsapp: form.whatsapp || null,
+        cidade: form.cidade || null,
         telefone: form.telefone || null,
         email: form.email || null,
         site: form.site || null,
@@ -378,6 +395,22 @@ export default function Fornecedores() {
               <Input value={form.categoria} onChange={e => setForm({ ...form, categoria: e.target.value })} placeholder="Ex: Vestuário" />
             </div>
             <div className="space-y-2">
+              <Label>CNPJ</Label>
+              <Input value={form.cnpj} onChange={e => setForm({ ...form, cnpj: e.target.value })} placeholder="00.000.000/0000-00" />
+            </div>
+            <div className="space-y-2">
+              <Label>Nome do contato</Label>
+              <Input value={form.contato_nome} onChange={e => setForm({ ...form, contato_nome: e.target.value })} />
+            </div>
+            <div className="space-y-2">
+              <Label>WhatsApp</Label>
+              <Input value={form.whatsapp} onChange={e => setForm({ ...form, whatsapp: e.target.value })} placeholder="(00) 00000-0000" />
+            </div>
+            <div className="space-y-2">
+              <Label>Cidade</Label>
+              <Input value={form.cidade} onChange={e => setForm({ ...form, cidade: e.target.value })} />
+            </div>
+            <div className="space-y-2">
               <Label>Responsável</Label>
               <Input value={form.responsavel} onChange={e => setForm({ ...form, responsavel: e.target.value })} />
             </div>
@@ -466,6 +499,10 @@ export default function Fornecedores() {
                 <section>
                   <h3 className="text-sm font-semibold mb-2 text-muted-foreground uppercase tracking-wide">Dados</h3>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+                    <div><span className="text-muted-foreground">CNPJ:</span> {selected.cnpj || '—'}</div>
+                    <div><span className="text-muted-foreground">Cidade:</span> {selected.cidade || '—'}</div>
+                    <div><span className="text-muted-foreground">Contato:</span> {selected.contato_nome || '—'}</div>
+                    <div><span className="text-muted-foreground">WhatsApp:</span> {selected.whatsapp || '—'}</div>
                     <div><span className="text-muted-foreground">Responsável:</span> {selected.responsavel || '—'}</div>
                     <div><span className="text-muted-foreground">Telefone:</span> {selected.telefone || '—'}</div>
                     <div><span className="text-muted-foreground">E-mail:</span> {selected.email || '—'}</div>
