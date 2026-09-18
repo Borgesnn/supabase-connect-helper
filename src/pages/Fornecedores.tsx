@@ -31,6 +31,10 @@ import { getSignedFileUrl } from '@/lib/storage';
 interface Fornecedor {
   id: string;
   nome: string;
+  cnpj: string | null;
+  contato_nome: string | null;
+  whatsapp: string | null;
+  cidade: string | null;
   logo_url: string | null;
   telefone: string | null;
   email: string | null;
@@ -57,7 +61,8 @@ interface Anexo {
 }
 
 const emptyForm = {
-  nome: '', telefone: '', email: '', site: '', endereco: '', responsavel: '',
+  nome: '', cnpj: '', contato_nome: '', whatsapp: '', cidade: '',
+  telefone: '', email: '', site: '', endereco: '', responsavel: '',
   categoria: '', prazo_entrega_dias: '', forma_pagamento: '', avaliacao: '0',
   observacoes: '', ativo: true, logo_url: '',
 };
@@ -120,6 +125,10 @@ export default function Fornecedores() {
     setEditing(f);
     setForm({
       nome: f.nome,
+      cnpj: f.cnpj ?? '',
+      contato_nome: f.contato_nome ?? '',
+      whatsapp: f.whatsapp ?? '',
+      cidade: f.cidade ?? '',
       telefone: f.telefone ?? '',
       email: f.email ?? '',
       site: f.site ?? '',
@@ -154,6 +163,10 @@ export default function Fornecedores() {
       const logo_url = await uploadLogo();
       const payload = {
         nome: form.nome.trim(),
+        cnpj: form.cnpj || null,
+        contato_nome: form.contato_nome || null,
+        whatsapp: form.whatsapp || null,
+        cidade: form.cidade || null,
         telefone: form.telefone || null,
         email: form.email || null,
         site: form.site || null,
