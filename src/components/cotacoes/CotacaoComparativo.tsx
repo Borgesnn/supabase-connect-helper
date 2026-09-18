@@ -76,9 +76,10 @@ interface Props {
   canManage: boolean;
   fornecedores: FornecedorOption[];
   onNovoFornecedor?: () => void;
+  onAprovado?: () => void;
 }
 
-export function CotacaoComparativo({ cotacaoId, canManage, fornecedores, onNovoFornecedor }: Props) {
+export function CotacaoComparativo({ cotacaoId, canManage, fornecedores, onNovoFornecedor, onAprovado }: Props) {
   const [itens, setItens] = useState<ItemRow[]>([]);
   const [forns, setForns] = useState<FornRow[]>([]);
   const [precos, setPrecos] = useState<Record<string, number>>({}); // `${fornRowId}|${itemRowId}` -> valor
