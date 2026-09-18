@@ -200,6 +200,54 @@ export function CotacaoComparativo({ cotacaoId, canManage, fornecedores, onNovoF
 
   const economia = ranking.length >= 2 ? ranking[1].total - ranking[0].total : null;
 
+  /* ---------- Aprovação / escolha do fornecedor ---------- */
+  const [aprovFornId, setAprovFornId] = useState('');
+  const [justificativa, setJustificativa] = useState('');
+  const [aprov, setAprov] = useState<any>(null);
+  const [aprovando, setAprovando] = useState(false);
+
+  useEffect(() => {
+    let cancel = false;
+    (async () => {
+      const { data } = await (supabase.from('cotacoes') as any)
+        .select('fornecedor_escolhido_id,fornecedor_escolhido_nome,valor_escolhido,ranking_escolhido,diferenca_primeiro,justificativa_escolha,data_escolha')
+        .eq('id', cotacaoId).maybeSingle();
+      if (cancel || !data) return;
+      setAprov(data.fornecedor_escolhido_nome ? data : null);
+      setJustificativa(data.justificativa_escolha ?? '');
+    })();
+    return () => { cancel = true; };
+  }, [cotacaoId]);
+
+  const escolhaPos = ranking.findIndex((r) => r.id === aprovFornId);
+  const escolha = escolhaPos >= 0 ? ranking[escolhaPos] : null;
+
+  const handleAprovar = async () => {
+    if (!escolha) { toast.error('Selecione o fornecedor escolhido'); return; }
+    if (escolhaPos > 0 && justificativa.trim().length < 20) {
+      toast.error('Ao não escolher o 1º colocado, a justificativa é obrigatória (mínimo 20 caracteres)');
+      return;
+    }
+    const forn = forns.find((f) => f.id === escolha.id);
+    setAprovando(true);
+    const payload = {
+      fornecedor_escolhido_id: forn?.fornecedor_id ?? null,
+      fornecedor_escolhido_nome: escolha.nome,
+      valor_escolhido: escolha.total,
+      ranking_escolhido: escolhaPos + 1,
+      diferenca_primeiro: escolha.total - ranking[0].total,
+      justificativa_escolha: justificativa.trim() || null,
+      data_escolha: new Date().toISOString(),
+      status: 'aprovada',
+    };
+    const { error } = await (supabase.from('cotacoes') as any).update(payload).eq('id', cotacaoId);
+    setAprovando(false);
+    if (error) { toast.error('Erro ao registrar a escolha'); return; }
+    setAprov(payload);
+    toast.success('Fornecedor escolhido registrado e cotação aprovada');
+    onAprovado?.();
+  };
+
   const handleSave = async () => {
     if (itens.some((i) => !i.nome.trim())) { toast.error('Informe o nome de todos os itens'); return; }
     if (forns.some((f) => !f.fornecedor_nome.trim())) { toast.error('Selecione o fornecedor em todas as propostas'); return; }
