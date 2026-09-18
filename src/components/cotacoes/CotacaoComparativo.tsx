@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
-import { Plus, Trash2, Package, Building2, Save, Trophy, Table2 } from 'lucide-react';
+import { Plus, Trash2, Package, Building2, Save, Trophy, Table2, BadgeCheck } from 'lucide-react';
 import { FornecedorAutocomplete, FornecedorOption } from '@/components/FornecedorAutocomplete';
 
 export interface ItemRow {
@@ -703,6 +703,88 @@ export function CotacaoComparativo({ cotacaoId, canManage, fornecedores, onNovoF
             <p className="text-xs text-amber-600">
               Ranking parcial: preencha os valores de pelo menos 3 fornecedores para a comparação completa.
             </p>
+          )}
+        </section>
+      )}
+
+      {/* APROVAÇÃO / ESCOLHA DO FORNECEDOR */}
+      {(ranking.length >= 2 || aprov) && (
+        <section className="space-y-3">
+          <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground flex items-center gap-2">
+            <BadgeCheck className="w-4 h-4" /> Aprovação da cotação
+          </h3>
+
+          {aprov && (
+            <div className="rounded-lg border border-primary/30 bg-primary/5 p-4 space-y-1">
+              <p className="text-xs font-semibold uppercase tracking-wide text-primary">Fornecedor escolhido</p>
+              <p className="text-lg font-bold">{aprov.fornecedor_escolhido_nome}</p>
+              <p className="text-sm">
+                Valor total: <span className="font-semibold">{fmtBRL(Number(aprov.valor_escolhido ?? 0))}</span>
+                {aprov.ranking_escolhido ? <> · Posição no ranking: <Badge variant="secondary">{aprov.ranking_escolhido}º lugar</Badge></> : null}
+              </p>
+              {Number(aprov.diferenca_primeiro ?? 0) > 0 && (
+                <p className="text-sm text-muted-foreground">
+                  Diferença para o 1º colocado: <span className="font-semibold">{fmtBRL(Number(aprov.diferenca_primeiro))}</span>
+                </p>
+              )}
+              {aprov.ranking_escolhido === 1 && economia != null && (
+                <p className="text-sm text-muted-foreground">
+                  Economia em relação ao 2º colocado: <span className="font-semibold text-emerald-600">{fmtBRL(economia)}</span>
+                </p>
+              )}
+              {aprov.justificativa_escolha && (
+                <p className="text-sm mt-2"><span className="text-muted-foreground">Justificativa:</span> {aprov.justificativa_escolha}</p>
+              )}
+            </div>
+          )}
+
+          {canManage && ranking.length >= 2 && (
+            <div className="rounded-lg border border-border p-4 space-y-3">
+              <Label className="text-xs uppercase tracking-wide text-muted-foreground">
+                {aprov ? 'Alterar fornecedor escolhido' : 'Selecionar fornecedor escolhido'}
+              </Label>
+              <div className="grid gap-2">
+                {ranking.map((r, idx) => (
+                  <button
+                    key={r.id}
+                    type="button"
+                    onClick={() => setAprovFornId(r.id)}
+                    className={`flex items-center justify-between gap-3 p-3 rounded-md border text-left transition-colors ${
+                      aprovFornId === r.id ? 'border-primary bg-primary/5 ring-1 ring-primary' : 'border-border hover:bg-muted/50'
+                    }`}
+                  >
+                    <span className="flex items-center gap-2 min-w-0">
+                      <Badge variant={idx === 0 ? 'default' : 'secondary'}>{idx + 1}º</Badge>
+                      <span className="text-sm font-medium truncate">{r.nome}</span>
+                    </span>
+                    <span className="text-sm font-semibold">{fmtBRL(r.total)}</span>
+                  </button>
+                ))}
+              </div>
+
+              {escolha && escolhaPos > 0 && (
+                <p className="text-xs text-amber-600">
+                  Você escolheu o {escolhaPos + 1}º colocado ({fmtBRL(escolha.total - ranking[0].total)} acima do 1º). A justificativa é obrigatória.
+                </p>
+              )}
+
+              <div className="space-y-2">
+                <Label>Justificativa da escolha {escolhaPos > 0 && <span className="text-destructive">*</span>}</Label>
+                <Textarea
+                  rows={3}
+                  value={justificativa}
+                  onChange={(e) => setJustificativa(e.target.value)}
+                  placeholder="Ex: Apesar do maior valor, o fornecedor possui prazo de entrega menor e atende às especificações do evento."
+                />
+              </div>
+
+              <div className="flex justify-end">
+                <Button onClick={handleAprovar} disabled={aprovando || !escolha}>
+                  <BadgeCheck className="w-4 h-4 mr-2" />
+                  {aprovando ? 'Salvando...' : 'Confirmar escolha e aprovar'}
+                </Button>
+              </div>
+            </div>
           )}
         </section>
       )}
