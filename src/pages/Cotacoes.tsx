@@ -423,7 +423,7 @@ export default function Cotacoes() {
       {/* Cards resumo */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         {STATUS_KEYS.map(s => {
-          const info = STATUS_INFO[s];
+          const info = statusInfo(s);
           const Icon = info.icon;
           const active = filterStatus === s;
           return (
@@ -452,7 +452,7 @@ export default function Cotacoes() {
           <SelectTrigger><SelectValue /></SelectTrigger>
           <SelectContent>
             <SelectItem value="todos">Todos os status</SelectItem>
-            {STATUS_KEYS.map(s => <SelectItem key={s} value={s}>{STATUS_INFO[s].label}</SelectItem>)}
+            {STATUS_KEYS.map(s => <SelectItem key={s} value={s}>{statusInfo(s).label}</SelectItem>)}
           </SelectContent>
         </Select>
         <Select value={filterFornecedor} onValueChange={setFilterFornecedor}>
@@ -524,7 +524,7 @@ export default function Cotacoes() {
             ) : filtered.length === 0 ? (
               <TableRow><TableCell colSpan={8} className="text-center py-8 text-muted-foreground">Nenhuma cotação encontrada</TableCell></TableRow>
             ) : filtered.map(c => {
-              const info = STATUS_INFO[c.status];
+              const info = statusInfo(c.status);
               return (
                 <TableRow key={c.id} className="cursor-pointer hover:bg-muted/50" onClick={() => openDetails(c)}>
                   <TableCell className="font-medium">{c.nome}</TableCell>
@@ -620,7 +620,7 @@ export default function Cotacoes() {
               <Select value={form.status} onValueChange={v => setForm({ ...form, status: v as Status })}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  {STATUS_KEYS.map(s => <SelectItem key={s} value={s}>{STATUS_INFO[s].label}</SelectItem>)}
+                  {STATUS_KEYS.map(s => <SelectItem key={s} value={s}>{statusInfo(s).label}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
@@ -707,8 +707,8 @@ export default function Cotacoes() {
               <DialogHeader>
                 <DialogTitle className="text-xl">{selected.nome}</DialogTitle>
                 <div className="flex items-center gap-2 flex-wrap mt-1">
-                  <Badge variant="outline" className={STATUS_INFO[selected.status].badge}>
-                    {STATUS_INFO[selected.status].label}
+                  <Badge variant="outline" className={statusInfo(selected.status).badge}>
+                    {statusInfo(selected.status).label}
                   </Badge>
                   {selected.fornecedor && <Badge variant="secondary">{selected.fornecedor.nome}</Badge>}
                 </div>
@@ -722,7 +722,7 @@ export default function Cotacoes() {
                     <div className="flex flex-wrap gap-2 mt-2">
                       {STATUS_KEYS.filter(s => s !== selected.status).map(s => (
                         <Button key={s} size="sm" variant="outline" onClick={() => setStatusChange(s)}>
-                          → {STATUS_INFO[s].label}
+                          → {statusInfo(s).label}
                         </Button>
                       ))}
                     </div>
@@ -841,8 +841,8 @@ export default function Cotacoes() {
                           <div className="absolute -left-[1.4rem] top-1.5 w-3 h-3 rounded-full bg-primary border-2 border-background" />
                           <div className="text-sm">
                             <span className="font-medium">
-                              {h.status_anterior ? `${STATUS_INFO[h.status_anterior as Status]?.label ?? h.status_anterior} → ` : ''}
-                              {STATUS_INFO[h.status_novo as Status]?.label ?? h.status_novo}
+                              {h.status_anterior ? `${statusInfo(h.status_anterior as Status)?.label ?? h.status_anterior} → ` : ''}
+                              {statusInfo(h.status_novo as Status)?.label ?? h.status_novo}
                             </span>
                             <span className="text-muted-foreground text-xs ml-2">
                               {new Date(h.created_at).toLocaleString('pt-BR')}
@@ -875,7 +875,7 @@ export default function Cotacoes() {
           <DialogHeader>
             <DialogTitle>Alterar status</DialogTitle>
             <DialogDescription>
-              {selected && statusChange && `${STATUS_INFO[selected.status].label} → ${STATUS_INFO[statusChange].label}`}
+              {selected && statusChange && `${statusInfo(selected.status).label} → ${statusInfo(statusChange).label}`}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-2">
